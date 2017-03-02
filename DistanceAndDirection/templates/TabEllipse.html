@@ -47,10 +47,11 @@
           <div class="controlItem">
             <select style="width: 225px" data-dojo-type="dijit/form/Select" id="lengthUnitDD" data-dojo-attach-point="lengthUnitDD">
               <option value="feet">Feet</option>
-              <option value="meters">Meters</option>
               <option value="kilometers">Kilometers</option>
               <option value="miles">Miles</option>
+              <option value="meters" selected="selected">Meters</option>
               <option value="nautical-miles">Nautical Miles</option>
+              <option value="yards">Yards</option>
             </select>
           </div>
         </div>
@@ -59,12 +60,18 @@
     <div class="controlGroup">
       <label>Orientation Angle</label>
       <div class="controlItem">
-        <input data-dojo-type="dijit/form/NumberSpinner" data-dojo-attach-point="angleInput" value="0" data-dojo-props="intermediateChanges:true, smallDelta:1, constraints:{min:0,max:6400}"/>
-        <select style="width: 100px" class="controlSpace" data-dojo-type="dijit/form/Select" id="angleUnitDD" data-dojo-attach-point="angleUnitDD">
+        <input class="jimu-input coordInput" data-dojo-type="dijit/form/NumberTextBox"
+              data-dojo-props='constraints:{min:0, max:360},
+              invalidMessage:"The value entered must be numeric.",
+                rangeMessage:"Value must be between 0 and 360"' data-dojo-attach-point="angleInput" />
+         <select style="width: 100px" class="controlSpace" data-dojo-type="dijit/form/Select" id="angleUnitDD" data-dojo-attach-point="angleUnitDD">
           <option value="degrees">Degrees</option>
           <option value="mils">Mils</option>
         </select>
       </div>
+    </div>
+    <div class="controlGroup" >
+      <label class="warning">Warning: Graphics generated using the ellipse tool are not geodetic</label>
     </div>
   </div>
 </div>

@@ -59,6 +59,11 @@
     margin-top: 13px;
 }
 
+.jimu-widget-DistanceAndDirection .controlGroup .warning{
+    color: #F00;
+    font-weight: bold;
+}
+
 .jimu-widget-DistanceAndDirection .controlGroup .controlGroupChild{
     margin-top: 6px;
 }

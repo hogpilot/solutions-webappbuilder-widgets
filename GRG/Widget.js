@@ -54,6 +54,10 @@ define([
      *
      **/
     postCreate: function () {
+      if(!this.config.grg) {
+          this.config.grg = {};
+      }
+      
       this.createAreaGRGTab = new TabCreateAreaGRG({
         map: this.map,
         appConfig: this.appConfig,

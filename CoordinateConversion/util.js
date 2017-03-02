@@ -53,6 +53,7 @@ define([
          *
          **/
         getCleanInput: function (fromstr) {
+            fromstr = fromstr.replace(/\n/g,'');
             return fromstr.replace(/\s+/g, ' ').trim();
         },
 
@@ -82,16 +83,25 @@ define([
                 addSpaces: false
             };
 
-            if (toType === 'MGRS') {
+            if (toType === 'DD') {
+                params.numOfDigits = 6;
+            } else if(toType === 'MGRS') {
                 params.conversionMode = 'mgrsDefault';
                 params.addSpaces = false;
                 params.numOfDigits = 5;
             } else if (toType === 'UTM') {
-                params.conversionMode = 'utmNorthSouth';
+                params.conversionType = 'utm';
+                params.conversionMode = 'utmDefault';
                 params.addSpaces = true;
-            } else if (toType === 'GARS') {
-                params.conversionMode = 'garsDefault';
-            } else if (toType === 'USNG') {
+            } //else if (toType === 'UTM (Z)') {
+                //params.conversionType = 'utm';
+                //params.conversionMode = 'utmNorthSouth';
+                //params.addSpaces = true;
+            //}
+            //else if (toType === 'GARS') {
+                //params.conversionMode = 'garsDefault';
+            //}
+            else if (toType === 'USNG') {
                 params.addSpaces = true;
                 params.numOfDigits = 5;
             }
@@ -118,7 +128,8 @@ define([
             } else {
               tt = toType;
             }
-
+            
+            
             var params = {
                 sr: 4326,
                 conversionType: tt,
@@ -130,23 +141,30 @@ define([
             case 'DD':
             case 'DDM':
             case 'DMS':
-                params.numOfDigits = 1;
-                a = fromStr.replace(/['°"]/g, '');
+                params.numOfDigits = 2;
+                a = fromStr.replace(/['°˚º"¨˝]/g, '');
                 params.strings.push(a);
                 break;
             case 'MGRS':
                 params.conversionMode = 'mgrsNewStyle';
                 params.strings.push(fromStr);
                 break;
+            //case 'UTM (H)':
+                //params.conversionType = 'utm';
+                //params.conversionMode = 'utmNorthSouth';
+                //a = fromStr.replace(/[mM]/g, '');
+                //params.strings.push(a);
+                //break;
             case 'UTM':
-                params.conversionMode = 'utmNorthSouth';
+                params.conversionType = 'utm';
+                params.conversionMode = 'utmDefault';
                 a = fromStr.replace(/[mM]/g, '');
                 params.strings.push(a);
                 break;
-            case 'GARS':
-                params.conversionMode = 'garsCenter';
-                params.strings.push(fromStr);
-                break;
+            //case 'GARS':
+               // params.conversionMode = 'garsCenter';
+               // params.strings.push(fromStr);
+               // break;
             }
             return this.geomService.fromGeoCoordinateString(params);
         },
@@ -160,23 +178,27 @@ define([
             //regexr.com
             var strs = [{
                     name: 'DD',
-                    pattern: /([-+]?\d{1,3}[.]?\d*[NnSs]?[\s,]{1}[-+]?\d{1,3}[.]?\d*[EeWw]?){1}/
-                }, {
+                    pattern: /([-+]?\d{1,3}[.]?\d*[\s]*[°˚º^~*]?[\s]*[NnSs]?[\s]*[,]?[\s]*[-+]?\d{1,3}[.]?\d*[\s]*[EeWw]?[\s]*)/
+                    }, {
                     name: 'DDM',
-                    pattern: /^\s?\d{1,3}[°]?\s[-+]?\d*\.?\d*\'?[NnSs]?[\s,]{1}\d{1,3}[°]?\s[-+]?\d*\.?\d*\'[EeWw]?/
+                    pattern: /\s?\d{1,3}[°˚º^~*]?[\s]*[-+]?\d*\.?\d*['']?[\s]*[NnSs]?[\s]*[,]?[\s]*\d{1,3}[°˚º^~*]?\s[-+]?\d*\.?\d*['']?[\s]*[EeWw]?[\s]*/
+                    
                 }, {
                     name: 'DMS',
-                    pattern: /([+-]?\d{1,3}[°]?[\s,]\d*[']?[\s,]\d*[.]?\d*['"]?[NnSsEeWw]?){1,2}/
+                    //pattern: /^(?!9[1-9])?([0-8]?\d?|90)[\s]*[°]?[\s]*([0]?[0-9]|[0-5]\d){1}[\s]*['"]?[\s]*[0]?[0-9]?[0-5]\d(\.\d+)?[\s]*['"]?[\s]*[NnSs]?[\s]*(180|((1[0-7]\d)|([0]?[0]?[1-9]?\d)))[\s]*[°]?[\s]*([0]?[0-9]|[0-5]\d){1}[\s]*['"]?[\s]*[0]?[0-9]?[0-5]\d(\.\d+)?[\s]*['"]?[\s]*[WwEe]?[\s]*/
+                    pattern: /([+-]?\d{1,3}[°˚º^~*]?[\s,]\d*['']?[\s,]\d*[.]?\d*["¨˝]?[\s]*[NnSsEeWw]?[\s]*){1,2}/
                 }, {
-                    name: 'GARS',
-                    pattern: /\d{3}[a-zA-Z]{2}\d?\d?/
-                }, {
+                //    name: 'GARS',
+                //    pattern: /\d{3}[a-zA-Z]{2}\d?\d?/
+                //}, {
                     name: 'MGRS',
                     pattern: /^\d{1,2}[c-hj-np-xC-HJ-NP-X][-,;:\s]*[a-hj-np-zA-HJ-NP-Z]{1}[a-hj-np-zA-HJ-NP-Z]{1}[-,;:\s]*\d{0,10}/
-                }, {
+                },
+                {
                     name: 'USNG',
-                    pattern: /\d{2}[S,s,N,n]*\s[A-Za-z]*\s\d*/
-                }, {
+                    pattern: /^\d{1,2}[c-hj-np-xC-HJ-NP-X][-,;:\s]{1}[a-hj-np-zA-HJ-NP-Z]{1}[a-hj-np-zA-HJ-NP-Z]{1}[-,;:\s]{1}\d{0,10}[\s]?\d{0,10}/
+                },
+                {
                     name: 'UTM',
                     pattern: /^\d{1,3}[NnSs]{1}([\s,-]\d*\.?\d*[mM]?){2}/
                 }
@@ -309,14 +331,14 @@ define([
 
             r.latdeg =  this.stripDecimalPlaces(parseFloat(parts[0]).toFixed(1), 1);
             r.latmin =  this.stripDecimalPlaces(parseFloat(parts[1]).toFixed(1), 1);
-            r.latsec =  this.stripDecimalPlaces(parseFloat(parts[2].replace(/[NnSs]/, '')).toFixed(1), 1);
+            r.latsec =  this.stripDecimalPlaces(parseFloat(parts[2].replace(/[NnSs]/, '')).toFixed(2), 2);
 
             var latdegdir = parts[2].slice(-1);
             r.ydir = latdegdir;
 
             r.londeg = this.stripDecimalPlaces(parseFloat(parts[3]).toFixed(1), 1);
             r.lonmin = this.stripDecimalPlaces(parseFloat(parts[4]).toFixed(1), 1);
-            r.lonsec = this.stripDecimalPlaces(parseFloat(parts[5].replace(/[EWew]/, '')).toFixed(1), 1);
+            r.lonsec = this.stripDecimalPlaces(parseFloat(parts[5].replace(/[EWew]/, '')).toFixed(2), 2);
 
             var londegdir = parts[5].slice(-1);
             r.xdir = londegdir;
@@ -366,11 +388,11 @@ define([
             r.northing = fromValue[0].match(/\d{5}$/)[0].trim();
 
             //Z S X# Y#
-            var s = withFormatStr.replace(/Z/, r.gzd);
-            s = s.replace(/S/, r.grdsq);
+            var s = withFormatStr.replace(/Y/, r.northing);
             s = s.replace(/X/, r.easting);
-            s = s.replace(/Y/, r.northing);
-
+            s = s.replace(/S/, r.grdsq);
+            s = s.replace(/Z/, r.gzd);          
+            
             r.formatResult = s;
             return r;
         },
@@ -389,11 +411,11 @@ define([
             r.northing = fromValue[0].replace(r.gzd + r.grdsq, '').match(/\d{1,5}$/)[0].trim();
 
             //Z S X# Y#
-            var s = withFormatStr.replace(/Z/, r.gzd);
-            s = s.replace(/S([^S]*)$/, r.grdsq+'$1');
+            var s = withFormatStr.replace(/Y/, r.northing);
             s = s.replace(/X/, r.easting);
-            s = s.replace(/Y/, r.northing);
-
+            s = s.replace(/S/, r.grdsq);
+            s = s.replace(/Z/, r.gzd);      
+            
             r.formatResult = s;
             return r;
         },
@@ -401,7 +423,7 @@ define([
         /**
          *
          **/
-        getFormattedGARSStr: function (fromValue, withFormatStr, addSignPrefix) {
+        /*getFormattedGARSStr: function (fromValue, withFormatStr, addSignPrefix) {
           var r = {};
           r.sourceValue = fromValue;
           r.sourceFormatString = withFormatStr;
@@ -414,19 +436,44 @@ define([
           r.key = q[0][1];
 
           //XYQK
-          var s = withFormatStr.replace(/X/, r.lon);
-          s = s.replace(/Y/, r.lat);
+          var s = withFormatStr.replace(/K/, r.key);
           s = s.replace(/Q/, r.quadrant);
-          s = s.replace(/K/, r.key);
+          s = s.replace(/Y/, r.lat);
+          s = s.replace(/X/, r.lon);
 
           r.formatResult = s;
           return r;
-        },
+        },*/
 
         /**
          *
          **/
         getFormattedUTMStr: function (fromValue, withFormatStr, addSignPrefix, addDirSuffix) {
+            var r = {};
+            r.sourceValue = fromValue;
+            r.sourceFormatString = withFormatStr;
+
+            r.parts = fromValue[0].split(/[ ,]+/);
+            r.zone = r.parts[0].replace(/[A-Z]/,'');
+            r.bandLetter = r.parts[0].slice(-1);
+            r.easting = r.parts[1];
+            r.westing = r.parts[2];
+
+            //ZB Xm Ym'
+            var s = withFormatStr.replace(/Y/, r.westing);
+            s = s.replace(/X/, r.easting);
+            s = s.replace (/B/, r.bandLetter);
+            s = s.replace(/Z/, r.zone);
+            
+
+            r.formatResult = s;
+            return r;
+        }
+        
+        /**
+         *
+         **/
+        /*getFormattedUTMHStr: function (fromValue, withFormatStr, addSignPrefix, addDirSuffix) {
             var r = {};
             r.sourceValue = fromValue;
             r.sourceFormatString = withFormatStr;
@@ -445,6 +492,6 @@ define([
 
             r.formatResult = s;
             return r;
-        }
+        }*/
     });
 });

@@ -776,7 +776,8 @@ define([
             aTab.advStat = {};
             tr.tabInfo = aTab;
           }
-          if (aTab.type !== tr.selectTypes.value || aTab.layers !== tr.selectLayers.value) {
+          var id = typeof (aTab.layerTitle) !== 'undefined' ? aTab.layers : this.getLayerID(aTab.layers);
+          if (aTab.type !== tr.selectTypes.value || id !== tr.selectLayers.value) {
             aTab.type = tr.selectTypes.value;
             aTab.layers = tr.selectLayers.value;
             aTab.advStat = {};

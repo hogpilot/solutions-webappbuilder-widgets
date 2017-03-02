@@ -113,7 +113,21 @@ define([
                 }
             });
             this.showEndSymbol = options.showEndSymbol || false;
-            this.endSymbol = options.endSymbol || "arrow1";
+            
+            //this.endSymbol = options.endSymbol || "arrow1";
+            this.endSymbol = options.startSymbol || new SimpleMarkerSymbol({
+                'color': [128, 128, 128, 64],
+                'size': 8,
+                'type': 'esriSMS',
+                'style': 'esriSMSX',
+                'outline': {
+                    'color': [0, 0, 0, 255],
+                    'width': 2,
+                    'type': 'esriSLS',
+                    'style': 'esriSLSSolid'
+                }
+            });
+            
 
             this.graphics = [];
             this.map = null;

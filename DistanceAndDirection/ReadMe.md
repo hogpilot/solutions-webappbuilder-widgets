@@ -1,12 +1,12 @@
 # distance-and-direction-widget
 
-This widget provides the ability to create geodesic features such as lines, circles, ellipses and range rings.
+This widget provides the ability to create geodetic features such as lines, circles, ellipses and range rings.
 
 ![Image of Distance and Directions Widget][ss]
 
 ## Features
 
-* Creates geodesic lines, circles, ellipses and range rings.
+* Creates geodetic lines, circles, ellipses and range rings.
 * Inputs can be entered manually or via a known coordinate
 * Widget for [Web AppBuilder for ArcGIS](http://doc.arcgis.com/en/web-appbuilder/)
 

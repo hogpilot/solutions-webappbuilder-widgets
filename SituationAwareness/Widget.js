@@ -1989,6 +1989,8 @@ define([
           if (t.advStat && t.advStat.stats) {
             if (typeof (t.advStat.stats.tabCount) !== 'undefined') {
               displayCount = t.advStat.stats.tabCount;
+            } else if (t.advStat.stats.count) {
+              displayCount = true;
             }
           }
 

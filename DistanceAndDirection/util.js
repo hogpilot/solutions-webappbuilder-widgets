@@ -64,7 +64,7 @@ define([
          **/
         getCoordValues: function (fromInput, toType, numDigits) {
 
-            var nd = numDigits || 2;
+            var nd = numDigits || 6;
 
             var tt;
             if (toType.name) {
@@ -81,22 +81,22 @@ define([
                 coordinates: [[fromInput.x, fromInput.y]],
                 conversionType: tt,
                 numOfDigits: nd,
-                rounding: false,
+                rounding: true,
                 addSpaces: false
             };
 
             if (toType === 'MGRS') {
                 params.conversionMode = 'mgrsDefault';
                 params.addSpaces = false;
-                params.numOfDigits = 5;
+                params.numOfDigits = 6;
             } else if (toType === 'UTM') {
                 params.conversionMode = 'utmNorthSouth';
                 params.addSpaces = true;
-            } else if (toType === 'GARS') {
-                params.conversionMode = 'garsDefault';
+            //} else if (toType === 'GARS') {
+               // params.conversionMode = 'garsDefault';
             } else if (toType === 'USNG') {
                 params.addSpaces = true;
-                params.numOfDigits = 5;
+                params.numOfDigits = 6;
             }
 
             return this.geomService.toGeoCoordinateString(params);
@@ -132,7 +132,7 @@ define([
             case 'DD':
             case 'DDM':
             case 'DMS':
-                a = fromStr.replace(/['°"]/g, '');
+                a = fromStr.replace(/['°˚º"¨˝]/g, '');
                 params.strings.push(a);
                 break;
             case 'MGRS':
@@ -145,10 +145,10 @@ define([
                 a = fromStr.replace(/[mM]/g, '');
                 params.strings.push(a);
                 break;
-            case 'GARS':
-                params.conversionMode = 'garsCenter';
-                params.strings.push(fromStr);
-                break;
+            //case 'GARS':
+                //params.conversionMode = 'garsCenter';
+                //params.strings.push(fromStr);
+                //break;
             }
             return this.geomService.fromGeoCoordinateString(params);
         },
@@ -164,17 +164,19 @@ define([
             //regexr.com
             var strs = [{
                     name: 'DD',
-                    pattern: /([-+]?\d{1,3}[.]?\d*[NnSs]?[\s,]{1}\s?[-+]?\d{1,3}[.]?\d*[EeWw]?){1}/
+                    pattern: /([-+]?\d{1,3}[.]?\d*[\s]*[°˚º^~*]?[\s]*[NnSs]?[\s]*[,]?[\s]*[-+]?\d{1,3}[.]?\d*[\s]*[EeWw]?[\s]*)/
                 }, {
                     name: 'DDM',
-                    pattern: /^\s?\d{1,3}[°]?\s[-+]?\d*\.?\d*\'?[NnSs]?[\s,]{1}\d{1,3}[°]?\s[-+]?\d*\.?\d*\'[EeWw]?/
+                    pattern: /\s?\d{1,3}[°˚º^~*]?[\s]*[-+]?\d*\.?\d*['']?[\s]*[NnSs]?[\s]*[,]?[\s]*\d{1,3}[°˚º^~*]?\s[-+]?\d*\.?\d*['']?[\s]*[EeWw]?[\s]*/
+                    
                 }, {
                     name: 'DMS',
-                    pattern: /([+-]?\d{1,3}[°]?[\s]\d*[']?[\s]\d*[.]?\d*['"]?[NnSsEeWw]?){1,2}/
+                    //pattern: /^(?!9[1-9])?([0-8]?\d?|90)[\s]*[°]?[\s]*([0]?[0-9]|[0-5]\d){1}[\s]*['"]?[\s]*[0]?[0-9]?[0-5]\d(\.\d+)?[\s]*['"]?[\s]*[NnSs]?[\s]*(180|((1[0-7]\d)|([0]?[0]?[1-9]?\d)))[\s]*[°]?[\s]*([0]?[0-9]|[0-5]\d){1}[\s]*['"]?[\s]*[0]?[0-9]?[0-5]\d(\.\d+)?[\s]*['"]?[\s]*[WwEe]?[\s]*/
+                    pattern: /([+-]?\d{1,3}[°˚º^~*]?[\s,]\d*['']?[\s,]\d*[.]?\d*["¨˝]?[\s]*[NnSsEeWw]?[\s]*){1,2}/
                 }, {
-                    name: 'GARS',
-                    pattern: /^\d{3}[a-zA-Z]{2}\d?\d?/
-                }, {
+                //    name: 'GARS',
+                //    pattern: /^\d{3}[a-zA-Z]{2}\d?\d?/
+                //}, {
                     name: 'MGRS',
                     pattern: /^\d{1,2}[c-hj-np-xC-HJ-NP-X][a-hj-np-zA-HJ-NP-Z]{1}[a-hj-np-zA-HJ-NP-Z]{1}\d{0,10}/
                 }, {
@@ -355,10 +357,10 @@ define([
             r.northing = fromValue[0].match(/\d{5}$/)[0].trim();
 
             //Z S X# Y#
-            var s = withFormatStr.replace(/Z/, r.gzd);
-            s = s.replace(/S/, r.grdsq);
+            var s = withFormatStr.replace(/Y/, r.northing);
             s = s.replace(/X/, r.easting);
-            s = s.replace(/Y/, r.northing);
+            s = s.replace(/S/, r.grdsq);
+            s = s.replace(/Z/, r.gzd);
 
             r.formatResult = s;
             return r;
@@ -376,12 +378,12 @@ define([
             r.grdsq = fromValue[0].replace(r.gzd, '').match(/[a-hJ-zA-HJ-Z]{2}/)[0].trim();
             r.easting = fromValue[0].replace(r.gzd + r.grdsq, '').match(/^\d{1,5}/)[0].trim();
             r.northing = fromValue[0].replace(r.gzd + r.grdsq, '').match(/\d{1,5}$/)[0].trim();
-
+               
             //Z S X# Y#
-            var s = withFormatStr.replace(/Z/, r.gzd);
-            s = s.replace(/S([^S]*)$/, r.grdsq + '$1');
-            s = s.replace(/X([^X]*)$/, r.easting + '$1');
-            s = s.replace(/Y([^Y]*)$/, r.northing + '$1');
+            var s = withFormatStr.replace(/Y/, r.northing);
+            s = s.replace(/X/, r.easting);
+            s = s.replace(/S/, r.grdsq);
+            s = s.replace(/Z/, r.gzd);
 
             r.formatResult = s;
             return r;
@@ -390,7 +392,7 @@ define([
         /**
          *
          **/
-        getFormattedGARSStr: function (fromValue, withFormatStr, addSignPrefix) {
+        /*getFormattedGARSStr: function (fromValue, withFormatStr, addSignPrefix) {
           var r = {};
           r.sourceValue = fromValue;
           r.sourceFormatString = withFormatStr;
@@ -403,14 +405,14 @@ define([
           r.key = q[0][1];
 
           //XYQK
-          var s = withFormatStr.replace(/X/, r.lon);
-          s = s.replace(/Y/, r.lat);
+          var s = withFormatStr.replace(/K/, r.key);
           s = s.replace(/Q/, r.quadrant);
-          s = s.replace(/K/, r.key);
+          s = s.replace(/Y/, r.lat);
+          s = s.replace(/X/, r.lon);
 
           r.formatResult = s;
           return r;
-        },
+        },*/
 
         /**
          *
@@ -426,11 +428,11 @@ define([
             r.easting = r.parts[1];
             r.westing = r.parts[2];
 
-            //ZH Xm Ym'
-            var s = withFormatStr.replace(/Z/, r.zone);
-            s = s.replace(/H/, r.hemisphere);
+            //ZB Xm Ym'
+            var s = withFormatStr.replace(/Y/, r.westing);
             s = s.replace(/X/, r.easting);
-            s = s.replace(/Y/, r.westing);
+            s = s.replace (/B/, r.bandLetter);
+            s = s.replace(/Z/, r.zone);
 
             r.formatResult = s;
             return r;

@@ -167,7 +167,7 @@ define([
           this.calculatedDistance,
           'meters'
         );
-        this.geographicGeometry = this.geometry;
+        this.geographicGeometry = this.lineGeometry !== null ? this.lineGeometry : this.geometry;
         if (this.geodesicGeometry.spatialReference.wkid !== 102100 &&
           this.geodesicGeometry.spatialReference.wkid !== 3857) {
           this.wgsGeometry = this.geodesicGeometry;

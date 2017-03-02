@@ -114,6 +114,10 @@ define([
                     var endPoint = this.getEndPoint(centerPoint, 0, lengthInMeters);
                     //Add major length point to array
                     this._points.splice(1, 0, endPoint);
+                    while (this._points.length > 2)
+                    {
+                      this._points.pop();
+                    }
                     //Clear major length graphic first
                     if (this._majGraphic) {
                         this.map.graphics.remove(this._majGraphic);
@@ -161,6 +165,10 @@ define([
                     var endPoint = this.getEndPoint(centerPoint, 90, lengthInMeters);
                     //Add major length point to array
                     this._points.splice(2, 0, endPoint);
+                    while (this._points.length > 3)
+                    {
+                      this._points.pop();
+                    }
                     //Clear major length graphic first
                     if (this._minGraphic) {
                         this.map.graphics.remove(this._minGraphic);
@@ -205,6 +213,7 @@ define([
             this._points = [];
             this._points.push(centerPoint.offset(0, 0));
             this.set('startPoint', this._points[0]);
+            this.map.centerAt(centerPoint);
         },
 
         /*
@@ -239,6 +248,7 @@ define([
             switch(this._points.length)
             {
                 case 1:
+                    this.set('startPoint', this._points[0]);
                     // create and add our major / minor graphics
                     var maxLine = new EsriPolyLine({
                         paths: [[
@@ -437,17 +447,31 @@ define([
               });
             }
             
-            dojoConnect.disconnect(this._onMouseMoveHandlerConnect);
+            this.disconnectOnMouseMoveHandler();
             this._setTooltipMessage(0);
             this._drawEnd(elipseGeom);
-            this.map.graphics.clear();
-            //this.map.graphics.remove(this._minGraphic);
-            this._majGraphic = null;
-            this._minGraphic = null;
-            majorAxisLength = [];
-            minorAxisLength = [];
+            this.cleanup();
+            
             this.orientationAngle = null;
-            this._clear();
+        },
+        
+        /*
+         *
+         */
+        cleanup: function () {
+          this.map.graphics.clear();
+          //this.map.graphics.remove(this._minGraphic);
+          this._majGraphic = null;
+          this._minGraphic = null;
+          majorAxisLength = [];
+          minorAxisLength = [];
+        },
+        
+        /**
+         *
+         **/
+        disconnectOnMouseMoveHandler: function () {
+          dojoConnect.disconnect(this._onMouseMoveHandlerConnect);
         }
     });
     clz.DD_ELLIPSE_MAJOR_LENGTH_CHANGE = 'DD_ELLIPSE_MAJOR_LENGTH_CHANGE';
