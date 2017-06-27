@@ -234,10 +234,10 @@
     "itemId": "6e03e8c26aad4b9c92a87c1063ddb0e3",
     "mapOptions": {
       "extent": {
-        "xmin": -13063160.002354274,
-        "ymin": 4026008.4282111865,
-        "xmax": -13026240.917692585,
-        "ymax": 4046531.770305729,
+        "xmin": -9830856.21307594,
+        "ymin": 5120267.28257704,
+        "xmax": -9794166.439499106,
+        "ymax": 5137656.706511894,
         "spatialReference": {
           "wkid": 102100
         }
@@ -284,7 +284,8 @@
         "version": "2.0.1",
         "uri": "widgets/BombThreat/Widget",
         "index": 6,
-        "id": "widgets_BombThreat_Widget_19"
+        "id": "widgets_BombThreat_Widget_19",
+        "openAtStart": true
       },
       {
         "name": "CI_KR_Chart",
