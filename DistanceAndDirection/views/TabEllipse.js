@@ -258,8 +258,6 @@ define([
 
         dojoOn(this.clearGraphicsButton,'click',dojoLang.hitch(this, this.clearGraphics)),
         
-        dojoOn(this.okButton,'click',dojoLang.hitch(this, this.okButtonClicked)),
-        
         dojoOn(this.majorAxisInputDiv, dojoMouse.leave, dojoLang.hitch(this, this.checkValidInputs)),
         
         dojoOn(this.minorAxisInputDiv, dojoMouse.leave, dojoLang.hitch(this, this.checkValidInputs)),

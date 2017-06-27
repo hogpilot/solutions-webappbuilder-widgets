@@ -219,8 +219,6 @@ define([
         
         dojoOn(this.interactiveRings, 'change',dojoLang.hitch(this, this.interactiveCheckBoxChanged)),
         
-        dojoOn(this.okButton,'click',dojoLang.hitch(this, this.okButtonClicked)),
-        
         dojoOn(this.ringIntervalUnitsDD, 'change',dojoLang.hitch(this, this.ringIntervalUnitsDidChange)),
         
         dojoOn(this.coordinateFormatButton, 'click',dojoLang.hitch(this, this.coordinateFormatButtonWasClicked)),

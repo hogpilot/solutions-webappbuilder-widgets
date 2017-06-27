@@ -255,8 +255,6 @@ define([
           DijitPopup.close(this.coordinateFormat);
         })),
         
-        dojoOn(this.okButton,'click',dojoLang.hitch(this, this.okButtonClicked)),
-
         dojoOn(this.radiusInputDiv, dojoMouse.leave, dojoLang.hitch(this, this.checkValidInputs)) 
       );
     },
