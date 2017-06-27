@@ -257,8 +257,12 @@ define([
 
                 //Clear infrastructure list
                 domConstruct.empty(this.facilitiesListSection);
-                //Clear results section
-                domConstruct.empty(this.resultsSection);
+                try {
+                    //Clear results section
+                    domConstruct.empty(this.resultsSection);                    
+                } catch (e) {
+                    console.log(e.message);
+                }
             },
 
             /**
@@ -292,7 +296,11 @@ define([
                 this.charts = [];
                 html.empty(this.pieChartSection);
                 html.empty(this.facilitiesListSection);
-                html.empty(this.cpFacilities);
+                try {
+                    html.empty(this.cpFacilities);    
+                } catch (e) {
+                    console.log(e.message);
+                }
             },
 
             /**
@@ -698,7 +706,7 @@ define([
                     var ele = {
                         y: num,
                         text: "",
-                        tooltip: "<div style='color:green;margin-right:10px;'><span style='white-space:nowrap;'>" + name + ":" + percent + "</span><br/><span>(" + num + ")</span></div>"
+                        tooltip: "<div style='color:green;margin-right:10px;'><span style='white-space:nowrap;'>"+labelField + ":" + name + ":" + percent + "</span><br/><span>(" + num + ")</span></div>"
                     };
                     series.push(ele);
                 }
@@ -867,7 +875,7 @@ define([
                 for(i=0;i<medias.length;i++){
                     chart = null;
                     var media = medias[i];
-                    var type = media.type.toLowerCase();
+                    var type = media.type ? media.type.toLowerCase() : 'columnschart';
                     var chartDiv = html.create('div', { 'class': 'chart-div', style: { width: w, height: h } }, this.pieChartSection);
                     if(type === 'barschart'){
                         chart = this._creatBarsChart(chartDiv,media,features,labelField);
@@ -913,7 +921,7 @@ define([
                     var num = attributes[media.chartField];
                     var ele = {
                         y:num,
-                        tooltip:"<div style='color:green;margin-right:10px;'><span style='white-space:nowrap;'>"+name+"</span><br/><span>"+num+"</span></div>"
+                        tooltip:"<div style='color:green;margin-right:10px;'><span style='white-space:nowrap;'>"+labelField+":"+name+"</span><br/><span>"+num+"</span></div>"
                     };
                     series.push(ele);
                 }
@@ -986,7 +994,7 @@ define([
                     var num = attributes[media.chartField];
                     var ele = {
                         y:num,
-                        tooltip:"<div style='color:green;margin-right:10px;'><span style='white-space:nowrap;'>"+name+"</span><br/><span>"+num+"</span></div>"
+                        tooltip:"<div style='color:green;margin-right:10px;'><span style='white-space:nowrap;'>"+labelField+":"+name+"</span><br/><span>"+num+"</span></div>"
                     };
                     series.push(ele);
                 }
@@ -1058,7 +1066,7 @@ define([
                     var num = attributes[media.chartField];
                     var ele = {
                         y:num,
-                        tooltip:"<div style='color:green;margin-right:10px;'><span style='white-space:nowrap;'>"+name+"</span><br/><span>"+num+"</span></div>"
+                        tooltip:"<div style='color:green;margin-right:10px;'><span style='white-space:nowrap;'>"+labelField+":"+name+"</span><br/><span>"+num+"</span></div>"
                     };
                     series.push(ele);
                 }
