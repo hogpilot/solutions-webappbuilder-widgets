@@ -29,21 +29,17 @@ define([
     'dojo/dom-style',
     'dojo/mouse',
     'dojo/promise/all',
-
     'dijit/_WidgetBase',
     'dijit/_TemplatedMixin',
     'dijit/_WidgetsInTemplateMixin',
     'dijit/TooltipDialog',
     'dijit/popup',
     'dojo/text!../templates/VisibilityControl.html',
-
     './jquery.knob.min',
     'jimu/dijit/Message',
     './DrawFeedBack',
-    
-
     'esri/map',
-    "esri/dijit/util/busyIndicator",
+    'esri/dijit/util/busyIndicator',
     'esri/toolbars/draw',
     'esri/geometry/webMercatorUtils',
     'esri/graphic',
@@ -59,8 +55,7 @@ define([
     './CoordinateInput',
     './EditOutputCoordinate',
     'dijit/form/NumberTextBox',
-    'jimu/dijit/CheckBox'
-    
+    'jimu/dijit/CheckBox'    
 ], function (
     dojoDeclare,
     dojoDeferred,
@@ -79,7 +74,7 @@ define([
     dijitTemplatedMixin,    
     dijitWidgetsInTemplate,
     dijitTooltipDialog,
-    DijitPopup,
+    dijitPopup,
     vistemplate,
     knob,
     Message,
@@ -286,11 +281,11 @@ define([
                 this.coordTool.inputCoordinate.set('formatString', cfs);
                 this.coordTool.inputCoordinate.set('formatType', fv);
                 this.setCoordLabel(fv);
-                DijitPopup.close(this.coordinateFormat);                
+                dijitPopup.close(this.coordinateFormat);                
               })),
               
               dojoOn(this.coordinateFormat.content.cancelButton, 'click', dojoLang.hitch(this, function () {
-                DijitPopup.close(this.coordinateFormat);
+                dijitPopup.close(this.coordinateFormat);
               }))
             );
         },
@@ -485,29 +480,24 @@ define([
          *
          */
         angleUnitsDidChange: function () {
-          $("input.fov").val(0).trigger('change');
           if(this.angleUnits.checked) {
             $("input.fov").trigger('configure',
               {
                   "max": 6400,
                   "units": 'mils',
-                  "v": 0,
-                  "units": 'mils',
-                  "milsValue": 0,
-                  "inputColor":"#f37371" 
+                  "milsValue": 6400
               }
-            ); 
+            );
+            $("input.fov").val(6400).trigger('change');
           } else {
             $("input.fov").trigger('configure',
               {
                   "max": 360,
                   "units": 'degrees',
-                  "v": 0,
-                  "units": 'degrees',
-                  "milsValue": 0,
-                  "inputColor":"#f37371"                   
+                  "milsValue": 6400
               }
-            );        
+            );
+            $("input.fov").val(360).trigger('change');            
           }
         },
         
@@ -561,7 +551,7 @@ define([
          */
         coordinateFormatButtonWasClicked: function () {
           this.coordinateFormat.content.set('ct', this.coordTool.inputCoordinate.formatType);
-          DijitPopup.open({
+          dijitPopup.open({
               popup: this.coordinateFormat,
               around: this.coordinateFormatButton
           });
