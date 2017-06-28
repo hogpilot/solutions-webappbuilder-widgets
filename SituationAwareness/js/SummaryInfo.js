@@ -446,6 +446,7 @@ define([
         includeGeom = true;
       }
       query.returnGeometry = includeGeom;
+      query.outSpatialReference = this.parent.map.spatialReference;
       var outFields = [];
       array.forEach(this.summaryFields, function (f) {
         outFields.push(f.field);
@@ -798,6 +799,13 @@ define([
             }
           }
       }
+
+      var spFields = analysisUtils.getSpecialFields(layer);
+      this.dateFields = spFields.dateFields;
+      this.specialFields = spFields.specialFields;
+      this.typeIdField = spFields.typeIdField;
+      this.types = spFields.types;
+
       return fields;
     }
   });

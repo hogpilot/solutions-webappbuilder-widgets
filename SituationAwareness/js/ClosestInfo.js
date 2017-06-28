@@ -78,6 +78,8 @@ define([
       this.graphicsLayer = null;
       this.map = parent.map;
       this.specialFields = {};
+      this.typeIdField = "";
+      this.types = [];
       this.dateFields = {};
       this.config = parent.config;
       this.baseLabel = tab.label !== "" ? tab.label : tab.layerTitle ? tab.layerTitle : tab.layers;
@@ -311,6 +313,7 @@ define([
       for (var i = 0; i < inc_buffers.length; i++) {
         var query = new Query();
         query.returnGeometry = true;
+        query.outSpatialReference = this.parent.map.spatialReference;
         query.geometry = inc_buffers[i].buffer;
         if (this.parent.config.csvAllFields === "true" || this.parent.config.csvAllFields === true) {
           query.outFields = ['*'];
@@ -437,20 +440,24 @@ define([
           if (typeof (this.displayFields) !== 'undefined') {
             for (var ij = 0; ij < this.displayFields.length; ij++) {
               var field = this.displayFields[ij];
+              prop_field_loop:
               for (var prop in attr) {
                 if (prop !== "DISTANCE" && c < 3) {
+                  //TODO should break this inner loop when the stuff has been set no need to go back through it after
                   if (field.expression === prop) {
                     var fVal = analysisUtils.getFieldValue(prop, attr[prop], this.specialFields,
-                      this.dateFields, 'longMonthDayYear');
+                      this.dateFields, 'longMonthDayYear', this.typeIdField, this.types);
                     var value;
                     if (typeof (fVal) !== 'undefined' && fVal !== null) {
                       value = utils.stripHTML(fVal.toString());
                     } else {
                       value = "";
                     }
-                    var label;
-                    if (gra._layer && gra._layer.fields) {
-                      var cF = analysisUtils.getField(gra._layer.fields, prop);
+                    var label = typeof (field.label) !== 'undefined' ? field.label : undefined;
+                    var _fields = (gra._layer && gra._layer.fields) ? gra._layer.fields :
+                      (this.tab.tabLayers && this.tab.tabLayers[0]) ? this.tab.tabLayers[0].fields : undefined;
+                    if (_fields) {
+                      var cF = analysisUtils.getField(_fields, prop);
                       if (cF) {
                         label = cF.alias;
                       }
@@ -469,6 +476,7 @@ define([
                       value: value.indexOf(',') > -1 ? value.replace(',', '') : value,
                       label: label
                     });
+                    break prop_field_loop;
                   }
                 }
               }
@@ -560,6 +568,8 @@ define([
       var fieldDetails = analysisUtils.getFields(layer, this.tab, this.allFields, this.parent);
       this.dateFields = fieldDetails.dateFields;
       this.specialFields = fieldDetails.specialFields;
+      this.typeIdField = fieldDetails.typeIdField;
+      this.types = fieldDetails.types;
       this.displayFields = analysisUtils.getDisplayFields(this.tab);
       return fieldDetails.fields;
     },
