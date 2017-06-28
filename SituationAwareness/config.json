@@ -1,14 +1,6 @@
 {
-  "comment": "Do not change lyr_types unless you have the widget JS code to support them",
-  "geometryService": {
-    "url": "http://tasks.arcgisonline.com/ArcGIS/rest/services/Geometry/GeometryServer"
-  },
   "geocodeService": {
     "url": "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer"
-  },
-  "routeService": {
-    "url": "http://sampleserver3.arcgisonline.com/ArcGIS/rest/services/Network/USA/NAServer/Route",
-    "comment": "https://route.arcgis.com/arcgis/rest/services/World/Route/NAServer/Route_World"
   },
   "enableRouting": true,
   "special_layer": {

@@ -109,18 +109,11 @@ define([
     },
 
     // update for Incident
-    updateForIncident: function (incidents) {
-
-      //TODO This should be based off of the combined extent
-      var incident = incidents[0];
+    // now expects to get a point in WGS84
+    updateForIncident: function (pt) {
       this.container.innerHTML = "";
       domClass.add(this.container, "loading");
-      var geom = incident.geometry;
-      var loc = geom;
-      if (geom.type !== "point") {
-        loc = geom.getExtent().getCenter();
-      }
-      var pt = webMercatorUtils.webMercatorToGeographic(loc);
+
       var coords = pt.y + "," + pt.x;
       var requestURL = "";
       if (this.tab.label !== "Weather") {
