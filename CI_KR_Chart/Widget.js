@@ -666,10 +666,8 @@ define([
              * @param newValue
              */
             onChangeDemoCategoryTypes: function (newValue) {
-
                 // Get the selected index of the demoCategoryTypesId select form
                 var index = this._getDemoSelectedIndex();
-
                 this._showChart(index);
             },
 
@@ -678,7 +676,7 @@ define([
             * @private
             */
             _getDemoSelectedIndex: function () {
-                return dijit.byId('demoCategoryTypesId').get('value');
+                return this.demoCategoryTypes.attr("value")
             },
 
             /**
@@ -737,8 +735,7 @@ define([
                         this._setHightLightSymbol(g);
                     }
                     else if (evt.type === 'onmouseout') {
-                        var outsideSymbol = new SimpleFillSymbol(this.config.CIKR.symbols.outsideFillSymbol);
-                        g.setSymbol(outsideSymbol);
+                        g.setSymbol(new SimpleFillSymbol(this.config.CIKR.symbols.outsideFillSymbol));
                     }
                 }));
 
@@ -968,7 +965,7 @@ define([
                         this._setHightLightSymbol(g);
                     }
                     else if(evt.type === 'onmouseout'){
-                        this._setFeatureSymbol(g);
+                        g.setSymbol(new SimpleFillSymbol(this.config.CIKR.symbols.outsideFillSymbol));
                     }
                 }));
                 barsChart.render();
@@ -1039,7 +1036,7 @@ define([
                         this._setHightLightSymbol(g);
                     }
                     else if(evt.type === 'onmouseout'){
-                        this._setFeatureSymbol(g);
+                        g.setSymbol(new SimpleFillSymbol(this.config.CIKR.symbols.outsideFillSymbol));
                     }
                 }));
 
@@ -1111,7 +1108,7 @@ define([
                         this._setHightLightSymbol(g);
                     }
                     else if(evt.type === 'onmouseout'){
-                        this._setFeatureSymbol(g);
+                        g.setSymbol(new SimpleFillSymbol(this.config.CIKR.symbols.outsideFillSymbol));
                     }
                 }));
 
