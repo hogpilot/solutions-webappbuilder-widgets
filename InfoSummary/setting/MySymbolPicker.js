@@ -110,6 +110,19 @@ define(['dojo/_base/declare',
         this.supportsDynamic = options.layerInfo.supportsDynamic;
         this.fields = options.layerInfo.fields;
         this.hidePanel = options.hidePanel;
+        this.oidFieldName = options.layerInfo.oidFieldName;
+        this.popupFields = [];
+        if (options.layerInfo.infoTemplate && options.layerInfo.infoTemplate.info) {
+          var fieldInfos = options.layerInfo.infoTemplate.info.fieldInfos;
+          if (fieldInfos) {
+            for (var i = 0; i < fieldInfos.length; i++) {
+              if (fieldInfos[i].visible) {
+                //TODO make sure this is pushing the alias
+                this.popupFields.push(fieldInfos[i].fieldName);
+              }
+            }
+          }
+        }
       },
 
       postMixInProperties: function(){
@@ -278,22 +291,25 @@ define(['dojo/_base/declare',
           fdo = this.symbolInfo.featureDisplayOptions;
         }
 
+        //fields options
         if (fdo && fdo.fields) {
           for (var i = 0; i < fdo.fields.length; i++) {
             this._populateLayerRow(this.fieldOptionsTable, fdo.fields[i], 'loSelect');
           }
         } else {
+          //TDOO this add field to the group table here feels out of place
           this._addFieldRow(this.groupOptionsTable, 'goSelect');
+          if (this.popupFields && this.popupFields.length > 0) {
+            this._populateLayerRow(this.fieldOptionsTable, {
+              name: this.popupFields[0]
+            }, 'loSelect');
+          }
         }
 
-        if (fdo && typeof (fdo.groupEnabled) !== 'undefined') {
-          this.groupFeaturesEnabled = fdo.groupEnabled;
-        } else {
-          this.groupFeaturesEnabled = false;
-        }
+        //group options
+        this.groupFeaturesEnabled = (fdo && typeof (fdo.groupEnabled) !== 'undefined') ? fdo.groupEnabled : false;
         this._chkGroupChanged(this.groupFeaturesEnabled);
         this.chkGroup.set('checked', this.groupFeaturesEnabled);
-
         if (fdo && fdo.groupField) {
           this._populateLayerRow(this.groupOptionsTable, fdo.groupField, 'goSelect');
         }
@@ -674,6 +690,8 @@ define(['dojo/_base/declare',
           groupByRendererFields.push({ name: this.renderer.field1 });
         }
 
+        var fields = this.fieldOptionsTable ? this._getFields(this.fieldOptionsTable) : null;
+
         this.symbolInfo = {
           symbolType: this.symbolType,
           symbol: symbol,
@@ -693,9 +711,10 @@ define(['dojo/_base/declare',
           selectedId: this.selectedID,
           featureDisplayOptions: {
             groupEnabled: this.groupFeaturesEnabled,
+            listDisabled: (fields && fields.length > 0) ? false : true,
             groupByRenderer: typeof (this.groupByRenderer) === 'undefined' ? false : this.groupByRenderer,
             groupByField: typeof (this.groupByField) === 'undefined' ? false : this.groupByField,
-            fields: this.fieldOptionsTable ? this._getFields(this.fieldOptionsTable) : null,
+            fields: fields,
             groupField: this.groupOptionsTable ? this._getFields(this.groupOptionsTable)[0] : null,
             groupByRendererOptions: {
               fields: groupByRendererFields,
@@ -777,17 +796,8 @@ define(['dojo/_base/declare',
         html.setStyle(this.customIconPlaceholder, 'display', v ? "block" : "none");
       },
 
-      _initSymbolPicker: function (geoType) {
-        var symType = '';
-        if (geoType === 'point') {
-          symType = 'marker';
-        }
-        else if (geoType === 'polyline') {
-          symType = 'line';
-        }
-        else if (geoType === 'polygon') {
-          symType = 'fill';
-        }
+      _initSymbolPicker: function (gt) {
+        var symType = gt === 'point' ? 'marker' : gt === 'polyline' ? 'line' : gt === 'polygon' ? 'fill' : '';
         this.symbolPicker.showByType(symType);
       },
 

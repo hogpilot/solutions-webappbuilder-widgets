@@ -102,10 +102,14 @@ define([
           this.hidePanel = v;
           this.panelCountOptions.set('disabled', v);
           this.panelIconOptions.set('disabled', v);
+          this.expandListOptions.set('disabled', v);
+          this.showAllFeaturesOptions.set('disabled', v);
           var previewContainer;
           if (v) {
             html.addClass(this.panelIconOptionsLabel, 'text-disabled');
             html.addClass(this.panelCountOptionsLabel, 'text-disabled');
+            html.addClass(this.expandListOptionsLabel, 'text-disabled');
+            html.addClass(this.showAllFeaturesOptionsLabel, 'text-disabled');
             this.displayPanelIcon = false;
             previewContainer = query('.mainPanelPreviewContainerOn', this.mainPanelPreviewContainer.domNode)[0];
             if (previewContainer) {
@@ -119,6 +123,8 @@ define([
           } else {
             html.removeClass(this.panelIconOptionsLabel, 'text-disabled');
             html.removeClass(this.panelCountOptionsLabel, 'text-disabled');
+            html.removeClass(this.expandListOptionsLabel, 'text-disabled');
+            html.removeClass(this.showAllFeaturesOptionsLabel, 'text-disabled');
             if (this.panelIconOptions.checked) {
               this.displayPanelIcon = true;
               previewContainer = query('.mainPanelPreviewContainerOff', this.mainPanelPreviewContainer.domNode)[0];
@@ -183,13 +189,13 @@ define([
           title: this.nls.layerName,
           "class": "label",
           type: "empty",
-          width: "328px"
+          width: "320px"
         }, {
           name: "label",
           "class": "label",
           title: this.nls.layerLabel,
           type: "empty",
-          width: "263px"
+          width: "255px"
         }, {
           name: "image",
           "class": "label",
@@ -209,7 +215,7 @@ define([
           title: this.nls.actions,
           type: "actions",
           actions: ["up", "down", "delete"],
-          width: "77px"
+          width: "93px"
         }];
 
         this.displayLayerTable = new Table({
@@ -229,40 +235,56 @@ define([
           LayerInfos.getInstance(this.map, this.map.itemInfo)
             .then(lang.hitch(this, function (operLayerInfos) {
               this.opLayers = operLayerInfos;
+              this._updateLayerIDs();
+              if (this.config.upgradeFields) {
+                this._upgradeFields();
+              }
               this._setLayers();
               this.setConfig(this.config);
             }));
         }
       },
 
-      _getInfoTemplate: function (originOpLayer) {
-        var infoTemplate;
-        if (originOpLayer) {
-          if (originOpLayer.parentLayerInfo) {
-            if (originOpLayer.parentLayerInfo.controlPopupInfo) {
-              var infoTemplates = originOpLayer.parentLayerInfo.controlPopupInfo.infoTemplates;
-              if (infoTemplates) {
-                var url = originOpLayer.url;
-                if (!url && originOpLayer.layerObject) {
-                  url = originOpLayer.layerObject.url;
-                }
-                if (url) {
-                  var subLayerId = url.split("/").pop();
-                  if (subLayerId) {
-                    if (infoTemplates.indexOf) {
-                      if (infoTemplates.indexOf(subLayerId) > -1) {
-                        infoTemplate = infoTemplates[subLayerId].infoTemplate;
-                      }
-                    } else if (infoTemplates.hasOwnProperty(subLayerId)) {
-                      infoTemplate = infoTemplates[subLayerId].infoTemplate;
+      //added for backwards compatability
+      //TODO need to move away from _layerInfos and _operLayers at 5.3
+      _updateLayerIDs: function () {
+        for (var i = 0; i < this.config.layerInfos.length; i++) {
+          var configLayer = this.config.layerInfos[i];
+          var jimuLayerInfo = this.opLayers.getLayerInfoById(configLayer.id);
+          if (!jimuLayerInfo) {
+            var updated = false;
+            for (var ii = 0; ii < this.opLayers._layerInfos.length; ii++) {
+              var _opLayer = this.opLayers._layerInfos[ii];
+              var originOpLayer = _opLayer.originOperLayer;
+              if ((_opLayer && _opLayer.subId && _opLayer.subId === configLayer.id) ||
+                (originOpLayer && originOpLayer.itemId === configLayer.itemId)) {
+                if (originOpLayer && originOpLayer.itemId === configLayer.itemId) {
+                  if (originOpLayer.featureCollection && originOpLayer.featureCollection.layers &&
+                    originOpLayer.featureCollection.layers.hasOwnProperty('length')) {
+                    var id = originOpLayer.featureCollection.layers[0].id;
+                    jimuLayerInfo = this.opLayers.getLayerInfoById(id);
+                    if (jimuLayerInfo) {
+                      this.config.layerInfos[i].id = id;
+                      this.config.layerInfos[i].layer = id;
+                      updated = true;
                     }
                   }
                 }
+              } else if (originOpLayer && originOpLayer.url && configLayer.url &&
+                originOpLayer.url === configLayer.url) {
+                jimuLayerInfo = this.opLayers.getLayerInfoById(originOpLayer.id);
+                if (jimuLayerInfo) {
+                  this.config.layerInfos[i].id = originOpLayer.id;
+                  this.config.layerInfos[i].layer = originOpLayer.id;
+                  updated = true;
+                }
               }
+            }
+            if (!updated) {
+              this.config.layerInfos.splice(i, 1);
             }
           }
         }
-        return infoTemplate;
       },
 
       _setLayers: function () {
@@ -271,11 +293,11 @@ define([
         this.gtQueries = [];
         this.gtQueryUrls = [];
         var options = [];
+        //TODO we need to move away from the use of _layerInfos in 5.3
         for (var i = 0; i < this.opLayers._layerInfos.length; i++) {
           var supportsDL = true;
           var OpLyr = this.opLayers._layerInfos[i];
           var originOpLayer;
-
           if (OpLyr.originOperLayer) {
             originOpLayer = OpLyr.originOperLayer;
             var lyrType = originOpLayer.layerType;
@@ -289,6 +311,13 @@ define([
             }
           }
 
+          var lyrInfo = this.opLayers.getLayerInfoById(OpLyr.id);
+          if (!lyrInfo && OpLyr._subLayerInfoIndex) {
+            var subKeys = Object.keys(OpLyr._subLayerInfoIndex);
+            OpLyr = (subKeys.length && subKeys.length > 0) ? OpLyr._subLayerInfoIndex[subKeys[0]] : OpLyr;
+            lyrInfo = this.opLayers.getLayerInfoById(OpLyr.id);
+          }
+          var infoTemplate = lyrInfo ? lyrInfo.getInfoTemplate() : OpLyr.getInfoTemplate();
           if (OpLyr.newSubLayers.length > 0) {
             var hasNested = this.checkNestedGroups(OpLyr.newSubLayers);
             if (!hasNested) {
@@ -322,10 +351,11 @@ define([
                   type: OpLyr.type,
                   renderer: originOpLayer.featureCollection.layers[0].layerObject.renderer,
                   itemId: originOpLayer.itemId,
-                  infoTemplate: originOpLayer ? this._getInfoTemplate(originOpLayer) : undefined,
+                  infoTemplate: infoTemplate,
                   lyrType: "Feature Collection",
                   panelImageData: OpLyr.panelImageData,
-                  supportsDynamic: supportsDL
+                  supportsDynamic: supportsDL,
+                  oidFieldName: originOpLayer.featureCollection.layers[0].layerObject.objectIdField
                 });
               }
             } else {
@@ -347,10 +377,11 @@ define([
                 renderer: OpLyr.layerObject.renderer,
                 geometryType: OpLyr.layerObject.geometryType,
                 fields: OpLyr.layerObject.fields,
-                infoTemplate: originOpLayer ? this._getInfoTemplate(originOpLayer) : undefined,
+                infoTemplate: infoTemplate,
                 lyrType: "Map Service Layer",
                 panelImageData: OpLyr.panelImageData,
-                supportsDynamic: supportsDL
+                supportsDynamic: supportsDL,
+                oidFieldName: OpLyr.layerObject.objectIdField
               });
             }
           } else {
@@ -373,9 +404,10 @@ define([
               geometryType: OpLyr.layerObject.geometryType,
               fields: OpLyr.layerObject.fields,
               lyrType: "",
-              infoTemplate: originOpLayer ? this._getInfoTemplate(originOpLayer) : undefined,
+              infoTemplate: infoTemplate,
               panelImageData: OpLyr.panelImageData,
-              supportsDynamic: supportsDL
+              supportsDynamic: supportsDL,
+              oidFieldName: OpLyr.layerObject.objectIdField
             });
           }
         }
@@ -469,10 +501,14 @@ define([
           this.hidePanelOptions.set('checked', this.hidePanel);
           this.panelCountOptions.set('disabled', this.hidePanel);
           this.panelIconOptions.set('disabled', this.hidePanel);
+          this.expandListOptions.set('disabled', this.hidePanel);
+          this.showAllFeaturesOptions.set('disabled', this.hidePanel);
 
           if (this.hidePanel) {
             html.addClass(this.panelIconOptionsLabel, 'text-disabled');
             html.addClass(this.panelCountOptionsLabel, 'text-disabled');
+            html.addClass(this.expandListOptionsLabel, 'text-disabled');
+            html.addClass(this.showAllFeaturesOptionsLabel, 'text-disabled');
             if (domClass.contains(this.hidePanelHelpText, 'help-off')) {
               html.removeClass(this.hidePanelHelpText, 'help-off');
             }
@@ -480,6 +516,8 @@ define([
           } else {
             html.removeClass(this.panelIconOptionsLabel, 'text-disabled');
             html.removeClass(this.panelCountOptionsLabel, 'text-disabled');
+            html.removeClass(this.expandListOptionsLabel, 'text-disabled');
+            html.removeClass(this.showAllFeaturesOptionsLabel, 'text-disabled');
             if (domClass.contains(this.hidePanelHelpText, 'help-on')) {
               html.removeClass(this.hidePanelHelpText, 'help-on');
             }
@@ -489,6 +527,13 @@ define([
           if (this.config.displayPanelIcon) {
             this.panelIconOptions.set('checked', this.config.displayPanelIcon);
           }
+          if (this.config.expandList) {
+            this.expandListOptions.set('checked', this.config.expandList);
+          }
+
+          var showAllFeatures = typeof (this.config.showAllFeatures) === 'undefined' ?
+            false : this.config.showAllFeatures;
+          this.showAllFeaturesOptions.set('checked', showAllFeatures);
 
           this.displayLayerTable.clear();
           this.isInitalLoad = true;
@@ -500,6 +545,7 @@ define([
           var rows = this.displayLayerTable.getRows();
           for (var r = 0; r < rows.length; r++) {
             this._updateLayerListRows(true, rows[r]);
+            this._updateRefresh(rows[r]);
           }
           if (this.displayLayerTable.getRows().length < this.layer_options.length) {
             html.removeClass(this.btnAddLayer, "btn-add-section-disabled");
@@ -507,6 +553,70 @@ define([
           } else {
             html.addClass(this.btnAddLayer, "btn-add-section-disabled");
             html.removeClass(this.btnAddLayer, "btn-add-section enable");
+          }
+        }
+      },
+
+      //added for backwards compatability
+      //could not handle directly in VersionManager as some stored layerInfos
+      // do not have a valid infoTemplate saved
+      _upgradeFields: function () {
+        if (this.config.layerInfos) {
+          for (var i = 0; i < this.config.layerInfos.length; i++) {
+            var li = this.config.layerInfos[i];
+            if (li && li.symbolData && li.symbolData.featureDisplayOptions) {
+              var lyrInfo = this.opLayers.getLayerInfoById(li.id);
+              var fields = li.symbolData.featureDisplayOptions.fields;
+              //At previous releases we would use the first field from the infoTemplate or
+              //the first non-OID field from the layer if no fields were selected by the user
+              if (typeof (fields) === 'undefined' || (fields.hasOwnProperty('length') && fields.length === 0)) {
+                //check layer fields
+                var oidFieldName = (lyrInfo && lyrInfo.layerObject && lyrInfo.layerObject.objectIdField) ?
+                  lyrInfo.layerObject.objectIdField : undefined;
+                var firstLayerFieldName = "";
+                var firstLayerFieldAlias = "";
+                var layerFields = li.fields;
+                if (layerFields && layerFields.length > 0) {
+                  layer_field_loop:
+                  for (var _i = 0; _i < layerFields.length; _i++) {
+                    var f = layerFields[_i];
+                    if (firstLayerFieldName === "" && f.type !== "esriFieldTypeOID" &&
+                      f.type !== "esriFieldTypeGeometry" && f.name !== oidFieldName) {
+                      firstLayerFieldName = f.name;
+                      firstLayerFieldAlias = f.alias || f.name;
+                    }
+                    if (!oidFieldName) {
+                      oidFieldName = f.type === "esriFieldTypeOID" ? f.name : undefined;
+                    }
+                    if (oidFieldName && firstLayerFieldName !== "") {
+                      break layer_field_loop;
+                    }
+                  }
+                }
+
+                //check popup fields
+                var keyFieldName = "";
+                var keyFieldAlias = "";
+                var infoTemplate = li.infoTemplate && li.infoTemplate.info && li.infoTemplate.info.fieldInfos ?
+                  li.infoTemplate : lyrInfo ? lyrInfo.getInfoTemplate() : undefined;
+                var popupFields = infoTemplate ? infoTemplate.info.fieldInfos : [];
+                popup_field_loop:
+                for (var j = 0; j < popupFields.length; j++) {
+                  var popupField = popupFields[j];
+                  if (popupField && popupField.visible) {
+                    keyFieldName = popupField.fieldName;
+                    keyFieldAlias = popupField.label || popupField.fieldName;
+                    break popup_field_loop;
+                  }
+                }
+
+                //update the config
+                this.config.layerInfos[i].symbolData.featureDisplayOptions.fields = [{
+                  name: keyFieldName ? keyFieldName : firstLayerFieldName,
+                  label: keyFieldName ? keyFieldAlias : firstLayerFieldAlias
+                }];
+              }
+            }
           }
         }
       },
@@ -666,6 +776,7 @@ define([
           cLo.symbolData = lyrInfo.symbolData;
           tr.symbolData = lyrInfo.symbolData;
           this._updateLayerLists();
+          this.validateFields(tr.symbolData, tr);
         }
       },
 
@@ -725,7 +836,6 @@ define([
         }
 
         var rows = this.displayLayerTable.getRows();
-        rows_loop:
         for (var i = 0; i < rows.length; i++) {
           var row = rows[i];
           var value = row.selectLayers.value;
@@ -903,6 +1013,7 @@ define([
               this.curRow.cells[2].removeChild(s);
             }
             this.curRow.symbolData = sourceDijit.symbolInfo;
+            this.validateFields(this.curRow.symbolData, this.curRow);
             a = domConstruct.create("div", { 'class': "imageDataGFX margin2" }, this.curRow.cells[2]);
             if (this.curRow.symbolData.svg !== null &&
               typeof (this.curRow.symbolData.svg) !== 'undefined') {
@@ -918,6 +1029,7 @@ define([
               this.curRow.cells[2].removeChild(s);
             }
             this.curRow.symbolData = lo.symbolData;
+            this.validateFields(this.curRow.symbolData, this.curRow);
             a = domConstruct.create("div", { 'class': "imageDataGFX margin2" }, this.curRow.cells[2]);
             a.appendChild(this.curRow.symbolData.svg);
             this.curRow.imageData = this.curRow.symbolData.panelHTML;
@@ -937,7 +1049,8 @@ define([
       _recurseOpLayers: function (pNode, pOptions, parentID) {
         var nodeGrp = pNode;
         array.forEach(nodeGrp, lang.hitch(this, function (Node) {
-          var infoTemplate;
+          var lyrInfo = this.opLayers.getLayerInfoById(Node.id);
+          var infoTemplate = lyrInfo ? lyrInfo.getInfoTemplate() : Node.getInfoTemplate();
           if (Node.getImages) {
             return;
           }
@@ -957,12 +1070,7 @@ define([
             if (Node.hasOwnProperty("parentLayerInfo")) {
               if (Node.parentLayerInfo.hasOwnProperty("originOperLayer")) {
                 OpLyr2 = Node.parentLayerInfo.originOperLayer;
-                infoTemplate = this._getInfoTemplate(OpLyr2);
               }
-            }
-
-            if (Node.originOperLayer) {
-              infoTemplate = this._getInfoTemplate(Node.originOperLayer);
             }
 
             var u;
@@ -992,11 +1100,37 @@ define([
               fields: Node.layerObject ? Node.layerObject.fields : Node.fields,
               subLayerId: subLayerId,
               infoTemplate: infoTemplate,
-              lyrType: OpLyr2 ? OpLyr2.type : undefined,
-              supportsDynamic: supportsDL
+              lyrType: OpLyr2 ? OpLyr2.type || OpLyr2.layerType : undefined,
+              supportsDynamic: supportsDL,
+              oidFieldName: Node.layerObject ? Node.layerObject.objectIdField : undefined
             });
           }
         }));
+      },
+
+      validateFields: function (symbolData, tr) {
+        var isValid;
+        if (symbolData && symbolData.featureDisplayOptions && symbolData.featureDisplayOptions.fields) {
+          isValid = symbolData.featureDisplayOptions.fields.length > 0;
+        } else {
+          isValid = false;
+        }
+        var td = query('.simple-table-cell', tr)[4];
+        if (td && !isValid) {
+          if (!tr.errorDiv) {
+            tr.errorDiv = domConstruct.create("div", {
+              'class': "field-error"
+            }, td);
+            tr.errorSpan = domConstruct.create("span", {
+              'class': "jimu-icon jimu-icon-error",
+              title: this.nls.fieldsWarning
+            }, tr.errorDiv);
+          } else {
+            domStyle.set(tr.errorSpan, 'display', 'inline-block');
+          }
+        } else if (isValid && tr.errorSpan) {
+          domStyle.set(tr.errorSpan, 'display', 'none');
+        }
       },
 
       _pickSymbol: function (tr) {
@@ -1029,6 +1163,7 @@ define([
             this.curRow.cells[2].removeChild(s);
           }
           this.curRow.symbolData = data;
+          this.validateFields(this.curRow.symbolData, this.curRow);
           var a = domConstruct.create("div", { 'class': "imageDataGFX margin2" }, this.curRow.cells[2]);
           a.appendChild(data.svg);
           this.curRow.imageData = data.panelHTML;
@@ -1118,6 +1253,9 @@ define([
         this.config.displayPanelIcon = this.displayPanelIcon;
         this.config.hidePanel = this.hidePanel;
         this.config.continuousRefreshEnabled = this.hidePanel;
+        this.config.expandList = this.expandListOptions.checked;
+        this.config.showAllFeatures = this.showAllFeaturesOptions.checked;
+        this.config.upgradeFields = false;
 
         return this.config;
       },

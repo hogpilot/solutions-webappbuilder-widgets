@@ -24,6 +24,7 @@ define([
   'dojo/topic',
   'dojo/_base/html',
   'dojo/string',
+  'dojo/mouse',
   'dojo/keys',
   'dojo/number',
   'dijit/_WidgetBase',
@@ -49,7 +50,8 @@ define([
   '../views/EditOutputCoordinate',
   '../models/RangeRingFeedback',
   'dijit/form/NumberTextBox',
-  'dijit/form/Select'
+  'dijit/form/Select',
+  'jimu/dijit/CheckBox'
 ], function (
   dojoDeclare,
   dojoLang,
@@ -59,6 +61,7 @@ define([
   dojoTopic,
   dojoHTML,
   dojoString,
+  dojoMouse,
   dojoKeys,
   dojoNumber,
   dijitWidgetBase,
@@ -124,6 +127,11 @@ define([
         content: new EditOutputCoordinate(),
         style: 'width: 400px'
       });
+      
+      if(this.appConfig.theme.name === 'DartTheme')
+      {
+        dojoDomClass.add(this.coordinateFormat.domNode, 'dartThemeClaroDijitTooltipContainerOverride');
+      }
 
       // add extended toolbar
       this.dt = new DrawFeedBack(this.map,this.coordTool.inputCoordinate.util);
@@ -131,6 +139,8 @@ define([
       this.dt.set('lengthLayer', this._lengthLayer);
 
       this.syncEvents();
+      
+      this.checkValidInputs();
     },
     
     /*
@@ -185,9 +195,7 @@ define([
     /*
      * Start up event listeners
      */
-    syncEvents: function () {
-      
-      dojoTopic.subscribe('DD_CLEAR_GRAPHICS',dojoLang.hitch(this,this.clearGraphics));
+    syncEvents: function () {      
       //commented out as we want the graphics to remain when the widget is closed
       /*dojoTopic.subscribe('DD_WIDGET_OPEN',dojoLang.hitch(this, this.setGraphicsShown));
       dojoTopic.subscribe('DD_WIDGET_CLOSE',dojoLang.hitch(this, this.setGraphicsHidden));*/
@@ -209,7 +217,7 @@ define([
         
         dojoOn(this.ringIntervalInput, 'keyup',dojoLang.hitch(this, this.ringIntervalInputKeyWasPressed)),
         
-        dojoOn(this.numRadialsInput, 'keyup',dojoLang.hitch(this, this.numRadialsInputKeyWasPressed)),
+        dojoOn(this.interactiveRings, 'change',dojoLang.hitch(this, this.interactiveCheckBoxChanged)),
         
         dojoOn(this.ringIntervalUnitsDD, 'change',dojoLang.hitch(this, this.ringIntervalUnitsDidChange)),
         
@@ -237,7 +245,15 @@ define([
         
         dojoOn(this.coordinateFormat.content.cancelButton, 'click', dojoLang.hitch(this, function () {
           DijitPopup.close(this.coordinateFormat);
-        }))
+        })),
+
+        dojoOn(this.clearGraphicsButton,'click',dojoLang.hitch(this, this.clearGraphics)),
+        
+        dojoOn(this.numRingsDiv, dojoMouse.leave, dojoLang.hitch(this, this.checkValidInputs)),
+        
+        dojoOn(this.ringIntervalDiv, dojoMouse.leave, dojoLang.hitch(this, this.checkValidInputs)),
+        
+        dojoOn(this.numRadialsInputDiv, dojoMouse.leave, dojoLang.hitch(this, this.checkValidInputs))
       );            
     },
 
@@ -249,19 +265,36 @@ define([
         'Center Point (${crdType})', {
             crdType: toType
         });
-    },        
+    },
+
+    /*
+    * checkbox changed
+    */
+    interactiveCheckBoxChanged: function () {
+      this.tabSwitched();
+      if(this.interactiveRings.checked) {
+        this.numRingsInput.set('disabled', true);
+        this.ringIntervalInput.set('disabled', true);
+      } else {
+        this.numRingsInput.set('disabled', false);
+        this.ringIntervalInput.set('disabled', false);
+      }
+      this.checkValidInputs();
+    },    
     
     /*
      * catch key press in start point
      */
     coordToolKeyWasPressed: function (evt) {
-      this.coordTool.manualInput = true;
+      this.dt.removeStartGraphic();
       if (evt.keyCode === dojoKeys.ENTER) {
         this.coordTool.inputCoordinate.getInputType().then(dojoLang.hitch(this, function (r) {
           if(r.inputType == "UNKNOWN"){
             var alertMessage = new Message({
               message: 'Unable to determine input coordinate type please check your input.'
             });
+            this.coordTool.inputCoordinate.coordinateEsriGeometry = null;
+            this.checkValidInputs();
           } else {
             dojoTopic.publish(
               'manual-rangering-center-point-input',
@@ -272,6 +305,7 @@ define([
             this.coordTool.inputCoordinate.set('formatString', fs.defaultFormat);
             this.coordTool.inputCoordinate.set('formatType', r.inputType);
             this.dt.addStartGraphic(r.coordinateEsriGeometry, this._ptSym);
+            this.checkValidInputs();
           }
         }));
       }
@@ -300,7 +334,7 @@ define([
       } else {
           this.dt.activate('point');
       }
-      dojoDomClass.toggle(this.addPointBtn, 'jimu-state-active');
+      dojoDomClass.toggle(this.addPointBtn, 'jimu-state-active');      
     },
 
     /*
@@ -320,7 +354,6 @@ define([
         this.numRingsInput.set('value','0'),
         this.numRingsInput.set('disabled', true);
       } else {
-        this.numRingsInput.set('value','3'),
         this.numRingsInput.set('disabled', false);
       }      
     },    
@@ -328,9 +361,9 @@ define([
     /*
      *
      */
-    numRadialsInputKeyWasPressed: function (evt) {
+    okButtonClicked: function (evt) {
       // validate input
-      if (evt.keyCode === dojoKeys.ENTER && this.getInputsValid()) {       
+      if(!dojoDomClass.contains(this.okButton, "jimu-state-disabled")) {       
           var numRings;
           var ringInterval;
           
@@ -510,10 +543,11 @@ define([
         this.createRangeRings(params);
       } else {
         centerPoint = results.geometry;
+        this.checkValidInputs();
       }
 
       dojoDomClass.remove(this.addPointBtn, 'jimu-state-active');
-      this.coordTool.clear();
+      //this.coordTool.clear();
       this.dt.deactivate();
       this.map.enableMapNavigation();
     },
@@ -528,6 +562,11 @@ define([
         this._gl.refresh();
         this.dt.removeStartGraphic();
         this.coordTool.clear();
+      }
+      this.checkValidInputs();
+      //refresh each of the feature/graphic layers to enusre labels are removed
+      for(var j = 0; j < this.map.graphicsLayerIds.length; j++) {
+        this.map.getLayer(this.map.graphicsLayerIds[j]).refresh();
       }
     },
     
@@ -547,6 +586,18 @@ define([
       if (this._gl) {
         this._gl.show();
       }
+    },
+    
+    /*
+    * Activate the ok button if all the requried inputs are valid
+    */
+    checkValidInputs: function () {
+      dojoDomClass.add(this.okButton, 'jimu-state-disabled');
+        if(!this.interactiveRings.checked) {
+          if(this.coordTool.inputCoordinate.coordinateEsriGeometry != null && this.numRingsInput.isValid() && this.ringIntervalInput.isValid() && this.numRadialsInput.isValid()){
+            dojoDomClass.remove(this.okButton, 'jimu-state-disabled');
+          }            
+        }
     },
 
     /*

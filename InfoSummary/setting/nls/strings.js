@@ -51,7 +51,13 @@ define({
     panelCountOptionHelp: "Enable/Disable display of feature counts.",
     panelIconOptionHelp: "Enable/Disable display of a logo on the main panel.",
     rdoGroupByField: "by field",
-    rdoGroupByRenderer: "by renderer"
+    rdoGroupByRenderer: "by renderer",
+    expandList: "Expand List on Startup",
+    expandListHelp: "Enable/Disable default expanding of the list.",
+    chkFeatureDisplay: "Disable Feature List",
+    showAllFeaturesHelp: "Enable/Disable display of all features regardless of extent.",
+    showAllFeatures: "Show All Features",
+    fieldsWarning: "No fields defined in popup. Optional: Use edit action to define panel display options."
   }),
   "ar": 1,
   "bs": 1,

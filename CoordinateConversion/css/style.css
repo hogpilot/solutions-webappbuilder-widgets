@@ -61,6 +61,10 @@
     height: 16px;
 }
 
+.jimu-widget-cw .cpbtn:hover {
+    background: url(../images/copy_dark.png);
+}
+
 .jimu-widget-cw .expand {
   display: inline-block;
   background: url('../images/fold_up.png');
@@ -121,14 +125,18 @@
       width: 75px;
   }
 
-/*.jimu-widget-cw .add-with-icon > span {
+.jimu-widget-cw .add-with-icon > span {
     float: none;
-    margin-top: 6px;
+    margin-top: 5px;
     line-height: 32px;
-}*/
+}
 
 .jimu-widget-cw .add-with-icon .zoomButton {
     text-decoration: underline;
+}
+
+.jimu-widget-cw .add-with-icon .zoomButton:hover {
+    color: blue;
 }
 
 .jimu-widget-cw .add-output {
@@ -173,4 +181,49 @@
 
 .controlContainer {
     margin-top: 6px;
+}
+
+/****** Dart Theme Overrides ******/
+
+.claro .dartThemeClaroDijitTooltipContainerOverride .dijitTooltipContainer {
+    background-color: #4c4c4c;
+    background-image: -webkit-linear-gradient(bottom, rgb(76, 76, 76) 0px, #4c4c4c 10px);
+    border: 1px solid #ffffff;
+    color: #ffffff;
+}
+
+.claro .dartThemeClaroDijitTooltipContainerOverride .jimu-widget-subtitle {
+    color: #ffffff;
+}
+
+.claro .dartThemeClaroDijitTooltipContainerOverride .dijitTooltipConnector {    
+    background-image: url(images/tooltip.png);    
+}
+
+.DartTheme .jimu-icon {
+    background-image: url(images/sprite.png);
+}
+
+.DartTheme  .jimu-widget-cw .cpbtn {
+    background: url(../images/copy.png);
+}
+
+.DartTheme  .jimu-widget-cw .cpbtn:hover {
+    background: url(../images/copy_dark.png);
+}
+
+.DartTheme  .add-with-icon .draw {
+  background: url(../images/draw_point_dart.png);
+  display: inline-block;
+  background-repeat: no-repeat;
+  background-color: transparent;
+  background-repeat: no-repeat;
+  background-position: center center;
+  width: 30px;
+  height: 30px;
+  margin-left: 5px;
+}
+
+.DartTheme .jimu-widget-cw .add-with-icon .zoomButton:hover {
+    color: #000000 !important;
 }

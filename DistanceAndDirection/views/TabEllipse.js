@@ -24,6 +24,7 @@ define([
   'dojo/dom-attr',
   'dojo/dom-class',
   'dojo/string',
+  'dojo/mouse',
   'dojo/number',
   'dojo/keys',
   'dijit/_WidgetBase',
@@ -39,14 +40,18 @@ define([
   'esri/symbols/SimpleFillSymbol',
   'esri/symbols/TextSymbol',
   'esri/graphic',
+  'esri/geometry/Polygon',
   'esri/tasks/FeatureSet',
+  'esri/geometry/geometryEngine',
+  'esri/geometry/webMercatorUtils',
   '../models/EllipseFeedback',
   '../models/ShapeModel',
   '../views/CoordinateInput',
   '../views/EditOutputCoordinate',
   'dojo/text!../templates/TabEllipse.html',
   'dijit/form/NumberTextBox',
-  'dijit/form/Select'
+  'dijit/form/Select',
+  'jimu/dijit/CheckBox'
 ], function (
   dojoDeclare,
   dojoLang,
@@ -56,6 +61,7 @@ define([
   dojoDomAttr,
   dojoDomClass,
   dojoString,
+  dojoMouse,
   dojoNumber,
   dojoKeys,
   dijitWidgetBase,
@@ -71,7 +77,10 @@ define([
   EsriSimpleFillSymbol,
   EsriTextSymbol,
   EsriGraphic,
+  EsriPolygon,
   EsriFeatureSet,
+  EsriGeometryEngine,
+  EsriWMUtils,
   DrawFeedBack,
   ShapeModel,
   CoordInput,
@@ -113,15 +122,22 @@ define([
           content: new EditOutputCoordinate(),
           style: 'width: 400px'
       });
+      
+      if(this.appConfig.theme.name === 'DartTheme')
+      {
+        dojoDomClass.add(this.coordinateFormat.domNode, 'dartThemeClaroDijitTooltipContainerOverride');
+      }
 
       // add extended toolbar
       this.dt = new DrawFeedBack(this.map,this.coordTool.inputCoordinate.util);
       this.dt.setLineSymbol(this._ellipseSym);
-      this.dt.set('lengthUnit', 'meters');
+      this.dt.set('lengthUnit', 'kilometers');
       this.dt.set('angle', 0);
       this.dt.set('ellipseType', 'semi');
 
       this.syncEvents();
+      
+      this.checkValidInputs();
     },
 
     /*
@@ -182,8 +198,6 @@ define([
      * Start up event listeners
      */
     syncEvents: function () {
-      
-      dojoTopic.subscribe('DD_CLEAR_GRAPHICS',dojoLang.hitch(this, this.clearGraphics));
       //commented out as we want the graphics to remain when the widget is closed
       /*dojoTopic.subscribe('DD_WIDGET_OPEN',dojoLang.hitch(this, this.setGraphicsShown));
       dojoTopic.subscribe('DD_WIDGET_CLOSE',dojoLang.hitch(this, this.setGraphicsHidden));*/              
@@ -232,58 +246,44 @@ define([
         
         dojoOn(this.addPointBtn, 'click',dojoLang.hitch(this, this.pointButtonWasClicked)),
         
+        dojoOn(this.interactiveEllipse, 'change',dojoLang.hitch(this, this.interactiveCheckBoxChanged)),
+        
         dojoOn(this.coordTool, 'keyup',dojoLang.hitch(this, this.coordToolKeyWasPressed)),
-        
-        dojoOn(this.majorAxisInput, 'keyup',dojoLang.hitch(this, this.onMajorAxisInputKeyupHandler)),
-        
-        dojoOn(this.minorAxisInput, 'keyup',dojoLang.hitch(this, this.onMinorAxisInputKeyupHandler)),
-        
-        dojoOn(this.angleInput, 'keyup',dojoLang.hitch(this, this.onOrientationAngleKeyupHandler)),
         
         dojoOn(this.angleInput, 'change',dojoLang.hitch(this, this.angleDidChange)), 
         
         dojoOn(this.coordinateFormat.content.cancelButton, 'click',dojoLang.hitch(this, function () {
             DijitPopup.close(this.coordinateFormat);
-        }))
+        })),
+
+        dojoOn(this.clearGraphicsButton,'click',dojoLang.hitch(this, this.clearGraphics)),
+        
+        dojoOn(this.majorAxisInputDiv, dojoMouse.leave, dojoLang.hitch(this, this.checkValidInputs)),
+        
+        dojoOn(this.minorAxisInputDiv, dojoMouse.leave, dojoLang.hitch(this, this.checkValidInputs)),
+        
+        dojoOn(this.angleInputDiv, dojoMouse.leave, dojoLang.hitch(this, this.checkValidInputs))
       );
     },
 
-    /*
-     *
-     */
-    onMajorAxisInputKeyupHandler: function (evt) {
-      if(this.majorAxisInput.isValid())
-      {
-        dojoDomAttr.get(this.ellipseType, 'value') == "full"?dojoTopic.publish('manual-ellipse-major-axis-input', this.majorAxisInput.displayedValue/2):dojoTopic.publish('manual-ellipse-major-axis-input', this.majorAxisInput.displayedValue);      
-      }
+    okButtonClicked: function () {
+      if(!dojoDomClass.contains(this.okButton, "jimu-state-disabled")) {
+        if(dojoDomAttr.get(this.ellipseType, 'value') == "full") {
+          dojoTopic.publish('create-manual-ellipse', 
+            this.majorAxisInput.get('value')/2,
+            this.minorAxisInput.get('value')/2,
+            this.angleInput.get('value'),                                
+            this.coordTool.inputCoordinate.coordinateEsriGeometry)
+        } else {
+          dojoTopic.publish('create-manual-ellipse', 
+            this.majorAxisInput.get('value'),
+            this.minorAxisInput.get('value'),
+            this.angleInput.get('value'),
+            this.coordTool.inputCoordinate.coordinateEsriGeometry);
+        }
+      } 
     },
-
-    /*
-     *
-     */
-    onMinorAxisInputKeyupHandler: function (evt) {
-      if(this.minorAxisInput.isValid())
-      {
-        dojoDomAttr.get(this.ellipseType, 'value') == "full"?dojoTopic.publish('manual-ellipse-minor-axis-input', this.minorAxisInput.displayedValue/2):dojoTopic.publish('manual-ellipse-minor-axis-input', this.minorAxisInput.displayedValue);      
-      }
-    },        
     
-    /*
-     *
-     */
-    onOrientationAngleKeyupHandler: function (evt) {
-      this.dt.set('angle', this.angleInput.displayedValue);
-      if (evt.keyCode === dojoKeys.ENTER) {
-          if (this.angleInput.isValid() && this.minorAxisInput.isValid() && this.majorAxisInput.isValid()) {                
-              dojoTopic.publish('manual-ellipse-orientation-angle-input', this.angleInput.displayedValue);
-          } else {
-            var alertMessage = new Message({
-              message: '<p>The ellipse creation form contains invalid parameters. Please check your Orientation Angle, Major axis and Minor axis contain valid values.</p>'
-            });
-          }
-      }
-    },
-
     /*
      * update the gui with the major axis length
      */
@@ -307,16 +307,35 @@ define([
     },
     
     /*
+     * checkbox changed
+     */
+    interactiveCheckBoxChanged: function () {
+      this.tabSwitched();
+      if(this.interactiveEllipse.checked) {
+        this.majorAxisInput.set('disabled', true);
+        this.minorAxisInput.set('disabled', true);
+        this.angleInput.set('disabled', true);
+        } else {
+        this.majorAxisInput.set('disabled', false);
+        this.minorAxisInput.set('disabled', false);
+        this.angleInput.set('disabled', false);
+      }
+      this.checkValidInputs();
+    },
+    
+    /*
      * catch key press in start point
      */
     coordToolKeyWasPressed: function (evt) {
-      this.coordTool.manualInput = true;
+      this.dt.removeStartGraphic();
       if (evt.keyCode === dojoKeys.ENTER) {
         this.coordTool.inputCoordinate.getInputType().then(dojoLang.hitch(this, function (r) {
           if(r.inputType == "UNKNOWN"){
             var alertMessage = new Message({
               message: 'Unable to determine input coordinate type please check your input.'
             });
+            this.coordTool.inputCoordinate.coordinateEsriGeometry = null;
+            this.checkValidInputs();
           } else {
             dojoTopic.publish(
               'manual-ellipse-center-point-input',
@@ -327,6 +346,7 @@ define([
             this.coordTool.inputCoordinate.set('formatString', fs.defaultFormat);
             this.coordTool.inputCoordinate.set('formatType', r.inputType);
             this.dt.addStartGraphic(r.coordinateEsriGeometry, this._ptSym);
+            this.checkValidInputs();
           }
         }));
       }
@@ -350,7 +370,11 @@ define([
       this.coordTool.manualInput = false;
       dojoTopic.publish('clear-points');
       this.map.disableMapNavigation();
-      this.dt.activate('polyline');
+      if(this.interactiveEllipse.checked) {
+        this.dt.activate('polyline');
+      } else {
+        this.dt.activate('point');
+      }
       dojoDomClass.toggle(this.addPointBtn, 'jimu-state-active');
     },
 
@@ -360,8 +384,6 @@ define([
     lengthUnitDDDidChange: function () {
       this.currentLengthUnit = this.lengthUnitDD.get('value');
       this.dt.set('lengthUnit', this.currentLengthUnit);
-      this.onMajorAxisInputKeyupHandler();
-      this.onMinorAxisInputKeyupHandler();
     },
 
     /*
@@ -394,22 +416,25 @@ define([
      *
      */
     feedbackDidComplete: function (results) {
-      var currentEllipse = new EsriGraphic(results.geometry.geometry,this._ellipseSym);
-      
-      var type = this.majorAxisLabel.textContent.split(" ")[1];
-      
-      currentEllipse.setAttributes({
-        'MINOR': type + ": " + dojoDomAttr.get(this.minorAxisInput, 'value').toString() + " " + dijit.byId('lengthUnitDD').get('displayedValue'),
-        'MAJOR': type + ": " + dojoDomAttr.get(this.majorAxisInput, 'value').toString() + " " + dijit.byId('lengthUnitDD').get('displayedValue'),
-        'ORIENTATION_ANGLE': this.angleInput.displayedValue.toString() + " " + dijit.byId('angleUnitDD').get('displayedValue'),
-      });
+      if(results.geometry.type == 'polygon') {
+        var currentEllipse = new EsriGraphic(results.geometry.geometry,this._ellipseSym);
+        
+        var type = this.majorAxisLabel.textContent.split(" ")[1];
+        
+        currentEllipse.setAttributes({
+          'MINOR': type + ": " + this.minorAxisInput.displayedValue + " " + dijit.byId('lengthUnitDD').get('displayedValue'),
+          'MAJOR': type + ": " + this.majorAxisInput.displayedValue + " " + dijit.byId('lengthUnitDD').get('displayedValue'),
+          'ORIENTATION_ANGLE': this.angleInput.displayedValue + " " + dijit.byId('angleUnitDD').get('displayedValue'),
+        });
 
-      this._gl.add(currentEllipse);
-      this._gl.refresh();
-      
+        this._gl.add(currentEllipse);
+        this._gl.refresh();
+      } else {
+        this.checkValidInputs();
+      }
       this.map.enableMapNavigation();
       this.dt.deactivate();
-      this.dt.removeStartGraphic();
+      //this.dt.removeStartGraphic();
       dojoDomClass.remove(this.addPointBtn, 'jimu-state-active');
     },
 
@@ -420,11 +445,13 @@ define([
       if (this._gl) {
         this._gl.clear();
         this.coordTool.clear();
-        this.majorAxisInput.set('value', '');
-        this.minorAxisInput.set('value', '');
-        this.angleInput.set('value', '');
       }
       dojoDomClass.remove(this.addPointBtn, 'jimu-state-active');
+      this.checkValidInputs();
+      //refresh each of the feature/graphic layers to enusre labels are removed
+      for(var j = 0; j < this.map.graphicsLayerIds.length; j++) {
+        this.map.getLayer(this.map.graphicsLayerIds[j]).refresh();
+      }
     },
 
     /*
@@ -479,6 +506,18 @@ define([
             crdType: toType
         }
       );
+    },
+    
+    /*
+    * Activate the ok button if all the requried inputs are valid
+    */
+    checkValidInputs: function () {
+      dojoDomClass.add(this.okButton, 'jimu-state-disabled');
+        if(!this.interactiveEllipse.checked) {
+          if(this.coordTool.inputCoordinate.coordinateEsriGeometry != null && this.majorAxisInput.isValid() && this.minorAxisInput.isValid() && this.angleInput.isValid()){
+            dojoDomClass.remove(this.okButton, 'jimu-state-disabled');
+          }            
+        }
     },
 
     /*

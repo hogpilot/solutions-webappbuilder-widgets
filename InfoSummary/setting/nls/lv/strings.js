@@ -50,5 +50,11 @@ define({
   "panelCountOptionHelp": "Elementu skaita rādīšanas iespējošana/atspējošana.",
   "panelIconOptionHelp": "Logotipa rādīšanas galvenajā panelī iespējošana/atspējošana.",
   "rdoGroupByField": "pēc lauka",
-  "rdoGroupByRenderer": "pēc renderētāja"
+  "rdoGroupByRenderer": "pēc renderētāja",
+  "expandList": "Izvērst sarakstu startēšanas laikā",
+  "expandListHelp": "Aktivizējiet/deaktivizējiet saraksta noklusējuma izvēršanu.",
+  "chkFeatureDisplay": "Deaktivizēt elementu sarakstu",
+  "showAllFeaturesHelp": "Aktivizējiet/deaktivizējiet visu elementu rādīšanu neatkarīgi no pārklājuma.",
+  "showAllFeatures": "Rādīt visus elementus",
+  "fieldsWarning": "Uznirstošajā lodziņā nav definēti lauki. Papildiespēja: izmantojiet rediģēšanas darbību, lai definētu paneļa rādīšanas opcijas."
 });

@@ -29,22 +29,19 @@ define([
     'dojo/dom-style',
     'dojo/mouse',
     'dojo/promise/all',
-
     'dijit/_WidgetBase',
     'dijit/_TemplatedMixin',
     'dijit/_WidgetsInTemplateMixin',
     'dijit/TooltipDialog',
     'dijit/popup',
     'dojo/text!../templates/VisibilityControl.html',
-
     './jquery.knob.min',
     'jimu/dijit/Message',
     './DrawFeedBack',
-    
-
     'esri/map',
-    "esri/dijit/util/busyIndicator",
+    'esri/dijit/util/busyIndicator',
     'esri/toolbars/draw',
+    'esri/geometry/webMercatorUtils',
     'esri/graphic',
     'esri/layers/GraphicsLayer',
     'esri/tasks/Geoprocessor',
@@ -58,8 +55,7 @@ define([
     './CoordinateInput',
     './EditOutputCoordinate',
     'dijit/form/NumberTextBox',
-    'jimu/dijit/CheckBox'
-    
+    'jimu/dijit/CheckBox'    
 ], function (
     dojoDeclare,
     dojoDeferred,
@@ -78,7 +74,7 @@ define([
     dijitTemplatedMixin,    
     dijitWidgetsInTemplate,
     dijitTooltipDialog,
-    DijitPopup,
+    dijitPopup,
     vistemplate,
     knob,
     Message,
@@ -86,6 +82,7 @@ define([
     Map,
     BusyIndicator,
     Draw,
+    WebMercatorUtils,    
     Graphic,
     GraphicsLayer, 
     Geoprocessor, 
@@ -172,7 +169,12 @@ define([
                   this.coordinateFormat = new dijitTooltipDialog({
                     content: new EditOutputCoordinate(),
                     style: 'width: 400px'
-                  });            
+                  });
+
+                  if(this.appConfig.theme.name === 'DartTheme')
+                  {
+                    dojoDomClass.add(this.coordinateFormat.domNode, 'dartThemeClaroDijitTooltipContainerOverride');
+                  }                  
                   
                   //initiate and add viewshed graphics layer
                   this._initGL();
@@ -192,7 +194,7 @@ define([
         },      
 
         startup: function(){
-            this.busyIndicator = BusyIndicator.create({target: this.buttonContainer, backgroundOpacity: 0});
+            this.busyIndicator = BusyIndicator.create({target: this.domNode.parentNode.parentNode.parentNode, backgroundOpacity: 0});
             var updateValues = dojoLang.hitch(this,function(a,b,c) {
               this.angleUnits.checked?this.LA = a/17.777777777778:this.LA = a;
               this.FOV = Math.round(b);
@@ -201,7 +203,7 @@ define([
               $("input.fov").knob({
                 'min':0,
                 'max':360,
-                'cursor':0,
+                'cursor':360,
                 'inputColor': '#ccc',
                 'width': 160,
                 'height': 160,
@@ -279,11 +281,11 @@ define([
                 this.coordTool.inputCoordinate.set('formatString', cfs);
                 this.coordTool.inputCoordinate.set('formatType', fv);
                 this.setCoordLabel(fv);
-                DijitPopup.close(this.coordinateFormat);                
+                dijitPopup.close(this.coordinateFormat);                
               })),
               
               dojoOn(this.coordinateFormat.content.cancelButton, 'click', dojoLang.hitch(this, function () {
-                DijitPopup.close(this.coordinateFormat);
+                dijitPopup.close(this.coordinateFormat);
               }))
             );
         },
@@ -337,10 +339,13 @@ define([
         drawWedge: function (graphics,symbol){
           var deferred = new dojoDeferred();
           for (var w = 0, wl = graphics.length; w < wl; w++) {
-              var feature = graphics[w];
-              feature.setSymbol(symbol);
-              this.graphicsLayer.add(feature);                      
+            var feature = graphics[w];
+            if (this.map.spatialReference.wkid === 4326) {
+              feature.geometry = WebMercatorUtils.webMercatorToGeographic(feature.geometry);
             }
+            feature.setSymbol(symbol);
+            this.graphicsLayer.add(feature);                      
+          }
           deferred.resolve("success");
           return deferred.promise;
         },
@@ -352,6 +357,9 @@ define([
           var deferred = new dojoDeferred();
           for (var w = 0, wl = graphics.length; w < wl; w++) {
             var feature = graphics[w];
+            if (this.map.spatialReference.wkid === 4326) {
+              feature.geometry  = WebMercatorUtils.webMercatorToGeographic(feature.geometry);
+            }
             if(feature.attributes.gridcode != 0)
             {
               feature.setSymbol(this.visibleArea);
@@ -472,29 +480,24 @@ define([
          *
          */
         angleUnitsDidChange: function () {
-          $("input.fov").val(0).trigger('change');
           if(this.angleUnits.checked) {
             $("input.fov").trigger('configure',
               {
                   "max": 6400,
                   "units": 'mils',
-                  "v": 0,
-                  "units": 'mils',
-                  "milsValue": 0,
-                  "inputColor":"#f37371" 
+                  "milsValue": 6400
               }
-            ); 
+            );
+            $("input.fov").val(6400).trigger('change');
           } else {
             $("input.fov").trigger('configure',
               {
                   "max": 360,
                   "units": 'degrees',
-                  "v": 0,
-                  "units": 'degrees',
-                  "milsValue": 0,
-                  "inputColor":"#f37371"                   
+                  "milsValue": 6400
               }
-            );        
+            );
+            $("input.fov").val(360).trigger('change');            
           }
         },
         
@@ -537,7 +540,7 @@ define([
                 {
                     "fgColor":"#00ff66",
                     "bgColor":"#f37371",
-                    "inputColor":"#f37371"                     
+                    "inputColor":"#ccc"                     
                 }
             );
           }
@@ -548,7 +551,7 @@ define([
          */
         coordinateFormatButtonWasClicked: function () {
           this.coordinateFormat.content.set('ct', this.coordTool.inputCoordinate.formatType);
-          DijitPopup.open({
+          dijitPopup.open({
               popup: this.coordinateFormat,
               around: this.coordinateFormatButton
           });
@@ -626,7 +629,7 @@ define([
             this.dt.removeStartGraphic();
             //reset dialog
             this.FOVInput.disabled = true;
-            $("input.fov").val(0).trigger('change');
+            $("input.fov").val(360).trigger('change');
             $("input.fov").trigger('configure',
                 {
                     "fgColor":"#ccc",

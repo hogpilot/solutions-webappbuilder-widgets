@@ -116,6 +116,11 @@ define([
             style: 'width: 400px'
           });
           
+          if(this.appConfig.theme.name === 'DartTheme')
+          {
+            dojoDomClass.add(this.coordinateFormat.domNode, 'dartThemeClaroDijitTooltipContainerOverride');
+          }
+          
           // add extended toolbar
           this.dt = new drawFeedBack(this.map,this.coordTool.inputCoordinate.util);
                                

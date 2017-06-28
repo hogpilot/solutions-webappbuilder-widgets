@@ -24,11 +24,15 @@
                   </div>
                 </div>
             </div>
+            <div class="controlGroup">
+                <input class="interactive-checkbox" type="checkbox" data-dojo-attach-point="interactiveCircle" />
+                <label data-dojo-attach-point="interactiveLabel">Create Circle Interactively</label>                
+            </div>
         </div>
 
         <div class="controlGroup">
             <label data-dojo-attach-point="radiusDiameterLabel">Radius</label>
-            <div class="controlItem">
+            <div class="controlItem" data-dojo-attach-point="radiusInputDiv">
                 <input
                   data-dojo-type='dijit/form/NumberTextBox'
                   required="true" value="1000" data-dojo-props="
@@ -49,7 +53,7 @@
             </div>
         </div>
 
-        <div class="controlGroup">
+        <div class="controlGroup" data-dojo-attach-point='distCalcControlDiv'>
               <div data-dojo-attach-point='distCalcControl' data-dojo-type="dijit/TitlePane" data-dojo-props="title: 'Distance Calculator', open: false">
                 <div class="controlGroup">
                     <label>Time<label>
@@ -87,8 +91,8 @@
                                 <option value="1000;3600">Kilometers / hour</option>
                                 <option value="1;1" selected="selected">Meters / second</option>
                                 <option value="1;3600">Meters / hour</option>
-                                <option value="1609.34;1">Miles / second</option>
-                                <option value="1609.34;3600">Miles / hour</option>
+                                <option value="1609.344;1">Miles / second</option>
+                                <option value="1609.344;3600">Miles / hour</option>
                                 <option value="1852;1">Nautical Miles / second</option>
                                 <option value="1852;3600">Nautical Miles / hour</option>
                             </select>
@@ -96,5 +100,11 @@
                 </div>
             </div>
         </div>
+        
+        <div class="buttonContainer">
+          <div class='jimu-btn jimu-state-disabled' data-dojo-attach-point='okButton' data-dojo-attach-event="onclick: okButtonClicked">OK</div>
+          <div class='jimu-btn' data-dojo-attach-point='clearGraphicsButton'>Clear Graphics</div>
+        </div>
+      
     </div>
 </div>

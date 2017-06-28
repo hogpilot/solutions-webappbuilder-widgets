@@ -23,6 +23,7 @@ define([
   'dojo/_base/lang',
   'dojo/topic',
   'esri/graphic',
+  'esri/toolbars/draw',
   'esri/geometry/Point',
   'esri/geometry/Polyline',
   'esri/geometry/Polygon',
@@ -40,6 +41,7 @@ define([
   dojoLang,
   dojoTopic,
   esriGraphic,
+  esriDraw,
   esriPoint,
   esriPolyLine,
   esriPolygon,
@@ -51,7 +53,7 @@ define([
   drawFeedback
 ) {
   var clz = dojoDeclare([drawFeedback], {
-    orientationAngle: null,
+    orientationAngle: 0,
     majorAxisLength: [],
     minorAxisLength: [],
         
@@ -71,19 +73,10 @@ define([
 
     */
     syncEvents: function () {
+      
       dojoTopic.subscribe(
-        'manual-ellipse-major-axis-input',
-        dojoLang.hitch(this, this.onMajorAxisManualInputHandler)
-      );
-
-      dojoTopic.subscribe(
-        'manual-ellipse-minor-axis-input',
-        dojoLang.hitch(this, this.onMinorAxisManualInputHandler)
-      );
-
-      dojoTopic.subscribe(
-        'manual-ellipse-orientation-angle-input',
-        dojoLang.hitch(this, this.onOrientationAngleManualInputHandler)
+        'create-manual-ellipse',
+        dojoLang.hitch(this, this.onCreateManualEllipse)
       );
 
       dojoTopic.subscribe(
@@ -98,87 +91,59 @@ define([
     },
           
     /*
-    Handler for clearing out points
+    * Handler for clearing out points
     */
     clearPoints: function (centerPoint) {
+      this._points = [];
+      this.map.graphics.clear();
+    },    
+    
+    
+    /*
+    * Handler for manual ellipse from Ok Button
+    */
+    onCreateManualEllipse: function (majorLength,minorLength,orientationAngle,centerPoint) {      
         this._points = [];
-        this.map.graphics.clear();
-    },
-    /*
-    Handler for major axis manual input
-    */
-    onMajorAxisManualInputHandler: function (majorLength) {      
-        //Check if we have a center point
-        if (this._points.length >= 1) {
-          var centerPoint = this._points[0];
-          if (centerPoint.spatialReference.wkid === 4326) {
-            centerPoint = esriWebMercatorUtils.geographicToWebMercator(centerPoint);
-          }
-          //Convert to meters
-          var lengthInMeters = this._utils.convertToMeters(majorLength, this.lengthUnit);
-          this.majorAxisLength = lengthInMeters;
-          //We do have a center point. Get the end point
-          var endPoint = this.getEndPoint(centerPoint, 0, lengthInMeters);
-          //Add major length point to array
-          this._points.splice(1, 0, endPoint);
-          while (this._points.length > 2)
-          {
-            this._points.pop();
-          }
-          //Clear major length graphic first
-          if (this._majGraphic) {
-              this.map.graphics.remove(this._majGraphic);
-          }
-          if (this._majGraphicB) {
-            this.map.graphics.remove(this._majGraphicB);
-          }
-          // create and add our major graphic
-          var majorLine = new esriPolyLine({
-            paths: [[
-              [centerPoint.x, centerPoint.y],
-              [endPoint.x, endPoint.y]]
-            ],
-            spatialReference: this.map.spatialReference
-          });
-
-          this._majGraphic = new esriGraphic(majorLine, this.lineSymbol);
-          this.map.graphics.add(this._majGraphic);
-          
-          this._majGraphicB = new esriGraphic(majorLine, this.lineSymbol);
-          this._majGraphicB.geometry = esriGeometryEngine.rotate(majorLine,180,centerPoint);
-          this.map.graphics.add(this._majGraphicB);   
-        }
-    },
-
-    /*
-    Handler for minor axis manual input
-    */
-    onMinorAxisManualInputHandler: function (minorLength) {
-      //Check if we have a center point and a major axis point
-      if (this._points.length >= 2) {
-        var centerPoint = this._points[0];
-        if (centerPoint.spatialReference.wkid === 4326) {
+        
+        if (this.map.spatialReference.wkid !== 4326) {
           centerPoint = esriWebMercatorUtils.geographicToWebMercator(centerPoint);
         }
-        //Convert to meters
-        var lengthInMeters = this._utils.convertToMeters(minorLength, this.lengthUnit);
+        
+        this._points.push(centerPoint);
+        
+        //Convert to major length to meters
+        var lengthInMeters = this._utils.convertToMeters(majorLength, this.lengthUnit);
+        this.majorAxisLength = lengthInMeters;
+        
+        //Get the end point on major semi axis
+        var endPoint = this.getEndPoint(centerPoint, 0, lengthInMeters);
+        //Add major end point to array
+        this._points.push(endPoint);          
+        
+        // create the major axis
+        var majorLine = new esriPolyLine({
+          paths: [[
+            [centerPoint.x, centerPoint.y],
+            [endPoint.x, endPoint.y]]
+          ],
+          spatialReference: this.map.spatialReference
+        });
+
+        this._majGraphic = new esriGraphic(majorLine, this.lineSymbol);
+   
+        this._majGraphicB = new esriGraphic(majorLine, this.lineSymbol);
+        this._majGraphicB.geometry = esriGeometryEngine.rotate(majorLine,180,centerPoint);
+
+        //Convert to minor length to meters        
+        lengthInMeters = this._utils.convertToMeters(minorLength, this.lengthUnit);
         this.minorAxisLength = lengthInMeters;
-        //We do have a center point. Get the end point
-        var endPoint = this.getEndPoint(centerPoint, 90, lengthInMeters);
-        //Add major length point to array
-        this._points.splice(2, 0, endPoint);
-        while (this._points.length > 3)
-        {
-          this._points.pop();
-        }
-        //Clear major length graphic first
-        if (this._minGraphic) {
-          this.map.graphics.remove(this._minGraphic);
-        }
-        if (this._minGraphicB) {
-          this.map.graphics.remove(this._minGraphicB);
-        }
-        // create and add our minor graphic
+        
+        //Get the end point on minor semi axis
+        endPoint = this.getEndPoint(centerPoint, 90, lengthInMeters);
+        //Add minor end point to array
+        this._points.push(endPoint);
+        
+        // create the minor axis
         var minorLine = new esriPolyLine({
           paths: [[
             [centerPoint.x, centerPoint.y],
@@ -188,23 +153,12 @@ define([
         });
 
         this._minGraphic = new esriGraphic(minorLine, this.lineSymbol);
-        this.map.graphics.add(this._minGraphic);
-        
+  
         this._minGraphicB = new esriGraphic(minorLine, this.lineSymbol);
         this._minGraphicB.geometry = esriGeometryEngine.rotate(minorLine,180,centerPoint);
-        this.map.graphics.add(this._minGraphicB);
-      }
-    },
 
-    /*
-    Handler for orientation angle manual input
-    */
-    onOrientationAngleManualInputHandler: function (orientationAngle) {
-      this.orientationAngle = Number(orientationAngle);
-      //Check if we have a center, major and minor points
-      if (this._points.length >= 3) {
+        this.orientationAngle = Number(orientationAngle);
         this._onDoubleClickHandler();
-      }
     },
 
     /*
@@ -244,62 +198,70 @@ define([
       var start = snapPoint || evt.mapPoint;
       this._points.push(start.offset(0, 0));
       
-      switch(this._points.length)
-      {
-        case 1:
-          this.set('startPoint', this._points[0]);
-          // create and add our major / minor graphics
-          var maxLine = new esriPolyLine({
-              paths: [[
-                [start.x, start.y],
-                [start.x, start.y]]
-              ], spatialReference: this.map.spatialReference
-          });
-          
-          var minLine = new esriPolyLine({
-              paths: [[
-                [start.x, start.y],
-                [start.x, start.y]]
-              ], spatialReference: this.map.spatialReference
-          });
-          
-                              
-          this._majGraphic = new esriGraphic(maxLine, this.lineSymbol);
-          this._majGraphicB = new esriGraphic(maxLine, this.lineSymbol);
-          this._minGraphic = new esriGraphic(minLine, this.lineSymbol);
-          this._minGraphicB = new esriGraphic(minLine, this.lineSymbol);
-          this.map.graphics.add(this._majGraphic);
-          this.map.graphics.add(this._majGraphicB);
-          this.map.graphics.add(this._minGraphic);
-          this.map.graphics.add(this._minGraphicB);
-          
-          // connect the mouse move event
-          this._onMouseMoveHandlerConnect = dojoConnect.connect(
-              this.map,
-              'onMouseMove',
-              this._onMouseMoveHandler
-          );
-            
-          // connect a double click event to handle user double clicking
-          this._onDoubleClickHandler_connect = dojoConnect.connect(this.map, 'onDblClick', dojoLang.hitch(this, this._onDoubleClickHandler));
-                              
-          var tooltip = this._tooltip;
-          if (tooltip) {
-              tooltip.innerHTML = 'Click length of major axis';
-          }
+      switch (this._geometryType) {
+        case esriDraw.POINT:
+          this.set('startPoint', start.offset(0,0));
+          this._drawEnd(start.offset(0,0));
+          this._setTooltipMessage(0);
           break;
-            
-        case 2:
-          var tooltip = this._tooltip;
-          if (tooltip) {
-              tooltip.innerHTML = 'Move mouse back to start position to set minor axis & finish drawing ellipse';
+        case esriDraw.POLYLINE:
+          switch(this._points.length)
+          {
+            case 1:
+              this.set('startPoint', this._points[0]);
+              // create and add our major / minor graphics
+              var maxLine = new esriPolyLine({
+                  paths: [[
+                    [start.x, start.y],
+                    [start.x, start.y]]
+                  ], spatialReference: this.map.spatialReference
+              });
+              
+              var minLine = new esriPolyLine({
+                  paths: [[
+                    [start.x, start.y],
+                    [start.x, start.y]]
+                  ], spatialReference: this.map.spatialReference
+              });
+              
+                                  
+              this._majGraphic = new esriGraphic(maxLine, this.lineSymbol);
+              this._majGraphicB = new esriGraphic(maxLine, this.lineSymbol);
+              this._minGraphic = new esriGraphic(minLine, this.lineSymbol);
+              this._minGraphicB = new esriGraphic(minLine, this.lineSymbol);
+              this.map.graphics.add(this._majGraphic);
+              this.map.graphics.add(this._majGraphicB);
+              this.map.graphics.add(this._minGraphic);
+              this.map.graphics.add(this._minGraphicB);
+              
+              // connect the mouse move event
+              this._onMouseMoveHandlerConnect = dojoConnect.connect(
+                  this.map,
+                  'onMouseMove',
+                  this._onMouseMoveHandler
+              );
+                
+              // connect a double click event to handle user double clicking
+              this._onDoubleClickHandler_connect = dojoConnect.connect(this.map, 'onDblClick', dojoLang.hitch(this, this._onDoubleClickHandler));
+                                  
+              var tooltip = this._tooltip;
+              if (tooltip) {
+                  tooltip.innerHTML = 'Click length of major axis';
+              }
+              break;
+                
+            case 2:
+              var tooltip = this._tooltip;
+              if (tooltip) {
+                  tooltip.innerHTML = 'Move mouse back to start position to set minor axis & finish drawing ellipse';
+              }
+              break;
+                
+            case 3:
+              this._onDoubleClickHandler();
+              break;              
           }
-          break;
-            
-        case 3:
-          this._onDoubleClickHandler();
-          break;              
-      }            
+      }
     },
 
     /*
@@ -447,7 +409,7 @@ define([
       this._drawEnd(elipseGeom);
       this.cleanup();
       
-      this.orientationAngle = null;
+      this.orientationAngle = 0;
     },
           
     /*

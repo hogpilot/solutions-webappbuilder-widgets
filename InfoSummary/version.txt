@@ -1,2 +1,2 @@
 ArcGIS Solutions
-Version 2.4 - March 2017
+Version 2.5 - June 2017

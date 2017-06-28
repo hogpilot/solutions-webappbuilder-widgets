@@ -112,6 +112,8 @@ define([
       this.config = parent.config;
       this.graphicsLayer = null;
       this.specialFields = {};
+      this.typeIdField = "";
+      this.types = [];
       this.dateFields = {};
       this.baseLabel = tab.label !== "" ? tab.label : tab.layerTitle ? tab.layerTitle : tab.layers;
     },
@@ -462,6 +464,7 @@ define([
         includeGeom = true;
       }
       query.returnGeometry = includeGeom;
+      query.outSpatialReference = this.parent.map.spatialReference;
       var outFields = [];
       array.forEach(this.summaryFields, function (f) {
         outFields.push(f.field);
@@ -540,7 +543,7 @@ define([
         if (typeof (this.summaryFields) !== 'undefined' && this.summaryFields.length > 0) {
           var v = feat.attributes[this.summaryFields[0].field];
           var fVal = analysisUtils.getFieldValue(this.summaryFields[0].field, v,
-            this.specialFields, this.dateFields, 'longMonthDayYear');
+            this.specialFields, this.dateFields, 'longMonthDayYear', this.typeIdField, this.types);
           var val;
           if (typeof (fVal) !== 'undefined' && fVal !== null) {
             val = utils.stripHTML(fVal.toString());
@@ -762,6 +765,8 @@ define([
       var spFields = analysisUtils.getSpecialFields(layer);
       this.dateFields = spFields.dateFields;
       this.specialFields = spFields.specialFields;
+      this.typeIdField = spFields.typeIdField;
+      this.types = spFields.types;
 
       if (this.allFields) {
         for (var j = 0; j < layer.fields.length; j++) {

@@ -129,6 +129,13 @@ define([
               onClose: dojoLang.hitch(this, this.popupDidClose)
           });
           
+          if(this.appconfig.theme.name === 'DartTheme')
+          {
+            dojoDomClass.add(this._frmtdlg.domNode, 'dartThemeClaroDijitTooltipContainerOverride');
+          }
+          
+          
+          
           if(this.defaultFormat) {
             this._frmtdlg.content.formats[this.type].defaultFormat = this.defaultFormat;          
           }

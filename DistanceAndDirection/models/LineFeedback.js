@@ -54,9 +54,9 @@ define([
       */
       syncEvents: function () {
         dojoTopic.subscribe(
-          'manual-linestart-point-input',
+          'manual-startpoint-input',
           dojoLang.hitch(this, this.onLineStartManualInputHandler)
-        );
+        );        
         dojoTopic.subscribe(
           'manual-line-end-point-input',
           dojoLang.hitch(this, this.onLineEndManualInputHandler)
@@ -121,15 +121,15 @@ define([
 
         var start = snappingPoint || evt.mapPoint;
         var  map = this.map;
-        var screenPoint = map.toScreen(start);
         var tGraphic;
         var geom;
 
-        this._points.push(start.offset(0, 0));
+        this._points.push(start);
         switch (this._geometryType) {
           case esriDraw.POINT:
             this.set('startPoint', this._points[0]);
-            this._drawEnd(start.offset(0, 0));
+            this.set('endPoint', this._points[0]);
+            this._drawEnd(start);
             this._setTooltipMessage(0);
             break;
           case esriDraw.POLYLINE:
@@ -138,7 +138,6 @@ define([
               this._onDblClickHandler();
               return;
             }
-
             if (this._points.length === 1) {
               this.set('startPoint', this._points[0]);
               var polyline = new esriPolyLine(map.spatialReference);
@@ -147,25 +146,22 @@ define([
               if (map.snappingManager) {
                 map.snappingManager._setGraphic(this._graphic);
               }
-
               this._onMouseMoveHandler_connect = dojoConnect.connect(map, 'onMouseMove', this._onMouseMoveHandler);
-
               this._tGraphic = map.graphics.add(new esriGraphic(new esriPolyLine({
                 paths: [[[start.x, start.y], [start.x, start.y]]],
                 spatialReference: map.spatialReference
               }), this.lineSymbol), true);
             } else {
               this.set('endPoint', this._points[1]);
-              this._graphic.geometry._insertPoints([start.offset(0, 0)], 0);
+              this._graphic.geometry._insertPoints([start], 0);
               this._graphic.setGeometry(this._graphic.geometry).setSymbol(this.lineSymbol);
-
               tGraphic = this._tGraphic;
               geom = tGraphic.geometry;
-              geom.setPoint(0, 0, start.offset(0, 0));
-              geom.setPoint(0, 1, start.offset(0, 0));
+              geom.setPoint(0, 0, start);
+              geom.setPoint(0, 1, start);
               tGraphic.setGeometry(geom);
-          }
-          break;
+            }
+            break;
         }
 
         this._setTooltipMessage(this._points.length);
@@ -220,8 +216,6 @@ define([
          * the mouse moves then uncomment the line below (use with caution and conduct internal test before making public)
         **/         
 
-        //this.set('currentEndPoint', end);
-        
         var tGraphic = this._tGraphic;
         var geom = tGraphic.geometry;
 

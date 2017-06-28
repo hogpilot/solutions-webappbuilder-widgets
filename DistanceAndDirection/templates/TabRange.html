@@ -15,18 +15,15 @@
                   </div>
                 </div>
         </div>
-        <div class="controlGroup">                
-                <div class="interactive-checkbox"
-                     data-dojo-attach-point="interactiveRings" 
-                     data-dojo-type="jimu/dijit/CheckBox"
-                     data-dojo-props='checked:false' 
-                     label="Create Rings Interactively"></div>
+        <div class="controlGroup">
+            <input class="interactive-checkbox" type="checkbox" data-dojo-attach-point="interactiveRings" />
+            <label data-dojo-attach-point="interactiveLabel">Create Rings Interactively</label>
         </div>
         </div>
 
         <div class="controlGroup">
             <label>Number of Rings</label>
-            <div class="controlItem">
+            <div class="controlItem" data-dojo-attach-point="numRingsDiv">
                 <input data-dojo-attach-point="numRingsInput"
                        type="text"
                        data-dojo-type="dijit/form/NumberTextBox"
@@ -46,7 +43,7 @@
 
         <div class="controlGroup">
             <label>Distance Between Rings</label>
-            <div class="controlItem">
+            <div class="controlItem" data-dojo-attach-point="ringIntervalDiv">
                 <input data-dojo-attach-point="ringIntervalInput"
                        type="text"
                        data-dojo-type="dijit/form/ValidationTextBox"
@@ -71,7 +68,7 @@
         
         <div class="controlGroup">
             <label>Number of Radials</label>
-            <div class="controlItem">
+            <div class="controlItem" data-dojo-attach-point="numRadialsInputDiv">
                 <input data-dojo-attach-point="numRadialsInput"
                        type="text"
                        data-dojo-type="dijit/form/NumberTextBox"
@@ -87,6 +84,11 @@
              invalidMessage: 'Enter a numeric value'
            " />
             </div>
+        </div>
+        
+        <div class="buttonContainer">
+          <div class='jimu-btn jimu-state-disabled' data-dojo-attach-point='okButton' data-dojo-attach-event="onclick: okButtonClicked">OK</div>
+          <div class='jimu-btn' data-dojo-attach-point='clearGraphicsButton'>Clear Graphics</div>
         </div>
         
     </div>

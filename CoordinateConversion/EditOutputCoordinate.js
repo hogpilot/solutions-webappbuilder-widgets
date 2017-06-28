@@ -123,12 +123,6 @@ define([
           this.displayPrefixContainer(); 
         },
 
-        /**
-         *
-         *
-        startup: function () {
-            //this.inherited(arguments);
-        },*/
         formatValDidChange: function () {
             var newvalue = dojoDomAttr.get(this.frmtVal, 'value');
             var crdType = this.frmtSelect.get('value');

@@ -124,7 +124,8 @@ define([
                 input: false,
                 currentClickPoint: this.inputControl.currentClickPoint,
                 type: withType.notation,
-                defaultFormat: withType.defaultFormat
+                defaultFormat: withType.defaultFormat,
+                appconfig: this.appConfig
             });
 
             cc.placeAt(this.outputtablecontainer, "after", this.outputtablesubtitle);            
@@ -139,6 +140,7 @@ define([
                 parentWidget: this,
                 input: true,
                 type: 'DD',
+                appconfig: this.appConfig
             });
             this.inputControl.placeAt(this.inputcoordcontainer);
             this.inputControl.startup();

@@ -253,7 +253,7 @@ define([
             if(this.config.feedback.lineSymbol.showTab)
             {
                tabs.push({
-                      title: 'Lines',
+                      title: 'Line',
                       content: this.lineTab
                   });
             }
@@ -284,8 +284,6 @@ define([
                 tabs: tabs
             }, this.DDTabContainer);
             
-            //this.tab.selectTab('Lines');
-            
             var tabContainer1 = dijitRegistry.byId('DDTabContainer');
             
             this.setTabWidths(tabContainer1);
@@ -293,10 +291,6 @@ define([
             dojoAspect.after(tabContainer1, "selectTab", function() {
                 dojoTopic.publish('TAB_SWITCHED');        
             });
-
-            this.own(dojoOn(this.clearGraphicsButton, 'click', function () {
-                dojoTopic.publish('DD_CLEAR_GRAPHICS');
-            }));
         },
         
         setTabWidths: function(tabContainer) {          

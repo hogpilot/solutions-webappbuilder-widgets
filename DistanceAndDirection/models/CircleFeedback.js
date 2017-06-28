@@ -121,27 +121,27 @@ define([
 
       switch (this._geometryType) {
         case esriDraw.POINT:
-          this.set('startPoint', start.offset(0,0));
+          this.set('startPoint', start);
           this._drawEnd(start.offset(0,0));
           this._setTooltipMessage(0);
           break;
         case esriDraw.POLYLINE:
-          // Finish Drawing
-          if (this.get('startPoint') !== null) {
-            this.set('endPoint', start);
-            this._onDoubleClickHandler();
-            return;
-          } else {
-            this.set('startPoint', start);
-            this._onMouseMoveHandlerConnect = dojoConnect.connect(
-              this.map,
-              'onMouseMove',
-              this._onMouseMoveHandler
-            );
+          switch(this._points.length)
+          {
+            case 1:
+              this.set('startPoint', start);
+              this._onMouseMoveHandlerConnect = dojoConnect.connect(
+                this.map,
+                'onMouseMove',
+                this._onMouseMoveHandler);              
+              break;
+              
+            case 2:
+              this._onDoubleClickHandler();
+              break;
           }
-        }
-
       this._setTooltipMessage(this._points.length);
+      }
     },
 
     /*
@@ -169,7 +169,9 @@ define([
       this.cleanup();
       this._clear();
       this._setTooltipMessage(0);
-      this._drawEnd(this.circleGraphic.geometry);
+      if(this.circleGraphic){
+        this._drawEnd(this.circleGraphic.geometry);
+      }
     },
     
     /**

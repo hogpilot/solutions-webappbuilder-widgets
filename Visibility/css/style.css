@@ -113,6 +113,10 @@
   margin-left: 5px;
 }
 
+.add-with-icon .draw:hover {
+    background-color: #c0c0c0;
+}
+
 .jimu-state-active {
     background-color: #c0c0c0 !important;
 }
@@ -141,3 +145,43 @@
 .DartTheme .jimu-widget-visibility-control .cusrortooltip {
   background-color: #4c4c4c;
 }
+
+.claro .dartThemeClaroDijitTooltipContainerOverride .dijitTooltipContainer {
+    background-color: #4c4c4c;
+    background-image: -webkit-linear-gradient(bottom, rgb(76, 76, 76) 0px, #4c4c4c 10px);
+    border: 1px solid #ffffff;
+    color: #ffffff;
+}
+
+.claro .dartThemeClaroDijitTooltipContainerOverride .jimu-widget-subtitle {
+    color: #ffffff;
+}
+
+.claro .dartThemeClaroDijitTooltipContainerOverride .dijitTooltipConnector {    
+    background-image: url('images/tooltip.png');    
+}
+
+.DartTheme .jimu-icon {
+    background-image: url(images/sprite.png);
+}
+
+.DartTheme  .jimu-widget-cw .cpbtn {
+    background: url(../images/copy.png);
+}
+
+.DartTheme  .add-with-icon .draw {
+  background: url(../images/draw_point_dart.png);
+  display: inline-block;
+  background-repeat: no-repeat;
+  background-color: transparent;
+  background-repeat: no-repeat;
+  background-position: center center;
+  width: 30px;
+  height: 30px;
+  margin-left: 5px;
+}
+
+.DartTheme .jimu-widget-visibility-control .add-with-icon .draw:hover {
+    background-color: #000000;
+}
+

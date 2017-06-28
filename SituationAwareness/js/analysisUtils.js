@@ -85,6 +85,8 @@
     return {
       dateFields: spFields.dateFields,
       specialFields: spFields.specialFields,
+      typeIdField: spFields.typeIdField,
+      types: spFields.types,
       fields: (fields.length > 3 && !allFields) ? fields.slice(0, 3) : fields,
       allFields: fields
     };
@@ -150,7 +152,7 @@
     return undefined;
   };
 
-  mo.getFieldValue = function (fldName, fldValue, specialFields, dateFields, defaultDateFormat) {
+  mo.getFieldValue = function (fldName, fldValue, specialFields, dateFields, defaultDateFormat, typeIdField, types) {
     var value = fldValue;
     if (specialFields[fldName]) {
       var fld = specialFields[fldName];
@@ -167,14 +169,10 @@
           _f = { dateFormat: defaultDateFormat };
         }
         value = utils.fieldFormatter.getFormattedDate(new Date(fldValue), _f);
+      } else if (fldName === typeIdField) {
+        value = utils.fieldFormatter.getTypeName(fldValue, types);
       } else {
-        var codedValues = fld.domain.codedValues;
-        array.some(codedValues, function (obj) {
-          if (obj.code === fldValue) {
-            value = obj.name;
-            return true;
-          }
-        });
+        value = utils.fieldFormatter.getCodedValue(fld.domain, fldValue);
       }
     }
     return value;
@@ -212,13 +210,14 @@
     var dateFields = [];
     if (layer.fields) {
       array.forEach(layer.fields, lang.hitch(this, function (fld) {
-        if (fld.type === "esriFieldTypeDate" || fld.domain) {
+        if (fld.type === "esriFieldTypeDate" || fld.domain || fld.name === layer.typeIdField) {
           if (fld.type === "esriFieldTypeDate") {
             if (layer.infoTemplate) {
               for (var key in layer.infoTemplate._fieldsMap) {
                 if (typeof (layer.infoTemplate._fieldsMap[key].fieldName) !== 'undefined') {
                   if (layer.infoTemplate._fieldsMap[key].fieldName === fld.name) {
-                    if (typeof (layer.infoTemplate._fieldsMap[key].format.dateFormat) !== 'undefined') {
+                    if (layer.infoTemplate._fieldsMap[key].format &&
+                      typeof (layer.infoTemplate._fieldsMap[key].format.dateFormat) !== 'undefined') {
                       dateFields[fld.name] = layer.infoTemplate._fieldsMap[key].format.dateFormat;
                     }
                   }
@@ -232,11 +231,45 @@
     }
     return {
       specialFields: spFields,
-      dateFields: dateFields
+      dateFields: dateFields,
+      typeIdField: layer.typeIdField,
+      types: layer.types
     };
   };
 
   mo.getSummaryFields = function () { };
+
+  mo.getPopupFields = function (tab) {
+    var popupFields = [];
+    if (tab.tabLayers.length > 0) {
+      var mapLayers = tab.tabLayers;
+      array.forEach(mapLayers, lang.hitch(this, function (layer) {
+        var skipFields = this.getSkipFields(layer);
+        if (typeof (layer.popupInfo) !== 'undefined') {
+          array.forEach(layer.popupInfo.fieldInfos, lang.hitch(this, function (field) {
+            if (field.visible && skipFields.indexOf(field.fieldName) === -1) {
+              var fieldObj = {};
+              fieldObj.value = 0;
+              fieldObj.expression = field.fieldName;
+              fieldObj.label = field.label;
+              popupFields.push(fieldObj);
+            }
+          }));
+        } else if (layer.infoTemplate) {
+          array.forEach(layer.infoTemplate.info.fieldInfos, lang.hitch(this, function (field) {
+            if (field.visible && skipFields.indexOf(field.fieldName) === -1) {
+              var fieldObj = {};
+              fieldObj.value = 0;
+              fieldObj.expression = field.fieldName;
+              fieldObj.label = field.label;
+              popupFields.push(fieldObj);
+            }
+          }));
+        }
+      }));
+    }
+    return popupFields;
+  };
 
   mo.getDisplayFields = function (tab) {
     var displayFields;
@@ -493,15 +526,17 @@
     var defArray = [];
     for (var i = 0; i < tabLayers.length; i++) {
       var layer = tabLayers[i];
-      var query = new Query();
-      query.returnGeometry = false;
-      query.geometry = geom;
-      if (typeof (layer.queryCount) !== 'undefined') {
-        defArray.push(layer.queryCount(query));
-      } else if (typeof (layer.queryIds) !== 'undefined') {
-        defArray.push(layer.queryIds(query));
-      } else if (typeof (layer.queryFeatures) !== 'undefined') {
-        defArray.push(layer.queryFeatures(query));
+      if (layer) {
+        var query = new Query();
+        query.returnGeometry = false;
+        query.geometry = geom;
+        if (typeof (layer.queryCount) !== 'undefined') {
+          defArray.push(layer.queryCount(query));
+        } else if (typeof (layer.queryIds) !== 'undefined') {
+          defArray.push(layer.queryIds(query));
+        } else if (typeof (layer.queryFeatures) !== 'undefined') {
+          defArray.push(layer.queryFeatures(query));
+        }
       }
     }
     return defArray;
