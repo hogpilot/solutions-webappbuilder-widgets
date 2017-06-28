@@ -44,12 +44,17 @@ define([
   "esri/tasks/RelationParameters",
   "esri/layers/FeatureLayer",
   "jimu/dijit/DrawBox",
+  "jimu/dijit/Message",
   "dojo/query",
   "dojo/dom-construct",
   "./FacilitiesPane",
   "dojox/json/ref"
 ],
-  function (declare, _WidgetsInTemplateMixin, BaseWidget, TabContainer, List, utils, esriConfig, urlUtils, Query, QueryTask, Geoprocessor, FeatureSet, GraphicsLayer, Graphic, Point, SimpleMarkerSymbol, PictureMarkerSymbol, Polyline, SimpleLineSymbol, Polygon, SimpleFillSymbol, Draw, InfoTemplate, esriRequest, graphicsUtils, webMercatorUtils, Color, Dialog, ProgressBar, NumberSpinner, lang, on, dom, domStyle, Select, TextBox, jsonUtils, Chart, Default, Lines, Bars, Pie, Columns, Tooltip, easing, MouseIndicator, Highlight, MoveSlice, MiamiNice, Magnify, array, html, RelationParameters, FeatureLayer, DrawBox, query, domConstruct, FacilitiesPane, ref) {
+  function (declare, _WidgetsInTemplateMixin, BaseWidget, TabContainer, List, utils, esriConfig, urlUtils, Query, QueryTask, Geoprocessor, 
+    FeatureSet, GraphicsLayer, Graphic, Point, SimpleMarkerSymbol, PictureMarkerSymbol, Polyline, SimpleLineSymbol, Polygon, SimpleFillSymbol, 
+    Draw, InfoTemplate, esriRequest, graphicsUtils, webMercatorUtils, Color, Dialog, ProgressBar, NumberSpinner, lang, on, dom, domStyle, 
+    Select, TextBox, jsonUtils, Chart, Default, Lines, Bars, Pie, Columns, Tooltip, easing, MouseIndicator, Highlight, MoveSlice, MiamiNice, 
+    Magnify, array, html, RelationParameters, FeatureLayer, DrawBox, Message, query, domConstruct, FacilitiesPane, ref) {
     return declare([BaseWidget, _WidgetsInTemplateMixin], {
       baseClass: 'jimu-widget-erg',
       name: 'ERG',
@@ -71,6 +76,7 @@ define([
       ergGPJobID: null,
       ergGPActive: null,
       executionType: null,
+      wsExecutionType: null,
       findNearestWSService: null,
       windDirectionQueryTask: null,
       weatherStationDistanceInfo: null,
@@ -147,6 +153,10 @@ define([
         }
       },
 
+      wsRequestSucceeded: function(data) {
+        this.wsExecutionType = data.executionType;
+      },
+
       queryFacilitiesLayer: function (geom) {
         var query = new Query();
         query.spatialRelationship = Query.SPATIAL_REL_INTERSECTS;
@@ -195,7 +205,7 @@ define([
       },
 
       ERGRequestFailed: function (error) {
-        console.log("Error: ", error.message);
+        new Message({message: error.message});
       },
 
       //synchronous execution results returned
@@ -329,12 +339,24 @@ define([
         }
       },
 
+
+      onWSGPComplete: function (jobInfo) {
+        if (jobInfo.jobStatus !== "esriJobFailed") {
+          this.findNearestWSService.getResultData(jobInfo.jobId, "SACPoint_shp",
+            lang.hitch(this, this.onFindWSExecuteComplete));
+        } else {
+          this._onQueryError("Wind Service Geoprocessing job status: " + jobInfo.messages[2].description);
+        }
+      },
+
       onERGGPStatusCallback: function (jobInfo) {
         var status = jobInfo.jobStatus;
       },
 
       onFindWSExecuteComplete: function (results) {
-        var features = results[0].value.features;
+        this.map.setMapCursor("default");
+        document.body.style.cursor = "default";
+        var features = results instanceof Array ? results[0].value.features : results.value.features;
 
         for (var i = 0; i < features.length; i++) {
           var feature = features[i];
@@ -350,14 +372,16 @@ define([
             query.outFields = ["*"];
             query.returnGeometry = true;
             query.where = "OBJECTID = " + fid;
-            this.windDirectionQueryTask.execute(query);
-            //this.windDirectionQueryTask.execute(query, lang.hitch(this, this.windDirectionQTCompleted));
+            // this.windDirectionQueryTask.execute(query);
+            this.windDirectionQueryTask.execute(query, lang.hitch(this, this.windDirectionQTCompleted));
           }
         }
       },
 
       onLookupWindInfo: function () {
         if (this.spillGraphicsLayer.graphics.length > 0) {
+          this.map.setMapCursor("wait");
+          document.body.style.cursor = "wait";
           this.btnWindDirection.setAttribute("disabled", true);
           var geoPt = webMercatorUtils.webMercatorToGeographic(this.spillGraphicsLayer.graphics[0].geometry);
           var pointSymbol = new SimpleMarkerSymbol();
@@ -377,13 +401,26 @@ define([
           };
 
           this.findNearestWSService.outSpatialReference = this.map.spatialReference;
-          this.findNearestWSService.execute(params, lang.hitch(this, this.onFindWSExecuteComplete));
+          if (this.wsExecutionType === "esriExecutionTypeSynchronous") {
+            this.findNearestWSService.execute(params, lang.hitch(this, this.onFindWSExecuteComplete), lang.hitch(function(error) {
+              new Message({message: error.message});
+              this.btnWindDirection.setAttribute("disabled", false);
+              this.map.setMapCursor("default");
+              document.body.style.cursor = "default";
+            }));
+          } else {
+            this.findNearestWSService.submitJob(params, lang.hitch(this, this.onWSGPComplete), 
+              lang.hitch(this, this.onERGGPStatusCallback));            
+          }
+
         } else {
           alert("Please add a spill location first");
         }
       },
 
       windDirectionQTCompleted: function (results) {
+        if (!results.featureSet) return;
+
         this.btnWindDirection.disabled = false;
 
         var weatherStationName = null;
@@ -560,11 +597,13 @@ define([
         this.inherited(arguments);
         
         //add CORS servers       
-        array.forEach(this.config.corsEnabledServers, function (corsServer) {
-          if (!this._itemExists(corsServer, esri.config.defaults.io.corsEnabledServers)) {
-            esri.config.defaults.io.corsEnabledServers.push(corsServer);
-          }  
-        }, this);
+        if (this.config.corsEnabledServers) {
+          array.forEach(this.config.corsEnabledServers, function (corsServer) {
+            if (!this._itemExists(corsServer, esri.config.defaults.io.corsEnabledServers)) {
+              esri.config.defaults.io.corsEnabledServers.push(corsServer);
+            }  
+          }, this);
+        }
       
         this.tabContainer = new TabContainer({
           tabs: [
@@ -634,7 +673,15 @@ define([
         this.own(on(this.materialType, "change", lang.hitch(this, this.onChangeMaterialType)));
 
         //find nearest weather station GP service
-        this.findNearestWSService = new Geoprocessor(this.config.weatherStationGPService.url);
+        var wsURL = this.config.weatherStationGPService.url;
+        this.findNearestWSService = new Geoprocessor(wsURL);
+        var request3 = esriRequest({
+          url: wsURL + "?f=json",
+          handleAs: "json",
+          callbackParamName: 'callback',
+          load: lang.hitch(this, 'wsRequestSucceeded'),
+          error: lang.hitch(this, 'ERGRequestFailed')
+        });
 
         //spill size option
         var spillOption = [];
@@ -728,8 +775,8 @@ define([
           } else {
             this._onQueryError("Infrastructure layer was defined incorrectly.")
           }
-        } catch (err) {
-          console.log(err.message);
+        } catch (error) {
+          new Message({message: error.message});
         }
       },
 
@@ -767,7 +814,7 @@ define([
       },
 
       _onFacilitiesQueryError: function (error) {
-        console.error("Facilities list query failed", error);
+        new Message({message: "Facilities list query failed: " + error.message});
       },
 
       _initChartLayer: function () {
@@ -821,8 +868,8 @@ define([
           } else {
             this._onQueryError("Demographic layer was defined incorrectly");
           }
-        } catch (err) {
-          console.log(err.message);
+        } catch (error) {
+          new Message({message: error.message});
         }
       },
 
@@ -1007,8 +1054,8 @@ define([
           html.empty(this.chartContainer);
           html.setStyle(this.resultsSection, 'display', 'none');
           html.setStyle(this.noresultsSection, 'display', 'block');
-        } catch (err) {
-          console.log(err.message);
+        } catch (error) {
+          new Message({message: error.message});
         }
       },
 
@@ -1105,8 +1152,8 @@ define([
           }
 
           this._showChart(0);
-        } catch (err) {
-          console.log(err.message);
+        } catch (error) {
+          new Message({message: error.message});
         }
       },
 

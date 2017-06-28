@@ -574,33 +574,63 @@ function (BaseWidget,
       if (this.map.itemId) {
         LayerInfos.getInstance(this.map, this.map.itemInfo)
           .then(lang.hitch(this, function (operLayerInfos) {
-            if (parseFloat(this.appConfig.wabVersion) >= 2.1) {
-              this.supportsFilter = true;
-            } else {
-              this.supportsFilter = false;
-            }
             this.opLayers = operLayerInfos._operLayers;
             this.opLayerInfos = operLayerInfos._layerInfos;
+            this.operLayerInfos = operLayerInfos;
             this._createPanelUI(this.configLayerInfos, operLayerInfos);
-            if (this.supportsFilter) {
-              this._addFilterChanged(operLayerInfos);
-            }
+            this._addFilterChanged(operLayerInfos);
+            this._addVisibleChanged(operLayerInfos);
           }));
       }
     },
 
-    _addFilterChanged: function(layerInfos){
-      layerInfos.on('filterChanged', lang.hitch(this, function (changedLayerInfoArray) {
-        array.forEach(changedLayerInfoArray, lang.hitch(this, function (layerInfo) {
-          var id = layerInfo.id;
-          var clId = layerInfo.id + this.UNIQUE_APPEND_VAL_CL;
-          if (this.layerList.hasOwnProperty(id)) {
-            this.layerList[id].filter = layerInfo.getFilter();
-          } else if (this.layerList.hasOwnProperty(clId)) {
-            this.layerList[clId].filter = layerInfo.getFilter();
-          }
+    _addFilterChanged: function (layerInfos) {
+      if (parseFloat(this.appConfig.wabVersion) >= 2.1) {
+        layerInfos.on('filterChanged', lang.hitch(this, function (changedLayerInfoArray) {
+          array.forEach(changedLayerInfoArray, lang.hitch(this, function (layerInfo) {
+            var id = layerInfo.id;
+            var clId = layerInfo.id + this.UNIQUE_APPEND_VAL_CL;
+            if (this.layerList.hasOwnProperty(id)) {
+              this.layerList[id].filter = layerInfo.getFilter();
+            } else if (this.layerList.hasOwnProperty(clId)) {
+              this.layerList[clId].filter = layerInfo.getFilter();
+            }
+          }));
         }));
-      }));
+      }
+    },
+
+    _addVisibleChanged: function (layerInfos) {
+      this.own(layerInfos.on('layerInfosIsVisibleChanged', lang.hitch(this, function (changedLayerInfos) {
+        array.forEach(changedLayerInfos, function (layerInfo) {
+          var id = layerInfo.id;
+          var vis = layerInfo.isShowInMap();
+          if (this.layerList.hasOwnProperty(id)) {
+            if (id === this.layerList[id].li.id && this.layerList[id].visible !== vis) {
+              this._toggleLayerUI(this.layerList[id].li, vis);
+            } else if (id === this.layerList[id].id && this.layerList[id].visible !== vis) {
+              this._toggleLayerUI(layerInfo, vis);
+            }
+          } else {
+            for (var key in this.layerList) {
+              var _vis = vis;
+              var layerListLayer = this.layerList[key];
+              if (layerListLayer.layerObject && layerListLayer.layerObject.id === id) {
+                var li = this.operLayerInfos.getLayerInfoById(key);
+                if (layerInfo.layerObject && layerInfo.layerObject.visibleLayers &&
+                  layerListLayer.hasOwnProperty('li') && layerListLayer.li.hasOwnProperty('subLayerId')) {
+                  _vis = vis && layerInfo.layerObject.visibleLayers.indexOf(layerListLayer.li.subLayerId) > -1;
+                } else {
+                  _vis = vis && li._visible;
+                }
+                if (layerListLayer.visible !== _vis) {
+                  this._toggleLayerUI(li, _vis);
+                }
+              }
+            }
+          }
+        }, this);
+      })));
     },
 
     _updatePanelHeader: function () {
@@ -952,13 +982,15 @@ function (BaseWidget,
       var _lo = lyrInfo.layerObject ? lyrInfo.layerObject : lyr;
       var originOperLayer = _lo && _lo.originOperLayer ? _lo.originOperLayer : lyr;
       var infoTemplate = this._getInfoTemplate(originOperLayer);
+      jimuLayerInfo = jimuLayerInfo === null ? this.operLayerInfos.getLayerInfoById(lyr.id) : jimuLayerInfo;
+      var vis = jimuLayerInfo && jimuLayerInfo.isShowInMap ? jimuLayerInfo.isShowInMap() : true;
       if (lyr.layerType === "ArcGISFeatureLayer") {
         if (lyrInfo.symbolData.clusteringEnabled) {
           l = this._getClusterLayer(lyrInfo, lyr, jimuLayerInfo, lyrType);
           this.layerList[l.id] = {
             type: "ClusterLayer",
             layerObject: l,
-            visible: true,
+            visible: l.visible,
             id: l.id,
             li: lyrInfo,
             filter: this.supportsFilter && jimuLayerInfo ? jimuLayerInfo.getFilter() : "1=1",
@@ -982,7 +1014,7 @@ function (BaseWidget,
           this.layerList[_id] = {
             type: ll ? lyrType : l.type,
             layerObject: ll ? ll : l,
-            visible: true,
+            visible: vis,
             pl: lyr,
             li: lyrInfo,
             filter: this.supportsFilter && jimuLayerInfo ? jimuLayerInfo.getFilter() : "1=1",
@@ -995,7 +1027,7 @@ function (BaseWidget,
         this.layerList[l.id] = {
           type: "StreamLayer",
           layerObject: l,
-          visible: true,
+          visible: vis,
           id: l.id,
           filter: this.supportsFilter && jimuLayerInfo ? jimuLayerInfo.getFilter() : "1=1",
           infoTemplate: infoTemplate
@@ -1007,7 +1039,7 @@ function (BaseWidget,
           this.layerList[l.id] = {
             type: "ClusterLayer",
             layerObject: l,
-            visible: true,
+            visible: l.visible,
             id: l.id,
             li: lyrInfo,
             filter: this.supportsFilter && jimuLayerInfo ? jimuLayerInfo.getFilter() : "1=1",
@@ -1035,7 +1067,7 @@ function (BaseWidget,
           this.layerList[_id] = {
             type: ll ? lyrType : l ? l.type : lyrType,
             layerObject: ll ? ll : l ? l : lyr,
-            visible: true,
+            visible: vis,
             pl: lyr,
             li: lyrInfo,
             filter: this.supportsFilter && jimuLayerInfo ? jimuLayerInfo.getFilter() : "1=1",
@@ -1165,7 +1197,7 @@ function (BaseWidget,
         this._addLegend(id, this.layerList[id]);
       }
 
-      on(recIcon, "click", lang.hitch(this, this._toggleLayer, this.layerList[id]));
+      on(recIcon, "click", lang.hitch(this, this._toggleLayerVisibility, this.layerList[id]));
       this.layerList[id].toggleLegend = on(rec, "click", lang.hitch(this, this._toggleLegend, this.layerList[id]));
 
       if (this.layerList[id].pl) {
@@ -1266,7 +1298,7 @@ function (BaseWidget,
               this._updateList(features, lyr.legendNode, lyr.layerObject.node, popupFields, updateCount, lyr);
             }), 100);
           } else {
-            this._removeSearching(id, true);
+            this._removeSearching(id, lyr.legendNode ? !domClass.contains(lyr.legendNode, 'legendOff') : true);
           }
         }
 
@@ -1418,6 +1450,7 @@ function (BaseWidget,
           filter: this.supportsFilter && jimuLayerInfo ? jimuLayerInfo.getFilter() : "1=1"
         });
       }
+      clusterLayer.setVisibility(jimuLayerInfo.isShowInMap ? jimuLayerInfo.isShowInMap() : true);
       return clusterLayer;
     },
 
@@ -1466,11 +1499,9 @@ function (BaseWidget,
       this.styleName = styleName;
     },
 
-    _toggleLayer: function (obj, e) {
+    _toggleLayerVisibility: function (obj, e) {
       e.stopPropagation();
-      var _append = this.isDartTheme ? ' darkThemeColor' : ' lightThemeColor';
       this.map.infoWindow.hide();
-
       var id = obj.id ? obj.id : obj.layerObject.id;
       var lyr = this.layerList[id];
 
@@ -1492,17 +1523,19 @@ function (BaseWidget,
         var hasSubLayerId = false;
         if (lyr.li) {
           if (lyr.li.hasOwnProperty("subLayerId")) {
-            hasSubLayerId = typeof (lyr.li.subLayerId) !== 'undefined';
+            hasSubLayerId = typeof (lyr.li.subLayerId) !== 'undefined' && lyr.li.subLayerId.toString() !== "-1";
           }
         }
         var visLayers;
         var l;
-        var c = dom.byId("recLabel_" + id);
-
         if (domClass.contains("recIcon_" + id, "active")) {
-          domClass.remove("recIcon_" + id, "active");
           if (hasSubLayerId && lyr.type !== 'ClusterLayer') {
             visLayers = lyr.layerObject.visibleLayers;
+            for (var i = visLayers.length; i--;){
+              if (visLayers[i] === -1) {
+                visLayers.splice(i, 1);
+              }
+            }
             var lyrIndex = visLayers.indexOf(lyr.li.subLayerId);
             if (lyrIndex > -1) {
               visLayers.splice(lyrIndex, 1);
@@ -1519,17 +1552,67 @@ function (BaseWidget,
               }
             }
           }
+        } else {
+          if (hasSubLayerId && lyr.type !== 'ClusterLayer') {
+            visLayers = lyr.layerObject.visibleLayers;
+            visLayers.push(lyr.li.subLayerId);
+            for (var ii = visLayers.length; ii--;) {
+              if (visLayers[ii] === -1) {
+                visLayers.splice(ii, 1);
+              }
+            }
+            lyr.layerObject.setVisibleLayers(visLayers);
+            lyr.layerObject.setVisibility(true);
+          } else if (lyr) {
+            lyr.layerObject.setVisibility(true);
+            if (lyr.type === 'ClusterLayer') {
+              lyr.layerObject.handleMapExtentChange({ levelChange: true });
+              lyr.layerObject.flashFeatures();
+            }
+            if (typeof (lyr.pl) !== 'undefined') {
+              lyr.pl.visibility = true;
+              if (this.map.graphicsLayerIds.indexOf(id) > -1) {
+                l = this.map.getLayer(id);
+                l.setVisibility(true);
+              }
+            }
+          }
+        }
+      }
+      return false;
+    },
+
+    _toggleLayerUI: function (obj, vis) {
+      var _append = this.isDartTheme ? ' darkThemeColor' : ' lightThemeColor';
+      var id = obj.id ? obj.id : obj.layerObject.id;
+      var lyr = this.layerList[id];
+      if (!lyr) {
+        lyr = this.layerList[id];
+      }
+      if (!lyr) {
+        if (obj.pl) {
+          id = obj.pl.id;
+        }
+        lyr = this.layerList[id];
+      }
+
+      if (lyr) {
+        var visScalRange = true;
+        if (lyr.layerObject && lyr.layerObject.hasOwnProperty('visibleAtMapScale')) {
+          visScalRange = lyr.layerObject.visibleAtMapScale;
+        }
+        var c = dom.byId("recLabel_" + id);
+        if (!vis) {
+          domClass.remove("recIcon_" + id, "active");
           this.layerList[id].visible = false;
           this.layerList[id].parentLayerVisible = false;
           if (this.layerList[id].type === 'ClusterLayer') {
             this.layerList[id].layerObject.parentLayerVisible = false;
           }
           this._clearList(this.layerList[id]);
-          //TODO need to call updateExpand here for the appropriate parts
           if (this.config.countEnabled) {
             if (domClass.contains("recNum_" + id, "recNum")) {
               domClass.remove("recNum_" + id, "recNum");
-
               domClass.add("recNum_" + id, "recNumInActive" + _append);
             }
           }
@@ -1546,8 +1629,6 @@ function (BaseWidget,
               domClass.add("legend_" + id, "legendOff");
               var eD = this.isDartTheme ? 'expandDown-dart' : 'expandDown';
               var eU = this.isDartTheme ? 'expandUp-dart' : 'expandUp';
-              //TODO consider if this needs to be specific for dart??
-              //var eS = "expandSearching";
               if (domClass.contains("exp_" + id, eU)) {
                 domClass.remove("exp_" + id, eU);
                 domClass.add("exp_" + id, eD);
@@ -1560,29 +1641,11 @@ function (BaseWidget,
           if (domClass.contains("rec_" + id, "rec")) {
             domClass.add("rec_" + id, "recDefault");
           }
-          //this.layerList[id].updateList = false;
         } else {
           domClass.add("recIcon_" + id, "active");
-          if (hasSubLayerId && lyr.type !== 'ClusterLayer') {
-            visLayers = lyr.layerObject.visibleLayers;
-            visLayers.push(lyr.li.subLayerId);
-            lyr.layerObject.setVisibleLayers(visLayers);
-            lyr.layerObject.setVisibility(true);
-          } else if (lyr) {
-            lyr.layerObject.setVisibility(true);
-            if (lyr.type === 'ClusterLayer') {
-              lyr.layerObject.handleMapExtentChange({ levelChange: true });
-              lyr.layerObject.flashFeatures();
-            }
+          if (lyr) {
             this.layerList[id].visible = true;
             this.layerList[id].parentLayerVisible = true;
-            if (typeof (lyr.pl) !== 'undefined') {
-              lyr.pl.visibility = true;
-              if (this.map.graphicsLayerIds.indexOf(id) > -1) {
-                l = this.map.getLayer(id);
-                l.setVisibility(true);
-              }
-            }
           }
           this.layerList[id].visible = true;
           this.layerList[id].parentLayerVisible = true;
@@ -2147,7 +2210,7 @@ function (BaseWidget,
               setTimeout(lang.hitch(this, function () {
                 this._updateList(results[0].features, legendNode, node, fields, updateCount, lyrInfo);
                 if (this.config.countEnabled && results.length > 1) {
-                  if (results[1].length > 1000) {
+                  if (results[1] && results[1].length > 1000) {
                     node.innerHTML = utils.localizeNumber(results[1].length);
                   }
                 }

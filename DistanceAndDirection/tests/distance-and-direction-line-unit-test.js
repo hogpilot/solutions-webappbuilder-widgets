@@ -1,23 +1,23 @@
 define([
-    'intern!object',
-    'intern/chai!assert',
-    'dojo/dom-construct',
-    'dojo/_base/window',
-    'esri/map',
-    'DD/models/LineFeedback',
-    'dijit/_WidgetBase',
-    'dijit/_TemplatedMixin',
-    'dijit/_WidgetsInTemplateMixin',
-    'dojo/_base/declare',
-    'dojo/_base/lang',
-    'dojo/on',
-    'dojo/topic',
-    'dojo/dom-attr',
-    'dojo/dom-class',
-    'dojo/dom-style',
-    'dojo/string',
-    'dojo/number',
-    'dijit/form/Select'    
+  'intern!object',
+  'intern/chai!assert',
+  'dojo/dom-construct',
+  'dojo/_base/window',
+  'esri/map',
+  'DD/models/LineFeedback',
+  'dijit/_WidgetBase',
+  'dijit/_TemplatedMixin',
+  'dijit/_WidgetsInTemplateMixin',
+  'dojo/_base/declare',
+  'dojo/_base/lang',
+  'dojo/on',
+  'dojo/topic',
+  'dojo/dom-attr',
+  'dojo/dom-class',
+  'dojo/dom-style',
+  'dojo/string',
+  'dojo/number',
+  'dijit/form/Select'    
 ], function(registerSuite, assert, domConstruct, win, Map, LineFeedback) {
     // local vars scoped to this module
     var map, lineTab, mapPointButton, feedBack, lineSymbol;
@@ -27,9 +27,9 @@ define([
         // before the suite starts
         setup: function() {
             // load claro and esri css, create a map div in the body, and create the map object and print widget for our tests
-            domConstruct.place('<link rel="stylesheet" type="text/css" href="//js.arcgis.com/3.16/esri/css/esri.css">', win.doc.getElementsByTagName("head")[0], 'last');
-            domConstruct.place('<link rel="stylesheet" type="text/css" href="//js.arcgis.com/3.16/dijit/themes/claro/claro.css">', win.doc.getElementsByTagName("head")[0], 'last');
-            domConstruct.place('<script src="http://js.arcgis.com/3.16/"></script>', win.doc.getElementsByTagName("head")[0], 'last');
+            domConstruct.place('<link rel="stylesheet" type="text/css" href="//js.arcgis.com/3.19/esri/css/esri.css">', win.doc.getElementsByTagName("head")[0], 'last');
+            domConstruct.place('<link rel="stylesheet" type="text/css" href="//js.arcgis.com/3.19/dijit/themes/claro/claro.css">', win.doc.getElementsByTagName("head")[0], 'last');
+            domConstruct.place('<script src="http://js.arcgis.com/3.19/"></script>', win.doc.getElementsByTagName("head")[0], 'last');
             domConstruct.place('<div id="map" style="width:800px;height:600px;" class="claro"></div>', win.body(), 'only');
             domConstruct.place('<div id="lineNode" style="width:300px;" class="claro"></div>', win.body(), 'last');
             domConstruct.place('<div id="buttonNode" style="width:300px;""></div>', win.body(), 'last');

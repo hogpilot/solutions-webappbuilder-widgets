@@ -1,6 +1,8 @@
 # Emergency Response Guide
 The Emergency Response Guide (ERG) widget allows users to determine potential hazards based on the type of chemical spill and user-selected location on the map.
 
+Update 2/21/2016: The ERG widget now references the ERG Guidebook 2016. Table 3 of the 2016 Guidebook is not implemented in this version of the widget.
+
 ## Sections
 * [Features](#features)
 * [Requirements](#requirements)

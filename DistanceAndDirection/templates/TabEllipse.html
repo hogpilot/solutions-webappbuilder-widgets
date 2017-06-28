@@ -14,15 +14,21 @@
         <label data-dojo-attach-point="coordInputLabel">Center Point</label>
         <div class="controlItem">
             <input class="jimu-input coordInput" data-dojo-attach-point="startPointCoords" placeholder="Enter Coordinates" />
-            <span class="frmtBtn" data-dojo-attach-point="coordinateFormatButton"></span>
-            <span class="addPointBtn" data-dojo-attach-point="addPointBtn"></span>
+            <div class="controlItem paddedLeft">
+              <div class='add-with-icon'>
+                <span title="Format Input" class="jimu-icon jimu-icon-setting" data-dojo-attach-point="coordinateFormatButton"></span>
+              </div>
+              <div class='add-with-icon'>
+                <div title="Draw Ellipse" class="draw" data-dojo-attach-point="addPointBtn"></div>
+              </div>
+            </div>            
         </div>
     </div>
 
     <fieldset>
       <legend>Axis</legend>
         <div class="controlGroup">
-          <label>Major</label>
+          <label data-dojo-attach-point="majorAxisLabel">Major (Radius)</label>
           <div class="controlItem">
             <input class="jimu-input coordInput" data-dojo-type="dijit/form/NumberTextBox" 
               data-dojo-props='constraints:{min:1},
@@ -33,7 +39,7 @@
         </div>
 
         <div class="controlGroup">
-          <label>Minor</label>
+          <label data-dojo-attach-point="minorAxisLabel">Minor (Radius)</label>
           <div class="controlItem">
             <input class="jimu-input coordInput" data-dojo-type="dijit/form/NumberTextBox" 
               data-dojo-props='constraints:{min:1},
@@ -60,7 +66,7 @@
     <div class="controlGroup">
       <label>Orientation Angle</label>
       <div class="controlItem">
-        <input class="jimu-input coordInput" data-dojo-type="dijit/form/NumberTextBox"
+        <input class="jimu-input selectInput" data-dojo-type="dijit/form/NumberTextBox"
               data-dojo-props='constraints:{min:0, max:360},
               invalidMessage:"The value entered must be numeric.",
                 rangeMessage:"Value must be between 0 and 360"' data-dojo-attach-point="angleInput" />
@@ -75,3 +81,4 @@
     </div>
   </div>
 </div>
+

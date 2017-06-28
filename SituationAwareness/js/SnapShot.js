@@ -342,14 +342,14 @@ define([
         }
       });
       var incidentLayers = [];
-      if (points.length > 0) {
-        incidentLayers.push(points);
+      if (polys.length > 0) {
+        incidentLayers.push(polys);
       }
       if (lines.length > 0) {
         incidentLayers.push(lines);
       }
-      if (polys.length > 0) {
-        incidentLayers.push(polys);
+      if (points.length > 0) {
+        incidentLayers.push(points);
       }
       var lyrs = [];
       var gl = {

@@ -1,54 +1,27 @@
-<div style="width: 100%; height: 100%">
-  <table class="setting-table input-table" cellspacing="0">
-    <tbody>
-
-
-      <tr class='row'>
-        <td class="first">
-          <span class="inputs-label">Zoom Scale</span>
-        </td>
-        <td class="second">
-          <span>1: </span>
-          <input type="text" data-dojo-type="dijit/form/NumberTextBox" required="true" placeHolder="50000"
-                 data-dojo-attach-point="scale" data-dojo-props='style:{width:"150px"},
-                 constraints:{min:1,pattern:"##############0.################"}'/>
-        </td>
-        <td class="third">
-          <div class="help-icon"></div>
-        </td>
-      </tr>
-      <tr class="spacer"></tr>
-      <tr class='row'>
-        <td class="first">
-          <span class="inputs-label">Default Notations</span>
-        </td>
-        <td class="second">
-          <select style="height:150px" data-dojo-type="dijit/form/MultiSelect" multiple="true" id="defaultNotations" data-dojo-attach-point="notationSelect">
-            <option id="DD" value="DD">DD</option>
-            <option id="DDM" value="DDM">DDM</option>
-            <option id="DMS" value="DMS">DMS</option>
-            <!-- <option id="GARS" value="GARS">GARS</option> -->
-            <option id="MGRS" value="MGRS">MGRS</option>
-            <option id="USNG" value="USNG">USNG</option>
-            <option id="UTM" value="UTM">UTM</option>
-          </select>
-        </td>
-        <td class="third">
-          <div class="help-icon"></div>
-        </td>
-      </tr>
-      <tr class="spacer"></tr>
-      <tr class='row'>
-        <!-- <td class="first">
-          <span class="inputs-label">Geometry Service</span>
-        </td>
-        <td class="second">
-          <div style="width:750px" data-dojo-attach-point="geoservice" data-dojo-type="jimu/dijit/ServiceURLInput"></div>
-        </td>
-        <td class="third">
-          <div class="help-icon"></div>
-        </td> -->
-      </tr>
-    </tbody>
-  </table>
+﻿<div class="esriCTMainContainer">
+  <div data-dojo-attach-point="tabDiv" class="esriCTFullHeight">
+    <!-- location icon -->
+    <div class="esriCTlabel" data-dojo-attach-point="graphicLocationPointSymbolLabelNode"
+        title="${nls.locationSymbol}">
+        ${nls.locationSymbol}
+    </div>
+    <div class="esriCTLayerField">
+      <div class="esriCTPreviewField" data-dojo-attach-point="pointSymbolNode">
+      </div>
+      <div class="esriCTHint esriCTPreviewHintField">
+          ${nls.locationSymbolHintText}</div>
+    </div>               
+    
+    <!-- Scale -->    
+    <div class="esriCTlabel" title="${nls.scaleLabel}">${nls.scaleLabel}</div>
+    <div class="config-group">
+        <span>1: </span>
+        <input type="text" data-dojo-type="dijit/form/NumberTextBox" required="true" placeHolder="50000"
+               data-dojo-attach-point="scale" data-dojo-props='style:{width:"150px"},
+               constraints:{min:1,pattern:"##############0.################"}'/>
+    </div>
+      
+    <!-- Notations Table -->
+    <div data-dojo-attach-point="notationsTable" class="table-notations-infos"></div>   
+  </div>
 </div>

@@ -161,7 +161,7 @@ define([
         style: "width:" + ((weather.length + 3) * 165) + "px;"
       }, this.container);
       domClass.add(tpc, "SAT_tabPanelContent");
-
+      var unit = this.parent.config.celsius ? "C" :"F";
       var cur, code, temp, w, info;
       if (current.length > 0) {
         cur = current[0];
@@ -183,10 +183,13 @@ define([
 
         // current
         temp = cur.temp_F;
+        if (this.parent.config.celsius) {
+          temp = cur.temp_C;
+        }
         code = cur.weatherCode;
         w = this.weatherDict[parseInt(code, 10)];
         info = this.parent.nls.now + "<br/><img style='height:45px' src='" +
-          this.parent.folderUrl + "images/w/" + w[timeInfo] + "' /><br/>" + temp + "&deg;";
+          this.parent.folderUrl + "images/w/" + w[timeInfo] + "' /><br/>" + temp + "&deg;" + unit;
         var div = domConstruct.create("div", {
           innerHTML: info
         }, tpc);
@@ -195,10 +198,15 @@ define([
 
         // wind
         var windSpeed = cur.windspeedMiles;
+        var windSpeedUnits = " mph";
+        if (this.parent.config.celsius) {
+          windSpeed = cur.windspeedKmph;
+          windSpeedUnits = " km/h";
+        }
         var windDir = cur.winddir16Point;
 
         info = this.parent.nls.wind + "<br/><span style='font-size: 30px; line-height:47px'>" +
-          windDir + "</span><br/>" + windSpeed + " MPH";
+          windDir + "</span><br/>" + windSpeed + windSpeedUnits;
         var div2 = domConstruct.create("div", {
           innerHTML: info
         }, tpc);
@@ -210,12 +218,16 @@ define([
       for (var i = 0; i < weather.length; i++) {
         cur = weather[i];
         var day = this._getDay(cur.date);
-        var tempMax = cur.tempMaxF;
-        var tempMin = cur.tempMinF;
+        var tempMax = cur.tempMaxF || cur.maxtempF;
+        var tempMin = cur.tempMinF || cur.mintempF;
+        if (this.parent.config.celsius) {
+          tempMax = cur.tempMaxC || cur.maxtempC;
+          tempMin = cur.tempMinC || cur.mintempC;
+        }
         code = cur.weatherCode;
         w = this.weatherDict[parseInt(code, 10)];
         info = day + "<br/><img style='height:45px' src='" + this.parent.folderUrl + "images/w/" +
-          w[timeInfo] + "' /><br/>" + tempMax + "&deg; | " + tempMin + "&deg;";
+          w[timeInfo] + "' /><br/>" + tempMax + "&deg;" + unit + " | " + tempMin + "&deg;" + unit;
         var div3 = domConstruct.create("div", {
           innerHTML: info
         }, tpc);

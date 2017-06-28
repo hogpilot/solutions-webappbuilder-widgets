@@ -3,16 +3,22 @@
    padding-left: 3px;
 }
 
-.jimu-widget-GRG  .control  .tab{
-  background-color: #fff;
+.jimu-widget-GRG .control .tab {
+  border-bottom: 1px solid #ccc !important;
+  border-right: 0px solid #fff !important;
+  border-left: 0px solid #fff !important;
+  border-top: 0px solid #fff !important;
+  background-color: transparent !important;
   font-size: 12px;
 }
 
-.jimu-widget-GRG .control  .tab.jimu-state-selected {
-    border-top: 0px solid #FFF;
-    border-bottom: 2px solid #24b5cc;
+.jimu-tab>.control>.tab.jimu-state-selected {
+    border-bottom: 0px solid #24B5CC !important;
+    border-top: 2px solid #24B5CC !important;
+    border-left: 1px solid #ccc !important;
+    border-right: 1px solid #ccc !important;
+    background-color: transparent !important;
     color: #000;
-    font-size: 12px;
 }
 
 .jimu-widget-GRG .tabsContainer {
@@ -64,6 +70,8 @@
 .jimu-widget-GRG .controls {
     display: table;
     margin: 0 auto;
+    border-bottom: 1px solid #CCC;
+    padding-bottom: 20px;
 }
 
 .jimu-widget-GRG .buttonContainer {
@@ -73,7 +81,6 @@
 }
 
 .jimu-widget-GRG .controlItem {
-    margin-top: 5px;
     display: flex;
 }
 
@@ -184,4 +191,41 @@
 
 .claro .dijitTextBox .dijitInputInner {
     height: 20px !important;
+    text-align: right;
+}
+
+.controlContainer {
+    margin-top: 6px;
+}
+
+.add-with-icon {
+    display: inline-block;
+    height: 32px;
+    line-height:37px;
+    color: #838383;
+}
+
+.add-with-icon .draw {
+  display: inline-block;
+  background: url(../images/draw_point.png);
+  background-repeat: no-repeat;
+  background-color: transparent;
+  background-repeat: no-repeat;
+  background-position: center center;
+  width: 30px;
+  height: 30px;
+}
+
+.jimu-state-active {
+    background-color: #c0c0c0 !important;
+}
+
+.jimu-icon-setting {
+  background-position: -0px -276px;
+  width: 18px;
+  height: 18px;
+}
+
+.controlItem .paddedLeft{
+   padding-left: 14px;
 }

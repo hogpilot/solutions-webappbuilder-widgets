@@ -1,5 +1,10 @@
-.jimu-widget-DistanceAndDirection {
+.jimu-widget-DistanceAndDirection .jimu-state-active {
+    background-color: #c0c0c0 !important;
+}
 
+.jimu-widget-DistanceAndDirection .jimu-tab3 .tab-item-td {
+    padding-left: 0px;
+    padding-right: 0px;
 }
 
 .jimu-widget-DistanceAndDirection .tabsContainer {
@@ -16,8 +21,13 @@
 
 }
 
-.claro .dijitTextBox .dijitInputInner {
+.jimu-widget-DistanceAndDirection  .dijitTitlePaneContentOuter{
+  background-color: transparent;
+}
+
+.jimu-widget-DistanceAndDirection .dijitTextBox .dijitInputInner {
   height: 20px;
+  text-align: right;
 }
 
 .jimu-widget-DistanceAndDirection .tabPanel {
@@ -62,6 +72,8 @@
 .jimu-widget-DistanceAndDirection .controlGroup .warning{
     color: #F00;
     font-weight: bold;
+    width: 260px;
+    display: inline-block;
 }
 
 .jimu-widget-DistanceAndDirection .controlGroup .controlGroupChild{
@@ -81,6 +93,14 @@
     margin-left: 6px;
 }
 
+.jimu-widget-DistanceAndDirection  .noResize .dijitSelectLabel, .jimu-widget-DistanceAndDirection .noResize .dijitTextBox .dijitInputInner, .jimu-widget-DistanceAndDirection  .noResize.dijitValidationTextBox .dijitValidationContainer {
+    text-overflow: ellipsis;
+    overflow: hidden;
+    width: 58px;
+    text-align: left;
+}
+
+
 .jimu-widget-DistanceAndDirection .addPointBtn {
     background: url(../images/draw_point.png) no-repeat;
     width: 32px;
@@ -90,41 +110,73 @@
 
 }
 
-.jimu-widget-DistanceAndDirection .interactive-checkbox {
-    padding: 5px 0px 0px 10px;
-}
-
-.jimu-checkbox .label {
+.jimu-widget-DistanceAndDirection .label {
     font-size: 12px;
     margin: auto 5px;
     cursor: default;
 }
 
-.jimu-widget-DistanceAndDirection .frmtBtn {
-    background: url(../images/setting_disabled.png) no-repeat;
-    width: 32px;
+.jimu-widget-DistanceAndDirection .add-with-icon {
+    display: inline-block;
     height: 32px;
-    background-repeat: no-repeat;
-    background-position: center center;
-
+    line-height:37px;
+    color: #838383;
 }
 
-.jimu-widget-DistanceAndDirection .addPointBtn:hover {
-    background-color: #c0c0c0;
+.jimu-widget-DistanceAndDirection .add-with-icon .draw {
+  display: inline-block;
+  background: url(../images/draw_point.png);
+  background-repeat: no-repeat;
+  background-color: transparent;
+  background-repeat: no-repeat;
+  background-position: center center;
+  width: 30px;
+  height: 30px;
+  margin-left: 5px;
 }
 
-.jimu-widget-DistanceAndDirection .frmtBtn:hover {
-    background-color: #c0c0c0;
-    background: url(../images/setting_default.png) no-repeat;
-    width: 32px;
-    height: 32px;
-    background-repeat: no-repeat;
-    background-position: center center;
+.jimu-widget-DistanceAndDirection .jimu-tab3 .tab-item-td.jimu-state-active {
+    border-bottom: 0px solid #24B5CC;
+    border-top: 2px solid #24B5CC;
+    border-left: 1px solid #ccc;
+    border-right: 1px solid #ccc;
+    background-color: transparent !important;
 }
 
-.jimu-widget-DistanceAndDirection .addPointBtn.jimu-state-active {
-    background-color: #c0c0c0;
+.jimu-widget-DistanceAndDirection .controlItem .paddedLeft{
+   padding-left: 14px;
 }
+
+/****** Dart Theme Overrides ******/
+
+.DartTheme .jimu-widget-DistanceAndDirection  .dijitSelectDisabled,
+.DartTheme .jimu-widget-DistanceAndDirection .dijitTextBoxDisabled,
+.DartTheme .jimu-widget-DistanceAndDirection .dijitTextBoxDisabled .dijitInputContainer ,
+.DartTheme .jimu-widget-DistanceAndDirection .dijitTextBoxDisabled {
+     background-color: #4c4c4c; 
+}
+
+.DartTheme .jimu-widget-DistanceAndDirection  .jimu-state-active {
+    background-color: #3c2d2d !important;
+}
+
+.DartTheme .jimu-widget-DistanceAndDirection .dijitTitlePaneTitleOpen, .DartTheme .jimu-widget-DistanceAndDirection .dijitTitlePaneTitleFixedOpen {
+    background-color: #272727;
+}
+
+.DartTheme .jimu-widget-DistanceAndDirection .dijitTitlePaneTitle {
+    background-color: #272727;
+    background-image: linear-gradient(rgb(103, 103, 103) 0%, rgba(255, 255, 255, 0) 100%);
+}
+
+.DartTheme .jimu-widget-DistanceAndDirection .controlGroup .warning {
+    font-weight: normal;
+}
+
+.DartTheme .jimu-widget-DistanceAndDirection .jimu-tab3 .tab-item-td.jimu-state-active{
+    font-weight: normal;
+}
+
 
 /**
  * Coordinate Format Dialog
@@ -143,3 +195,6 @@
 .controlContainer {
     margin-top: 6px;
 }
+
+
+

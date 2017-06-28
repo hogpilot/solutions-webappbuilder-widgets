@@ -28,8 +28,7 @@ define([
   'esri/geometry/Polyline',
   'esri/geometry/geometryEngine',
   'esri/units',
-  './Feedback',
-  '../util'
+  './Feedback'
 ], function (
   dojoDeclare,
   dojoLang,
@@ -37,22 +36,21 @@ define([
   dojoTopic,
   dojoStateful,
   dojoOn,
-  EsriGraphic,
+  esriGraphic,
   esriDraw,
-  EsriCircle,
-  EsriPolyline,
-  EsriGeometryEngine,
+  esriCircle,
+  esriPolyline,
+  esriGeometryEngine,
   esriUnits,
-  DrawFeedBack,
-  Utils
+  drawFeedBack
 ) {
-  var clz = dojoDeclare([DrawFeedBack], {
+  var clz = dojoDeclare([drawFeedBack], {
     /*
      *
      */
-    constructor: function () {
+    constructor: function (map,coordTool) {
       this.inherited(arguments);
-      this._utils = new Utils();
+      this._utils = coordTool;
       this.syncEvents();
     },
 
@@ -72,16 +70,24 @@ define([
            dojoLang.hitch(this, this.manualRadiusUpdate)
         );
 
-        dojoTopic.subscribe('MANUAL_CIRCLE_RADIUS_INPUT_COMPLETE',
-           dojoLang.hitch(this, this.manualRadiusUpdateComplete)
-        );
-        
         dojoTopic.subscribe(
             'manual-circle-center-point-input',
             dojoLang.hitch(this, this.onCenterPointManualInputHandler)
         );
+        
+        dojoTopic.subscribe(
+            'clear-points',
+            dojoLang.hitch(this, this.clearPoints)
+        ); 
     },
-    
+        
+    /*
+    Handler for clearing out points
+    */
+    clearPoints: function (centerPoint) {
+        this._points = [];
+        this.map.graphics.clear();
+    },
     /*
     Handler for the manual input of a center point
     */
@@ -99,32 +105,6 @@ define([
         if (this.circleGraphic) {
             this.map.graphics.remove(this.circleGraphic);
         }
-    },
-
-    /*
-    * Draw graphic
-    */
-    manualRadiusUpdateComplete: function (radius) {
-
-        var stPt = this.get('startPoint');
-        var circleGeometry = new EsriCircle(stPt, {
-            radius: radius,
-            geodesic: true
-        });
-
-        this.tempGraphic = new EsriGraphic(
-          circleGeometry,
-          this._circleSym
-        );
-
-        this.circleGraphic = new EsriGraphic(circleGeometry, this.fillSymbol);
-        this.map.graphics.add(this.circleGraphic);
-
-        dojoConnect.disconnect(this._onMouseMoveHandlerConnect);
-        //this.cleanup();
-        this._clear();
-        this._setTooltipMessage(0);
-        this._drawEnd(this.circleGraphic.geometry);
     },
 
     /*
@@ -162,12 +142,6 @@ define([
         }
 
       this._setTooltipMessage(this._points.length);
-      /*if (this._points.length === 2 && this._geometryType === 'circle') {
-        var tooltip = this._tooltip;
-        if (tooltip) {
-          tooltip.innerHTML = 'Click to finish drawing circle';
-        }
-      }*/
     },
 
     /*
@@ -183,7 +157,7 @@ define([
       var circleGeometry = this.setCircleGeometry(this.get('startPoint'), current);
 
       this.cleanup();
-      this.circleGraphic = new EsriGraphic(circleGeometry, this.fillSymbol);
+      this.circleGraphic = new esriGraphic(circleGeometry, this.fillSymbol);
       this.map.graphics.add(this.circleGraphic);
     },
 
@@ -218,10 +192,10 @@ define([
      *
      */
     setCircleGeometry: function (stPt, endPt) {
-      var geom = new EsriPolyline(this.map.spatialReference);
+      var geom = new esriPolyline(this.map.spatialReference);
       geom.addPath([stPt, endPt]);
 
-      var length = EsriGeometryEngine.geodesicLength(geom, 9001);
+      var length = esriGeometryEngine.geodesicLength(geom, 9001);
       var unitLength = this._utils.convertMetersToUnits(length, this.lengthUnit);
       
 
@@ -231,7 +205,7 @@ define([
       
       this.set('length', unitLength);
 
-      var circleGeometry = new EsriCircle(stPt, {
+      var circleGeometry = new esriCircle(stPt, {
         radius: length,
         geodesic: true,
         numberOfPoints: 360

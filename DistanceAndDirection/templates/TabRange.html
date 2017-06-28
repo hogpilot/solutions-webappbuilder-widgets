@@ -1,17 +1,27 @@
 <div class="tabPanel" data-dojo-attach-point="rangeContainer">
+    
     <div class="controls">
+        
         <div class="controlGroup">
             <label data-dojo-attach-point='rangeCenterLabel'>Center Point</label>
             <div class="controlItem">
                 <input class="jimu-input coordInput" placeholder="Enter Coordinates" data-dojo-attach-point="rangeCenter" />
-                <span class="frmtBtn" data-dojo-attach-point="coordinateFormatButton"></span>
-                <span class="addPointBtn" data-dojo-attach-point="addPointBtn"></span>
+                <div class="controlItem paddedLeft">
+                  <div class='add-with-icon'>
+                    <span title="Format Input" class="jimu-icon jimu-icon-setting" data-dojo-attach-point="coordinateFormatButton"></span>
+                  </div>
+                  <div class='add-with-icon'>
+                    <div title="Add Point" class="draw" data-dojo-attach-point="addPointBtn"></div>
+                  </div>
+                </div>
+        </div>
+        <div class="controlGroup">                
                 <div class="interactive-checkbox"
                      data-dojo-attach-point="interactiveRings" 
                      data-dojo-type="jimu/dijit/CheckBox"
                      data-dojo-props='checked:false' 
-                     label="Interactive"></div>
-            </div>
+                     label="Create Rings Interactively"></div>
+        </div>
         </div>
 
         <div class="controlGroup">
@@ -39,21 +49,15 @@
             <div class="controlItem">
                 <input data-dojo-attach-point="ringIntervalInput"
                        type="text"
-                       data-dojo-type="dijit/form/NumberTextBox"
+                       data-dojo-type="dijit/form/ValidationTextBox"
                        name="ringInterval"
-                       required="true" ,
-                       value="1000"
-                       data-dojo-props="constraints:{
-                  min:1,
-                  max: 100000,
-                  places: 0
-                },
-                 rangeMessage:'Invalid Distance Between Rings',
-                 invalidMessage: 'Enter a numeric value'
-               " />
+                       required="true"
+                       value="1000"                       
+                       regExp="[0-9]*|([0-9]+[,][0-9]+)*"
+                       invalidMessage='Enter a single numeric value or multiple comma seperated values (1000,2000,3000)'/>
                 <select data-dojo-attach-point="ringIntervalUnitsDD"
                         style="width: 100px"
-                        class="controlSpace"
+                        class="controlSpace noResize"
                         data-dojo-type="dijit/form/Select">
                     <option value="feet">Feet</option>
                     <option value="kilometers">Kilometers</option>
@@ -63,25 +67,27 @@
                     <option value="yards">Yards</option>
                 </select>
             </div>
-
-            <div class="controlGroup">
-                <label>Number of Radials</label>
-                <div class="controlItem">
-                    <input data-dojo-attach-point="numRadialsInput"
-                           type="text"
-                           data-dojo-type="dijit/form/NumberTextBox"
-                           name="numRadials"
-                           required="false" ,
-                           value="3"
-                           data-dojo-props="constraints:{
-                  min:0,
-                  max: 360,
-                  places: 0
-                },
-                 rangeMessage:'Invalid number of radials the maximum allowed is 360',
-                 invalidMessage: 'Enter a numeric value'
-               " />
-                </div>
+        </div>
+        
+        <div class="controlGroup">
+            <label>Number of Radials</label>
+            <div class="controlItem">
+                <input data-dojo-attach-point="numRadialsInput"
+                       type="text"
+                       data-dojo-type="dijit/form/NumberTextBox"
+                       name="numRadials"
+                       required="false" ,
+                       value="3"
+                       data-dojo-props="constraints:{
+              min:0,
+              max: 360,
+              places: 0
+            },
+             rangeMessage:'Invalid number of radials the maximum allowed is 360',
+             invalidMessage: 'Enter a numeric value'
+           " />
             </div>
         </div>
+        
     </div>
+</div>

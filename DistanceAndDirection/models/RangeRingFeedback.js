@@ -20,42 +20,32 @@ define([
   'dojo/_base/lang',
   'dojo/_base/connect',
   'dojo/topic',
-  'dojo/Stateful',
-  'dojo/on',
   'esri/graphic',
   'esri/toolbars/draw',
   'esri/geometry/Circle',
   'esri/geometry/Polyline',
   'esri/geometry/geometryEngine',
-  'esri/units',
-  './Feedback',
-  '../util'
+  './Feedback'
 ], function (
   dojoDeclare,
   dojoLang,
   dojoConnect,
   dojoTopic,
-  dojoStateful,
-  dojoOn,
-  EsriGraphic,
+  esriGraphic,
   esriDraw,
-  EsriCircle,
-  EsriPolyline,
-  EsriGeometryEngine,
-  esriUnits,
-  DrawFeedBack,
-  Utils
+  esriCircle,
+  esriPolyline,
+  esriGeometryEngine,
+  drawFeedback
 ) {
-    var clz = dojoDeclare([DrawFeedBack], {
+    var clz = dojoDeclare([drawFeedback], {
         /**
          *
          **/
-        constructor: function () {
+        constructor: function (map,coordTool) {
             this.syncEvents();
             this.inherited(arguments);
-            this._utils = new Utils();
             this.circlePoints = [];
-            
         },
         
         /*
@@ -66,8 +56,21 @@ define([
                 'manual-rangering-center-point-input',
                 dojoLang.hitch(this, this.onCenterPointManualInputHandler)
             );
+        
+            dojoTopic.subscribe(
+                'clear-points',
+                dojoLang.hitch(this, this.clearPoints)
+            ); 
         },
-
+        
+        /*
+        Handler for clearing out points
+        */
+        clearPoints: function (centerPoint) {
+            this._points = [];
+            this.map.graphics.clear();
+        },
+        
         /**
          *
          **/
@@ -111,13 +114,13 @@ define([
                     break;
 
                 case esriDraw.POLYLINE:
-                    var pline = new EsriPolyline({
+                    var pline = new esriPolyline({
                         paths: [[[start.x, start.y], [start.x, start.y]]],
                         spatialReference: map.spatialReference
                     });
 
-                    //var tgra = new EsriGraphic(pline, this.lineSymbol);
-                    this.lgraphic = new EsriGraphic(pline, this.lineSymbol);
+                    //var tgra = new esriGraphic(pline, this.lineSymbol);
+                    this.lgraphic = new esriGraphic(pline, this.lineSymbol);
 
                     if (map.snappingManager) {
                         map.snappingManager._setGraphic(this._graphic);
@@ -125,7 +128,7 @@ define([
 
                     if (this._points.length > 1) {
                         if (this.circleGraphic) {
-                            var circleGraphic = new EsriGraphic(this.circleGraphic.geometry, this.fillSymbol);
+                            var circleGraphic = new esriGraphic(this.circleGraphic.geometry, this.fillSymbol);
                             this.map.graphics.add(circleGraphic);
                         }
                     }
@@ -168,9 +171,9 @@ define([
             geom.setPoint(0, 0, { x: start.x, y: start.y });
             geom.setPoint(0, 1, { x: end.x, y: end.y });
 
-            var length = EsriGeometryEngine.geodesicLength(geom, 9001);
+            var length = esriGeometryEngine.geodesicLength(geom, 9001);
 
-            var circleGeometry = new EsriCircle(start, {
+            var circleGeometry = new esriCircle(start, {
                 radius: length,
                 geodesic: true,
                 numberOfPoints: 360
@@ -182,7 +185,7 @@ define([
             circleGeometry = dojoLang.mixin(circleGeometry, {
                 distanceDirectionType: "military-tools-range-rings"
             });
-            this.circleGraphic = new EsriGraphic(circleGeometry, this.fillSymbol);
+            this.circleGraphic = new esriGraphic(circleGeometry, this.fillSymbol);
             this.map.graphics.add(this.circleGraphic);
             //this.lgraphic.setGeometry(geom);
         },

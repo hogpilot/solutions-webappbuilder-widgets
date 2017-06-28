@@ -4,11 +4,13 @@
   'dojo/dom-class',
   'dojo/dom-geometry',
   'dojo/dom-style',
+  'dojo/has',
   'esri/tasks/query',
   'esri/geometry/geometryEngine',
+  "esri/geometry/Polyline",
   './CSVUtils',
   'jimu/utils'
-], function (array, lang, domClass, domGeom, domStyle, Query, geometryEngine, CSVUtils, utils) {
+], function (array, lang, domClass, domGeom, domStyle, has, Query, geometryEngine, Polyline, CSVUtils, utils) {
 
   var mo = {};
 
@@ -328,7 +330,7 @@
     var summaryLayer = parentInfo.layer;
     var fields = summaryLayer.fields;
     if (summaryLayer && summaryLayer.loaded && fields || snapShotTest) {
-      var skipFields = this.getSkipFields(summaryLayer);
+      var skipFields = !snapShot ? this.getSkipFields(summaryLayer) : [];
       var options = {};
       if (parentInfo.opLayers && parentInfo.opLayers._layerInfos) {
         var layerInfo = parentInfo.opLayers.getLayerInfoById(summaryLayer.id);
@@ -634,24 +636,16 @@
   };
 
   mo.getDistance = function (geom1, geom2, units) {
-    var dist = 0;
-    dist = geometryEngine.distance(geom1, geom2, 9001);
-    switch (units) {
-      case "miles":
-        dist *= 0.000621371;
-        break;
-      case "kilometers":
-        dist *= 0.001;
-        break;
-      case "feet":
-        dist *= 3.28084;
-        break;
-      case "yards":
-        dist *= 1.09361;
-        break;
-      case "nauticalMiles":
-        dist *= 0.000539957;
-        break;
+    var p1 = geom1.type !== 'point' ? geom1.getExtent().getCenter() : geom1;
+    var p2 = geom2.type !== 'point' ? geom2.getExtent().getCenter() : geom2;
+    var l = new Polyline([[p1.x, p1.y], [p2.x, p2.y]]);
+    l.spatialReference = geom1.spatialReference;
+    var dist;
+    units = units === "nauticalMiles" ? "nautical-miles" : units;
+    if ((geom1.spatialReference.wkid === 4326 || geom1.spatialReference.isWebMercator()) && !has("safari")) {
+      dist = geometryEngine.geodesicLength(l, units);
+    } else {
+      dist = geometryEngine.planarLength(l, units);
     }
     return dist;
   };

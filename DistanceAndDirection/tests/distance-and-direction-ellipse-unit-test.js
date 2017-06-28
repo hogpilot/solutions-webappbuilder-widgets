@@ -4,7 +4,7 @@ define([
     'dojo/dom-construct',
     'dojo/_base/window',
     'esri/map',
-    'DD/TabEllipse',
+    'DD/views/TabEllipse',
     'dijit/_WidgetBase',
     'dijit/_TemplatedMixin',
     'dijit/_WidgetsInTemplateMixin',

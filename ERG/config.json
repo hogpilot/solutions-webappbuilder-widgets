@@ -21,7 +21,7 @@
     },
     "demographicLayer": {
         "url": "http://sampleserver6.arcgisonline.com/arcgis/rest/services/Census/MapServer/1",
-        "label": "Age under 5",
+        "label": "Demographic Data",
         "labelField": "NAME",
         "fields": ["*"],
         "medias": [{
@@ -45,6 +45,5 @@
             "description": "Total number of households for selected census blocks in 2007",
             "type": "columnschart"
         }]
-    },
-    "corsEnabledServers": ["arcgis-emergencymanagement-2057568539.us-east-1.elb.amazonaws.com"]
+    }
 }

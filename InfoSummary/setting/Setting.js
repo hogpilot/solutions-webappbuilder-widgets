@@ -169,6 +169,7 @@ define([
         html.place(this.imageChooser.domNode, this.mainPanelPreviewButton, 'replace');
 
         this.connect(this.imageChooser, "onImageChange", "uploadImage");
+        this.isInitalLoad = false;
       },
 
       setupRefreshInterval: function () {
@@ -491,11 +492,9 @@ define([
 
           this.displayLayerTable.clear();
           this.isInitalLoad = true;
-          this.layerLoadCount = 0;
           for (var i = 0; i < this.config.layerInfos.length; i++) {
             var lyrInfo = this.config.layerInfos[i];
             this._populateLayerRow(lyrInfo, i);
-            this.layerLoadCount += 1;
           }
           this._updateLayerLists();
           var rows = this.displayLayerTable.getRows();
@@ -646,8 +645,7 @@ define([
           this._addLayersOption(tr);
           this._addLabelOption(tr);
           this._addRefreshOption(tr);
-          //tr.selectLayers.set("value", this.oldConfig === true ? lyrInfo.id : lyrInfo.label);
-          tr.selectLayers.set("value", lyrInfo.id);
+          tr.selectLayers.set("value", lyrInfo.id, !this.isInitalLoad);
           tr.labelText.set("value", lyrInfo.label);
           tr.refreshBox.set("checked", lyrInfo.refresh);
           tr.imageData = lyrInfo.panelImageData;
@@ -704,14 +702,8 @@ define([
             this._updateRefresh(tr);
             this._updateLayerLists();
             this._updateLayerListRows(true, tr);
-            if (!this.isInitalLoad) {
-              this._addDefaultSymbol(tr);
-              tr.labelText.set('value', "");
-            }
-            this.layerLoadCount -= 1;
-            if (this.layerLoadCount === 0) {
-              this.isInitalLoad = false;
-            }
+            this._addDefaultSymbol(tr);
+            tr.labelText.set('value', "");
           })));
         }
       },
@@ -762,9 +754,8 @@ define([
             }
           }
         }
-
         if (typeof (tr) !== 'undefined') {
-          tr.selectLayers.set("value", s);
+          tr.selectLayers.set("value", s, !this.isInitalLoad);
         }
       },
 
@@ -844,7 +835,7 @@ define([
           refreshCheckBox = tr.refreshBox;
         }
 
-        if (lInfo.lyrType === 'Feature Collection') {
+        if (lInfo.lyrType === 'Feature Collection' && typeof (lInfo.itemId) !== 'undefined') {
           refreshCheckBox.set('disabled', false);
           refreshCheckBox.set('title', this.nls.enableRefresh);
         } else {

@@ -84,11 +84,19 @@
       ${nls.weather_Label}
     </div>
     <hr />
-    <div class="pad-row15">
-      <input data-dojo-attach-point="chk_weather" title="${nls.weather_checkBox}" data-dojo-type="dijit/form/CheckBox" />
-      <span class="label">${nls.weather_checkBox}</span>
-      <div data-dojo-attach-point="btnSource" class='jimu-btn' data-dojo-attach-event="onclick:_onBtnSelectLayersClicked">
-        ${nls.selectLayers}
+    <div class="jimu-r-row pad-row15">
+      <div class="col-1-3">
+        <input data-dojo-type="dijit/form/CheckBox" data-dojo-attach-point="chk_weather" title="${nls.weather_checkBox}" />
+        <span class="label">${nls.weather_checkBox}</span>
+      </div>
+      <div class="col-1-3">
+        <input data-dojo-type="dijit/form/CheckBox" data-dojo-attach-point="chk_celsius"/>
+        <span class="label" data-dojo-attach-point="chk_celsius_label"></span>
+      </div>
+      <div class="col-1-3">
+        <div data-dojo-attach-point="btnSource" class='jimu-btn' data-dojo-attach-event="onclick:_onBtnSelectLayersClicked">
+          ${nls.selectLayers}
+        </div>
       </div>
     </div>
     <div class="currentlySelectedLayer">

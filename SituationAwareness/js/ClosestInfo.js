@@ -95,6 +95,7 @@ define([
     //So it could be possible that the buffer distance exceeds the max distance defined in the config.
     //This would mean that you have a feature in the buffer that is not returned...is this correct?
     queryTabCount: function (incidents, buffers, updateNode, displayCount) { // jshint ignore:line
+      var def = new Deferred();
       this.incidentCount = incidents.length;
       var unit = this.parent.config.distanceUnits;
       var unitCode = this.parent.config.distanceSettings[unit];
@@ -115,12 +116,24 @@ define([
             var tempFL;
             if (typeof (this.tab.tabLayers[0].infoTemplate) !== 'undefined') {
               this.summaryLayer = this.tab.tabLayers[0];
-              this.summaryFields = this._getFields(this.summaryLayer);
-              tempFL = new FeatureLayer(this.summaryLayer.url);
-              tempFL.infoTemplate = this.tab.tabLayers[0].infoTemplate;
-              tabLayers = [tempFL];
-              this.tab.tabLayers = tabLayers;
-              this._performQuery(incidents, buffers, updateNode, displayCount, tabLayers);
+              if (this.summaryLayer.hasOwnProperty('loaded') && this.summaryLayer.loaded) {
+                this.summaryFields = this._getFields(this.summaryLayer);
+                this._performQuery(incidents, buffers, updateNode, displayCount, tabLayers).then(function (r) {
+                  def.resolve(r);
+                });
+              } else {
+                tempFL = new FeatureLayer(this.summaryLayer.url);
+                tempFL.infoTemplate = this.tab.tabLayers[0].infoTemplate;
+                tabLayers = [tempFL];
+                this.tab.tabLayers = tabLayers;
+                on(tempFL, "load", lang.hitch(this, function () {
+                  this.summaryLayer = tempFL;
+                  this.summaryFields = this._getFields(this.summaryLayer);
+                  this._performQuery(incidents, buffers, updateNode, displayCount, tabLayers).then(function (r) {
+                    def.resolve(r);
+                  });
+                }));
+              }
             } else {
               if (!this.loading) {
                 tempFL = new FeatureLayer(this.tab.tabLayers[0].url);
@@ -145,7 +158,9 @@ define([
                   tabLayers = [tempFL];
                   this.tab.tabLayers = tabLayers;
                   this.loading = false;
-                  this._performQuery(incidents, buffers, updateNode, displayCount, tabLayers);
+                  this._performQuery(incidents, buffers, updateNode, displayCount, tabLayers).then(function (r) {
+                    def.resolve(r);
+                  });
                 }));
               }
             }
@@ -153,12 +168,16 @@ define([
         }
       }
       if (!this.mapServiceLayer) {
-        this._performQuery(incidents, buffers, updateNode, displayCount, tabLayers);
+        this._performQuery(incidents, buffers, updateNode, displayCount, tabLayers).then(function (r) {
+          def.resolve(r);
+        });
       }
+      return def;
     },
 
     //buffers will be populated with max dist from incidents
     _performQuery: function (incidents, buffers, updateNode, displayCount, tabLayers) { // jshint ignore:line
+      var def = new Deferred();
       var defArray = [];
       var geom;
       var prevArray;
@@ -198,7 +217,9 @@ define([
           }
         }
         this.updateTabCount(length, updateNode, displayCount);
+        def.resolve(length);
       }));
+      return def;
     },
 
     updateTabCount: function (count, updateNode, displayCount) {
@@ -310,14 +331,9 @@ define([
             var inc_geom = inc_buffers[r].geometry;
             if (graphics && graphics.length > 0) {
               for (var g = 0; g < graphics.length; g++) {
-                //var gra = graphics[g];
                 var gra = new Graphic(graphics[g].toJson());
                 var geom = gra.geometry;
-                var p = inc_geom;
-                if (inc_geom.type !== 'point') {
-                  p = inc_geom.getExtent().getCenter();
-                }
-                var dist = analysisUtils.getDistance(p, geom, this.parent.config.distanceUnits);
+                var dist = analysisUtils.getDistance(inc_geom, geom, this.parent.config.distanceUnits);
                 var newAttr = {
                   DISTANCE: dist
                 };
@@ -418,11 +434,11 @@ define([
           var info = "";
           var c = 0;
           var row = [];
-          for (var prop in attr) {
-            if (prop !== "DISTANCE" && c < 3) {
-              if (typeof (this.displayFields) !== 'undefined') {
-                for (var ij = 0; ij < this.displayFields.length; ij++) {
-                  var field = this.displayFields[ij];
+          if (typeof (this.displayFields) !== 'undefined') {
+            for (var ij = 0; ij < this.displayFields.length; ij++) {
+              var field = this.displayFields[ij];
+              for (var prop in attr) {
+                if (prop !== "DISTANCE" && c < 3) {
                   if (field.expression === prop) {
                     var fVal = analysisUtils.getFieldValue(prop, attr[prop], this.specialFields,
                       this.dateFields, 'longMonthDayYear');

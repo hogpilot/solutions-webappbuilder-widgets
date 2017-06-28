@@ -59,12 +59,6 @@ define([
         this.setConfig(this.config);
       },
 
-      startup: function() {
-        this.inherited(arguments);
-        this.textSymbol.inputText.value = "A1";
-        this.textSymbol._onTextSymbolChange();
-      },
-
       gridSymbolChanged: function(newFillSymbol) {
         this.selectedGridSymbol = newFillSymbol;
       },
@@ -75,12 +69,14 @@ define([
 
       setConfig: function(config){
         if (config.grg) {
-          this.gridSymbol.reset();
           this.gridSymbol.showBySymbol(new SimpleFillSymbol(this.config.grg.gridSymbol)); 
 
-          this.textSymbol.reset();
-          this.config.grg.textSymbol.text = "";
-          this.textSymbol.showBySymbol(new TextSymbol(this.config.grg.textSymbol)); 
+          var txtSym = new TextSymbol(this.config.grg.textSymbol);
+          this.textSymbol.inputText.value = txtSym.text;
+          this.textSymbol.showBySymbol(txtSym);
+          this.textSymbol.symbol = txtSym;
+          this.textSymbol.textColor.setColor(txtSym.color);
+          this.textSymbol.textFontSize.set('value', txtSym.font.size);
         }
       },
 

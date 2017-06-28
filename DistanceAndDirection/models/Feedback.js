@@ -38,8 +38,7 @@ define([
   'esri/symbols/TextSymbol',
   'esri/symbols/Font',
   'esri/geometry/webMercatorUtils',
-  'esri/units',
-  '../util'
+  'esri/units'
 ], function (
   dojoDeclare,
   dojoLang,
@@ -62,8 +61,7 @@ define([
   EsriTextSymbol,
   EsriFont,
   EsriWebMercatorUtils,
-  EsriUnits,
-  Utils
+  EsriUnits
   ) {
     var w = dojoDeclare([esriDraw, dojoStateful], {
       startPoint: null,
@@ -102,10 +100,7 @@ define([
           }
         })).then(function () {
           console.log('Geometry Engine initialized');
-        });
-
-        this._utils = new Utils();
-        // this.inherited(arguments);
+        });      
       },
 
       /**
@@ -149,6 +144,7 @@ define([
         if (this.startGraphic) {
           this.map.graphics.remove(this.startGraphic);
         }
+        this.startGraphic = null;
       }
 
   });

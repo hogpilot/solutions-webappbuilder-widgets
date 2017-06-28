@@ -37,6 +37,7 @@ define([
     'dojo/query',
     'dojo/json',
     'dojo/has',
+    'dojo/topic',
     'dojo/Deferred',
     'dojo/DeferredList',
     'esri/geometry/Extent',
@@ -46,12 +47,14 @@ define([
     'esri/geometry/Multipoint',
     'esri/geometry/Polyline',
     'esri/geometry/webMercatorUtils',
+    "esri/tasks/ProjectParameters",
     'esri/geometry/jsonUtils',
     'esri/graphic',
     "esri/graphicsUtils",
     'esri/Color',
     'esri/layers/GraphicsLayer',
     'esri/layers/FeatureLayer',
+    "esri/SpatialReference",
     'esri/symbols/Font',
     'esri/symbols/SimpleLineSymbol',
     'esri/symbols/SimpleFillSymbol',
@@ -66,6 +69,7 @@ define([
     'esri/dijit/Popup',
     'jimu/dijit/Popup',
     'esri/tasks/query',
+    'esri/request',
     './js/SummaryInfo',
     './js/GroupedCountInfo',
     './js/WeatherInfo',
@@ -81,6 +85,7 @@ define([
     query,
     JSON,
     has,
+    topic,
     Deferred,
     DeferredList,
     Extent,
@@ -90,12 +95,14 @@ define([
     Multipoint,
     Polyline,
     webMercatorUtils,
+    ProjectParameters,
     geometryJsonUtils,
     Graphic,
     graphicsUtils,
     esriColor,
     GraphicsLayer,
     FeatureLayer,
+    SpatialReference,
     Font,
     SimpleLineSymbol,
     SimpleFillSymbol,
@@ -110,6 +117,7 @@ define([
     Popup,
     jimuPopup,
     Query,
+    esriRequest,
     SummaryInfo,
     GroupedCountInfo,
     WeatherInfo,
@@ -214,6 +222,7 @@ define([
           this.mapResize = this.map.on("resize", lang.hitch(this, this._mapResize));
         }
         this._mapResize();
+        this.own(topic.subscribe('changeMapPosition', lang.hitch(this, this._onMapPositionChange)));
         this._storeInitalVisibility();
         this._checkHideContainer();
         this._initEditInfo();
@@ -241,7 +250,7 @@ define([
         }
         this.windowResize.remove();
         this.windowResize = null;
-        this._clear();
+        this._clear(true);
         this.widgetActive = false;
         if (this.saveEnabled) {
           this.scSignal.remove();
@@ -250,6 +259,7 @@ define([
         this._mapResize();
         this._resetInitalVisibility();
         this.inherited(arguments);
+        this._resetMapPosition();
       },
 
       onDeActive: function() {
@@ -257,7 +267,7 @@ define([
       },
 
       destroy: function() {
-        this._clear();
+        this._clear(true);
         this._toggleTabLayersOld();
         if (this.lyrBuffer) {
           this.map.removeLayer(this.lyrBuffer);
@@ -435,58 +445,35 @@ define([
       /*jshint unused:false */
       setPosition: function (position, containerNode) {
         if (this.widgetActive) {
-          var pos;
-          var style;
-          var controllerWidget;
-          var m = dom.byId('map');
+          var h = 155;
           if (this.appConfig.theme.name === "TabTheme") {
-            controllerWidget = this.widgetManager.getControllerWidgets()[0];
-            var w;
-            if (controllerWidget.domNode.clientWidth) {
-              w = controllerWidget.domNode.clientWidth.toString() + 'px';
-            } else {
-              w = '54px';
-            }
-            pos = {
-              left: w,
-              right: "0",
-              bottom: "24px",
-              height: "155px",
+            var controllerWidget = this.widgetManager.getControllerWidgets()[0];
+            this.position = {
+              left: controllerWidget.domNode.clientWidth,
+              right: 0,
+              bottom: 24,
+              height: h,
               relativeTo: "browser"
             };
-            this.position = pos;
-            style = utils.getPositionStyle(this.position);
-            style.position = 'absolute';
-            html.place(this.domNode, window.jimuConfig.layoutId);
-            html.setStyle(this.domNode, style);
-            if (this.started) {
-              this.resize();
-            }
-            m.style.bottom = "155px";
-            this.map.resize(true);
-
-            if (this.appConfig.theme.name === "TabTheme") {
-              this.widgetManager.minimizeWidget(controllerWidget.id);
-            }
           } else {
-            pos = {
-              left: "0",
-              right: "0",
-              bottom: "0",
-              height: "155px",
+            this.position = {
+              left: 0,
+              right: 0,
+              bottom: 0,
+              height: h,
               relativeTo: "browser"
             };
-            this.position = pos;
-            style = utils.getPositionStyle(this.position);
-            style.position = 'absolute';
-            html.place(this.domNode, window.jimuConfig.layoutId);
-            html.setStyle(this.domNode, style);
-            if (this.started) {
-              this.resize();
-            }
-            m.style.bottom = "155px";
-            this.map.resize(true);
           }
+          var style = utils.getPositionStyle(this.position);
+          style.position = 'absolute';
+          html.place(this.domNode, window.jimuConfig.layoutId);
+          html.setStyle(this.domNode, style);
+          if (this.started) {
+            this.resize();
+          }
+          topic.publish('changeMapPosition', {
+            bottom: h
+          });
         }
       },
 
@@ -970,7 +957,7 @@ define([
           }
 
           if (removeIncident) {
-            this._clear();
+            this._clear(false);
           }
 
           this.map.infoWindow.hide();
@@ -1171,16 +1158,14 @@ define([
 
       validateSavePrivileges: function () {
         var def = new Deferred();
-        def.resolve(true);
-
-        //https://devtopia.esri.com/john4818/arcgis-webappbuilder/issues/408
-        //var portal = portalUtils.getPortal(this.appConfig.portalUrl);
-        //portal.getUser().then(lang.hitch(this, function (user) {
-        //  def.resolve(user.privileges.indexOf('features:user:edit') > -1 ? true : false);
-        //}), lang.hitch(this, function (err) {
-        //  console.log(err);
-        //  def.resolve(false);
-        //}));
+        var portal = portalUtils.getPortal(this.appConfig.portalUrl);
+        portal.getUser().then(lang.hitch(this, function (user) {
+          def.resolve(user.privileges.indexOf('features:user:edit') > -1 ? true : false);
+        }), lang.hitch(this, function (err) {
+          console.log(err);
+          //passing true here to fall back to service for definition of "can edit" allows for anonymous editing
+          def.resolve(true);
+        }));
         return def;
       },
 
@@ -1224,6 +1209,7 @@ define([
             "class": "btn32 displayT"
           }, this.saveOptions);
           this.validateSavePrivileges().then(lang.hitch(this, function (enable) {
+            this.userCanSave = enable;
             this.saveButton = domConstruct.create("div", {
               "class": enable ? 'save' : 'save btnDisabled',
               "title": enable ? this.nls.saveIncident : this.nls.user_credentials
@@ -1241,6 +1227,7 @@ define([
             "class": "btn32 displayT"
           }, this.saveOptions);
           this.validateSnapshotPrivileges().then(lang.hitch(this, function (enable) {
+            this.userCanSnapshot = enable;
             this.createSnapshotButton = domConstruct.create("div", {
               "class": enable ? 'snapshot' : 'snapshot btnDisabled',
               "title": enable ? this.nls.createSnapshot : this.nls.user_credentials
@@ -1329,23 +1316,23 @@ define([
               this.enableWebMapPopup();
               break;
             case 0:
-              this._clear();
+              this._clear(false);
               this.toolbar.activate(Draw.POINT);
               this.disableWebMapPopup();
               break;
             case 1:
-              this._clear();
+              this._clear(false);
               this.toolbar.activate(Draw.POLYLINE);
               this.disableWebMapPopup();
               break;
             case 2:
-              this._clear();
+              this._clear(false);
               this.toolbar.activate(Draw.POLYGON);
               this.disableWebMapPopup();
               break;
           }
         } else {
-          this._clear();
+          this._clear(true);
         }
       },
 
@@ -1513,7 +1500,7 @@ define([
         return def;
       },
 
-      _clear: function() {
+      _clear: function(resetBuffer) {
         this.map.graphics.clear();
         this.lyrIncidents.clear();
         this.lyrBuffer.clear();
@@ -1545,6 +1532,10 @@ define([
         this._updateCounts(true);
         this._clearGraphics();
 
+        if (resetBuffer) {
+          this.spinnerValue.set("value", this.config.bufferRange.minimum);
+        }
+
         if (this.pointEditLayer) {
           this.pointUpdateFeature = this.pointEditLayerPrototype;
         }
@@ -1567,9 +1558,6 @@ define([
 
       _updateSpinnerValue: function (set) {
         var num = this.spinnerValue.displayedValue;
-        if (isNaN(num)) {
-          //this.spinnerValue.set("value", this.horizontalSlider.value);
-        }
         if (typeof(num) === 'string') {
           num = parseInt(num, 10);
         }
@@ -1579,12 +1567,6 @@ define([
           this.spinnerValue.set("value", this.SLIDER_MAX_VALUE);
         }
         if (set) {
-          //if (num < 0 ||
-          //  this.spinnerValue.displayedValue > this.SLIDER_MAX_VALUE) {
-          //  //this.spinnerValue.set("value", this.horizontalSlider.value);
-          //} else {
-          //  //this.horizontalSlider.set("value", this.spinnerValue.displayedValue);
-          //}
           this._bufferIncident();
         }
       },
@@ -1827,20 +1809,13 @@ define([
           this.lyrIncidents.add(g);
         }
 
-        //TODO should be added to support no features in incident area
-        //if (this.downloadAllButon) {
-        //  domClass.add(this.downloadAllButon, 'btnDisabled');
-        //}
-        //if (this.createSnapshotButton) {
-        //  domClass.add(this.createSnapshotButton, 'btnDisabled');
-        //}
-
         this.div_reversed_address.innerHTML = "";
         html.setStyle(this.div_reverse_geocoding, 'visibility', 'hidden');
         this.toolbar.deactivate();
         this._clickIncidentsButton(-1);
         if (this.saveEnabled) {
           domClass.remove(this.saveButton, "display-off");
+          editEnabled = editEnabled && this.userCanSave;
           if (editEnabled && domClass.contains(this.saveButton, 'btnDisabled')) {
             domClass.remove(this.saveButton, "btnDisabled");
           }
@@ -1857,23 +1832,73 @@ define([
       },
 
       // get incident address
-      _getIncidentAddress: function(pt) {
+      _getIncidentAddress: function (pt) {
+        this.incidentPoint = pt;
         this.map.graphics.clear();
-        this.locator.locationToAddress(webMercatorUtils.webMercatorToGeographic(pt), 100);
+        this._getPoint(pt).then(lang.hitch(this, function (_point) {
+          this.locator.locationToAddress(_point, 100);
+        }), function (err) {
+          console.log(err);
+        });
+      },
+
+      _getPoint: function (pt) {
+        var def = new Deferred();
+        var webMerc = new SpatialReference(3857);
+        if (webMercatorUtils.canProject(pt, webMerc)) {
+          //if the data is web mercator or can be projected to web mercator do so
+          // then convert to geographic for the locationToAddress call
+          def.resolve(webMercatorUtils.webMercatorToGeographic(webMercatorUtils.project(pt, webMerc)));
+        } else {
+          //if the data is NOT web mercator and can NOT be projected to web mercator create a 100 meter buffer
+          // for the extent of interest
+          //Find the most appropriate geo transformation and project the data to geographic for the call to locationToAddress
+          // then convert to geographic for the locationToAddress call
+          var buff = geometryEngine.buffer(pt, 100, 9001);
+          var args = {
+            url: this.gsvc.url + '/findTransformations',
+            content: {
+              f: 'json',
+              inSR: pt.spatialReference.wkid,
+              outSR: 4326,
+              extentOfInterest: JSON.stringify(buff.getExtent().toJson())
+            },
+            handleAs: 'json',
+            callbackParamName: 'callback'
+          };
+          esriRequest(args, {
+            usePost: false
+          }).then(lang.hitch(this, function (response) {
+            var transformations = response && response.transformations ? response.transformations : undefined;
+            var wkid = transformations && transformations.length > 0 ? transformations[0].wkid : undefined;
+            var pp = new ProjectParameters();
+            pp.outSR = new SpatialReference(4326);
+            pp.geometries = [pt];
+            pp.transformForward = true;
+            pp.transformation = wkid;
+            this.gsvc.project(pp, lang.hitch(this, function (r) {
+              def.resolve(r[0]);
+            }), function (err) {
+              def.reject(err);
+            });
+          }), lang.hitch(this, function (err) {
+            def.reject(err);
+          }));
+        }
+        return def;
       },
 
       // show incident address
       _showIncidentAddress: function(evt) {
         if (evt.address.address) {
           var address = evt.address.address.Address;
-          var location = webMercatorUtils.geographicToWebMercator(evt.address.location);
           var fnt = new Font();
           fnt.family = "Arial";
           fnt.size = "18px";
           var symText = new TextSymbol(address, fnt, new esriColor("#000000"));
           symText.setOffset(20, -4);
           symText.horizontalAlignment = "left";
-          this.map.graphics.add(new Graphic(location, symText, {}));
+          this.map.graphics.add(new Graphic(this.incidentPoint, symText, {}));
 
           var str_complete_address = address + "</br>" + evt.address.address.City +
             ", " + evt.address.address.Region + " " + evt.address.address.Postal;
@@ -1911,7 +1936,7 @@ define([
           if (dist1 > 0) {
             var wkid = gra.geometry.spatialReference.wkid;
             var g;
-            if ((wkid === 4326 || wkid === 3857 || wkid === 102100) && !this.isSafari) {
+            if ((wkid === 4326 || gra.geometry.spatialReference.isWebMercator()) && !this.isSafari) {
               g = geometryEngine.geodesicBuffer(gra.geometry, dist1, unitCode);
               this.buffers.push(g);
             } else {
@@ -1936,7 +1961,7 @@ define([
         if (this.buffers.length > 0) {
           if (this.saveEnabled) {
             domClass.remove(this.saveButton, "display-off");
-            if (domClass.contains(this.saveButton, "btnDisabled") && this.isPolyEditable) {
+            if (domClass.contains(this.saveButton, "btnDisabled") && this.isPolyEditable && this.userCanSave) {
               domClass.remove(this.saveButton, "btnDisabled");
             }
             domClass.add(this.saveButton, "displayT");
@@ -1944,7 +1969,7 @@ define([
           this._handleBuffers(this.symPoly, v);
         } else {
           if (this.saveEnabled) {
-            if (editEnabled) {
+            if (editEnabled && this.userCanSave) {
               if (domClass.contains(this.saveButton, "btnDisabled")) {
                 domClass.remove(this.saveButton, "btnDisabled");
               }
@@ -1976,6 +2001,7 @@ define([
       },
 
       _updateCounts: function (clear) {
+        var defArray = [];
         for (var i = 0; i < this.config.tabs.length; i++) {
           if (clear && i > 0) {
             if (this.panelNodes[i]) {
@@ -2012,7 +2038,37 @@ define([
               }
               ao.updateTabCount(0, n, displayCount);
             } else {
-              ao.queryTabCount(this.incidents, this.buffers, n, displayCount);
+              if (t.type === 'weather') {
+                ao.queryTabCount(this.incidents, this.buffers, n, displayCount);
+              } else {
+                defArray.push(ao.queryTabCount(this.incidents, this.buffers, n, displayCount));
+              }
+            }
+          }
+        }
+        var defList = new DeferredList(defArray);
+        defList.then(lang.hitch(this, function (defResults) {
+          var length = 0;
+          for (var r = 0; r < defResults.length; r++) {
+            var tabCount = defResults[r][1];
+            if (!isNaN(tabCount)) {
+              length += tabCount;
+            }
+          }
+          this._updateBtnState(this.downloadAllButon, 'btnDisabled', length);
+          if (this.userCanSnapshot) {
+            this._updateBtnState(this.createSnapshotButton, 'btnDisabled', length);
+          }
+        }));
+      },
+
+      _updateBtnState: function (btn, cls, length) {
+        if (btn) {
+          if (length === 0) {
+            domClass.add(btn, cls);
+          } else {
+            if (domClass.contains(btn, cls)) {
+              domClass.remove(btn, cls);
             }
           }
         }
@@ -2281,7 +2337,7 @@ define([
               tab.updateFlag = true;
               this._performAnalysis();
             } else {
-              this._clear();
+              this._clear(false);
             }
           } else if (data.eventType === "WebMapChanged") {
             this._storeIncidents();
@@ -2359,55 +2415,68 @@ define([
         wTabs += 10;
         domStyle.set(this.tabsNode, "width", wTabs + "px");
         if (wTabs > domGeom.position(this.footerNode).w) {
-          domStyle.set(this.footerContentNode, 'right', "58" + "px");
+          domStyle.set(this.footerContentNode, window.isRTL ? 'left' : 'right', "58" + "px");
           domStyle.set(this.panelRight, 'display', 'block');
         }
       },
 
       _mapResize: function () {
-        var aHeight;
+        var style = domStyle.getComputedStyle(this.map.container);
+        if (style) {
+          var height = this._getSAPanelHeight();
+          var mapBottom = parseFloat(style.bottom.replace('px', ''));
+          if (this.state === 'opened' || this.state === 'active') {
+            var attributeTableHeight = this._getAttributeTableHeight();
+            if (attributeTableHeight > height) {
+              height = attributeTableHeight;
+            }
+            if (mapBottom <= height) {
+              topic.publish('changeMapPosition', {
+                bottom: height
+              });
+            }
+          }
+        }
+      },
+
+      _onMapPositionChange: function (pos) {
+        if (pos) {
+          this.left = pos.left;
+          this.right = pos.right;
+          if (isFinite(this.left) && typeof this.left === 'number') {
+            domStyle.set(this.domNode, window.isRTL ? 'right' : 'left', parseFloat(this.left) + 'px');
+          }
+          if (isFinite(this.right) && typeof this.right === 'number') {
+            domStyle.set(this.domNode, window.isRTL ? 'left' : 'right', parseFloat(this.right) + 'px');
+          }
+        }
+        this._onPanelScroll();
+      },
+
+      _resetMapPosition: function () {
+        topic.publish('changeMapPosition', {
+          bottom: this._getAttributeTableHeight()
+        });
+      },
+
+      _getSAPanelHeight: function () {
+        var _h = parseInt(this.position.height.toString().replace('px', ''), 10);
+        var _bottomPosition = parseInt(this.position.bottom.toString().replace('px', ''), 10);
+        return _h + _bottomPosition;
+      },
+
+      _getAttributeTableHeight: function () {
+        var h = parseInt(this.position.bottom.toString().replace('px', ''), 10);
         if (this.attributeTable) {
-          var a = dom.byId(this.attributeTable.id);
-          if (a) {
-            aHeight = parseInt(a.style.height.toString().replace('px', ''), 10);
-          }
-        }
-
-        var m = dom.byId('map');
-        var mapBottom = parseInt(m.style.bottom.toString().replace('px', ''), 10);
-
-        if (this.state === 'opened' || this.state === 'active') {
-          var _h = parseInt(this.position.height.toString().replace('px', ''), 10);
-          var _bottomPosition = parseInt(this.position.bottom.toString().replace('px', ''), 10);
-          var height = _h + _bottomPosition;
-          var refresh = false;
-          if (height > aHeight) {
-            if (this.mapBottom !== height || this.mapBottom !== mapBottom) {
-              refresh = true;
-              this.mapBottom = height;
-            }
-          } else if (aHeight > height) {
-            if (this.mapBottom !== aHeight || this.mapBottom !== mapBottom) {
-              refresh = true;
-              this.mapBottom = aHeight;
+          var atDom = dom.byId(this.attributeTable.id);
+          if (atDom) {
+            var style = domStyle.getComputedStyle(atDom);
+            if (style && style.height) {
+              h += parseInt(style.height.toString().replace('px', ''), 10);
             }
           }
-          if (refresh) {
-            m.style.bottom = this.mapBottom.toString() + 'px';
-            this.map.resize(false);
-            this.map.reposition();
-          }
-        } else {
-          if (typeof (aHeight) !== 'undefined') {
-            m.style.bottom = aHeight.toString() + 'px';
-            this.map.resize(true);
-            this.map.reposition();
-          } else {
-            m.style.bottom = '0px';
-            this.map.resize(true);
-            this.map.reposition();
-          }
         }
+        return h;
       },
 
       _resize: function (e) {
@@ -2431,9 +2500,10 @@ define([
         for (var i = 0; i < this.tabsNode.children.length; i++) {
           c = this.tabsNode.children[i];
           cRect = c.getBoundingClientRect();
-          if (cRect.left >= 0) {
+          var left = window.isRTL ? cRect.right : cRect.left;
+          if (left >= 0) {
             n = i;
-            ss = cRect.left;
+            ss = left;
             break;
           }
         }
@@ -2441,7 +2511,9 @@ define([
         for (var j = 0; j < this.tabsNode.children.length; j++) {
           c = this.tabsNode.children[j];
           cRect = c.getBoundingClientRect();
-          if (cRect.right > rect.right) {
+          var right = window.isRTL ? cRect.left : cRect.right;
+          var rectRight = window.isRTL ? rect.left : rect.right;
+          if (right > rectRight) {
             nn = j;
             break;
           }
@@ -2450,15 +2522,15 @@ define([
         var fc = this.footerContentNode;
 
         var showRight = nn <= this.tabsNode.children.length;
-        domStyle.set(fc, 'right', showRight ? "58px" : "24px");
+        domStyle.set(fc, window.isRTL ? 'left' : 'right', showRight ? "58px" : "24px");
         domStyle.set(this.panelRight, 'display', showRight ? "block" : "none");
 
-        var up = 34;
+        var up = 0;
         if (this.appConfig.theme.name === "TabTheme") {
-          up += 54;
+          up += window.isRTL ? this.right : this.left;
         }
-        var showLeft = n >= 1 || ss > up;
-        domStyle.set(fc, 'left', showLeft ? "34px" : "0px");
+        var showLeft = n >= 1 || ss < up;
+        domStyle.set(fc, window.isRTL ? 'right' : 'left', showLeft ? "34px" : "0px");
         domStyle.set(this.panelLeft, 'display', showLeft ? "block" : "none");
         domStyle.set(this.panelLeft, 'width', showLeft ? "34px" : "0px");
       },
@@ -2647,7 +2719,7 @@ define([
             });
           }
         });
-        return analysisObjects;
+        return analysisObjects.reverse();
       },
 
       //TODO this should really not be necessary..really the download all should not be visible
@@ -2722,11 +2794,6 @@ define([
               if (results && results !== 'cancel') {
                 this._updateProcessing(this.createSnapshotButton, true, 'snapshot');
                 var inc_buff = [];
-                //add a layer for the incidents
-                inc_buff.push({
-                  graphics: this.incidents,
-                  label: this.incidents.length > 1 ? this.nls.incidents : this.nls.incident
-                });
                 //add a layer for the buffers
                 if (this.buffers.length > 0) {
                   inc_buff.push({
@@ -2734,7 +2801,13 @@ define([
                     label: this.buffers.length > 1 ? this.nls.buffers : this.nls.buffer
                   });
                 }
-                var layers = inc_buff.concat(this._getAnalysisObjects());
+                //add a layer for the incidents
+                inc_buff.push({
+                  graphics: this.incidents,
+                  label: this.incidents.length > 1 ? this.nls.incidents : this.nls.incident
+                });
+                var aObjs = this._getAnalysisObjects();
+                var layers = aObjs.concat(inc_buff);
                 //TODO only one instance of this should be necessary
                 //will decide where to create it when I know if snapshot or download all
                 // will in some cases be not be avalible

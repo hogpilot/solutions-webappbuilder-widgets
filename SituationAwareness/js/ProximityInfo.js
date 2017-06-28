@@ -91,6 +91,7 @@ define([
     //but we should not have to do that so frequently
 
     queryTabCount: function (incidents, buffers, updateNode, displayCount) {
+      var def = new Deferred();
       this.incidentCount = incidents.length;
       var tabLayers = [this.tab.tabLayers[0]];
       if (this.mapServiceLayer && this.tab.tabLayers.length > 1) {
@@ -103,12 +104,24 @@ define([
             var tempFL;
             if (typeof (this.tab.tabLayers[0].infoTemplate) !== 'undefined') {
               this.summaryLayer = this.tab.tabLayers[0];
-              this.summaryFields = this._getFields(this.summaryLayer);
-              tempFL = new FeatureLayer(this.summaryLayer.url);
-              tempFL.infoTemplate = this.tab.tabLayers[0].infoTemplate;
-              tabLayers = [tempFL];
-              this.tab.tabLayers = tabLayers;
-              this._performQuery(incidents, buffers, updateNode, displayCount, tabLayers);
+              if (this.summaryLayer.hasOwnProperty('loaded') && this.summaryLayer.loaded) {
+                this.summaryFields = this._getFields(this.summaryLayer);
+                this._performQuery(incidents, buffers, updateNode, displayCount, tabLayers).then(function (r) {
+                  def.resolve(r);
+                });
+              } else {
+                tempFL = new FeatureLayer(this.summaryLayer.url);
+                tempFL.infoTemplate = this.tab.tabLayers[0].infoTemplate;
+                tabLayers = [tempFL];
+                this.tab.tabLayers = tabLayers;
+                on(tempFL, "load", lang.hitch(this, function () {
+                  this.summaryLayer = tempFL;
+                  this.summaryFields = this._getFields(this.summaryLayer);
+                  this._performQuery(incidents, buffers, updateNode, displayCount, tabLayers).then(function (r) {
+                    def.resolve(r);
+                  });
+                }));
+              }
             } else {
               if (!this.loading) {
                 tempFL = new FeatureLayer(this.tab.tabLayers[0].url);
@@ -132,7 +145,10 @@ define([
                   }
                   this.tab.tabLayers = [tempFL];
                   this.loading = false;
-                  this._performQuery(incidents, buffers, updateNode, displayCount, this.tab.tabLayers);
+                  this._performQuery(incidents, buffers, updateNode, displayCount,
+                    this.tab.tabLayers).then(function (r) {
+                    def.resolve(r);
+                  });
                 }));
               }
             }
@@ -140,11 +156,15 @@ define([
         }
       }
       if (!this.mapServiceLayer) {
-        this._performQuery(incidents, buffers, updateNode, displayCount, tabLayers);
+        this._performQuery(incidents, buffers, updateNode, displayCount, tabLayers).then(function (r) {
+          def.resolve(r);
+        });
       }
+      return def;
     },
 
     _performQuery: function (incidents, buffers, updateNode, displayCount, tabLayers) {
+      var def = new Deferred();
       var defArray = [];
       var geom;
       var prevArray;
@@ -183,7 +203,9 @@ define([
           }
         }
         this.updateTabCount(length, updateNode, displayCount);
+        def.resolve(length);
       }));
+      return def;
     },
 
     updateTabCount: function (count, updateNode, displayCount) {
@@ -364,11 +386,7 @@ define([
               if (Array.isArray(inc_geom)) {
                 var dist_;
                 for (var c = 0; c < inc_geom.length; c++) {
-                  var pp = inc_geom[c];
-                  if (pp.type !== 'point') {
-                    pp = inc_geom[c].getExtent().getCenter();
-                  }
-                  var _dist = analysisUtils.getDistance(pp, geom, this.parent.config.distanceUnits);
+                  var _dist = analysisUtils.getDistance(inc_geom[c], geom, this.parent.config.distanceUnits);
                   if (typeof (dist_) === 'undefined' || _dist < dist_) {
                     dist_ = _dist;
                   }
@@ -378,11 +396,7 @@ define([
                   DISTANCE: dist_
                 };
               } else {
-                var p = inc_geom;
-                if (inc_geom.type !== 'point') {
-                  p = inc_geom.getExtent().getCenter();
-                }
-                dist = analysisUtils.getDistance(p, geom, this.parent.config.distanceUnits);
+                dist = analysisUtils.getDistance(inc_geom, geom, this.parent.config.distanceUnits);
                 newAttr = {
                   DISTANCE: dist
                 };
@@ -517,11 +531,11 @@ define([
         }
         var info = "";
         var c = 0;
-        for (var prop in attr) {
-          if (prop !== "DISTANCE" && c < 3) {
-            if (typeof (displayFields) !== 'undefined') {
-              for (var ij = 0; ij < displayFields.length; ij++) {
-                var field = displayFields[ij];
+        if (typeof (displayFields) !== 'undefined') {
+          for (var ij = 0; ij < displayFields.length; ij++) {
+            var field = displayFields[ij];
+            for (var prop in attr) {
+              if (prop !== "DISTANCE" && c < 3) {
                 if (field.expression === prop) {
                   var fVal = analysisUtils.getFieldValue(prop, attr[prop], this.specialFields,
                     this.dateFields, 'longMonthDayYear');

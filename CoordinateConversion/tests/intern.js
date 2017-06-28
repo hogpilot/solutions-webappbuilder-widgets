@@ -37,7 +37,7 @@ define([], function() {
     tunnel: 'NullTunnel',
 
     useLoader: {
-      'host-browser': 'http://js.arcgis.com/3.16/dojo/dojo.js'
+      'host-browser': 'http://js.arcgis.com/3.19/dojo/dojo.js'
     },
 
     loader: {
@@ -50,25 +50,25 @@ define([], function() {
           location: './widgets/CoordinateConversion'
         }, {
           name: 'esri',
-          location: 'http://js.arcgis.com/3.16/esri'
+          location: 'http://js.arcgis.com/3.19/esri'
         }, {
           name: 'dgrid',
-          location: 'http://js.arcgis.com/3.16/dgrid'
+          location: 'http://js.arcgis.com/3.19/dgrid'
         }, {
           name: 'put-selector',
-          location: 'http://js.arcgis.com/3.16/put-selector'
+          location: 'http://js.arcgis.com/3.19/put-selector'
         }, {
           name: 'xstyle',
-          location: 'http://js.arcgis.com/3.16/xstyle'
+          location: 'http://js.arcgis.com/3.19/xstyle'
         }, {
           name: 'dojo',
-          location: 'http://js.arcgis.com/3.16/dojo'
+          location: 'http://js.arcgis.com/3.19/dojo'
         }, {
           name: 'dojox',
-          location: 'http://js.arcgis.com/3.16/dojox'
+          location: 'http://js.arcgis.com/3.19/dojox'
         }, {
           name: 'dijit',
-          location: 'http://js.arcgis.com/3.16/dijit'
+          location: 'http://js.arcgis.com/3.19/dijit'
         }, {
           name: 'jimu',
           location: './jimu.js'
@@ -79,7 +79,7 @@ define([], function() {
       ]
     },
 
-    suites: ['tests/coordinate-conversion-unit-test'],
+    suites: ['tests/coordinate-conversion-coord-input-unit-test'],
 
     excludeInstrumentation: /^(?:test|node_modules)/
   };

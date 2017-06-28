@@ -54,7 +54,9 @@ define([
 
       postCreate: function() {
         this.inherited(arguments);
-        this.nls = lang.mixin(this.nls, window.jimuNls.units);
+        this.nls = lang.mixin(lang.mixin(this.nls, window.jimuNls.units), window.jimuNls.temperature);
+        this.chk_celsius.set('title', this.nls.celsius + "-" + this.nls.kilometers);
+        this.chk_celsius_label.innerHTML = this.nls.celsius + "-" + this.nls.kilometers;
         this.addSelectUnitOptions();
         this._getAllLayers();
         this.own(on(this.btnAddTab, 'click', lang.hitch(this, this._addTabRow)));
@@ -130,6 +132,10 @@ define([
           } else {
             this._populateTabTableRow(aTab);
           }
+        }
+
+        if (this.config.celsius) {
+          this.chk_celsius.set('value', true);
         }
 
         this.incident_label.set("value", this.config.incidentLabel ?
@@ -280,6 +286,12 @@ define([
           aTab.layers = this.weatherTabAdditionalLayers;
           aTab.url = this.config.special_layer.url;
           tabs.push(aTab);
+        }
+
+        if (this.chk_celsius.checked) {
+          this.config.celsius = true;
+        } else {
+          this.config.celsius = false;
         }
 
         var trs = this.tabTable.getRows();
@@ -495,7 +507,7 @@ define([
       getLayerID: function(title){
         for (var i = 0; i < this.layer_options.length; i++) {
           var lo = this.layer_options[i];
-          if(title === lo.label){
+          if (title === lo.label || title === lo.value) {
             return lo.value;
           }
         }
