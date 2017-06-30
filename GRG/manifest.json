@@ -1,25 +1,19 @@
 {
-  "name": "ParcelDrafter",
-  "2D": true,
-  "3D": false,
+  "name": "GRG",
   "platform": "HTML",
-  "version": "2.1",
-  "wabVersion": "2.1",
-  "author": "Esri Inc.",
-  "description": "ParcelDrafter",
-  "copyright": "Copyright 2015 Esri Inc.",
-  "license": "http://links.esri.com/solutions/license",
+  "version": "2.2",
+  "wabVersion": "2.2",
+  "author": "Esri",
+  "description": "Grided Reference Graphic Widget",
+  "copyright": "",
+  "license": "http://www.apache.org/licenses/LICENSE-2.0",
   "properties": {
-    "inPanel": true,
-    "hasLocale": true,
-    "hasStyle": true,
-    "hasConfig": true,
-    "hasUIFile": true,
+  	"keepConfigAfterMapSwithched": false,
+    "supportMultiInstance": false,
+    "hasVersionManager": false,
     "hasSettingPage": true,
     "hasSettingUIFile": true,
     "hasSettingLocale": true,
-    "hasSettingStyle": true,
-    "IsController": false,
-    "keepConfigAfterMapSwitched": false
+    "hasSettingStyle": true
   }
 }
