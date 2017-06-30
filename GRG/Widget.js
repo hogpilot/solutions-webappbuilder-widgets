@@ -451,7 +451,6 @@ define([
         //reset the tools
         this._showPanel("mainPage");
         this._reset();
-        this.map.enableMapNavigation();
       },
 
       _reset: function () {
@@ -462,7 +461,10 @@ define([
           }
           this.dtArea.deactivate();
           this.dtPoint.deactivate();
+          this.map.enableMapNavigation();
           this.deleteGRGAreaButtonClicked();
+          dojo.removeClass(this.addGRGAreaBtn, 'jimu-state-active');
+          dojo.removeClass(this.addPointBtn, 'jimu-state-active');
           dojo.addClass(this.saveGRGButton, 'controlGroupHidden');
           dojo.addClass(this.saveGRGPointButton, 'controlGroupHidden');
         },      
