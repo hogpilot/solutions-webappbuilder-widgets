@@ -25,7 +25,7 @@ define([
 
     /**
     * Returns the projected geometry in outSR
-    * @memberOf widgets/ParcelDrafter/geometryUtils
+    * @memberOf widgets/GRGDrafter/geometryUtils
     **/
     mo.getProjectedGeometry = function (geometry, outSR, geometryService) {
       var deferred, result;
@@ -50,7 +50,7 @@ define([
     * www.movable-type.co.uk/scripts/geodesy/docs/module-latlon-vincenty.html
     *---------------------------------------------------------------------------------------------
     * Returns the destination mapPoint using Vincenty direct solution.
-    * @memberOf widgets/ParcelDrafter/geometryUtils
+    * @memberOf widgets/GRGDrafter/geometryUtils
     **/
     mo.getDestinationPoint = function (startPoint, initialBearing, distance) {
       var a = 6378137;
@@ -116,7 +116,7 @@ define([
     * www.movable-type.co.uk/scripts/geodesy/docs/module-latlon-vincenty.html
     *---------------------------------------------------------------------------------------------
     * Returns the Info (Distance, initialBearing, finalBearing) using Vincenty inverse solution.
-    * @memberOf widgets/ParcelDrafter/geometryUtils
+    * @memberOf widgets/GRGDrafter/geometryUtils
     **/
     mo.getInverseCalculations = function (startPoint, endPoint) {
       var φ1 = startPoint.y * Math.PI / 180, λ1 = startPoint.x * Math.PI / 180;
@@ -181,7 +181,7 @@ define([
 
     /**
     * Returns the polyline geometry between point
-    * @memberOf widgets/ParcelDrafter/geometryUtils
+    * @memberOf widgets/GRGDrafter/geometryUtils
     **/
     mo.getLineBetweenPoints = function (pointsArray) {
       var polyline, pathsArray = [];
@@ -204,7 +204,7 @@ define([
 
     /**
     * Returns angle between to points
-    * @memberOf widgets/ParcelDrafter/geometryUtils
+    * @memberOf widgets/GRGDrafter/geometryUtils
     **/
     mo.getAngleBetweenPoints = function (originPoint, chordPoint) {
       var angle;
@@ -219,7 +219,7 @@ define([
 
     /**
     * Returns distance between two point in meters using geometry engine
-    * @memberOf widgets/ParcelDrafter/geometryUtils
+    * @memberOf widgets/GRGDrafter/geometryUtils
     **/
     mo.getDistanceBetweenPoints = function (startPoint, endPoint) {
       var distance;
@@ -234,7 +234,7 @@ define([
 
     /**
     * Returns the geodesic length of simplified geometry using geometry engine
-    * @memberOf widgets/ParcelDrafter/geometryUtils
+    * @memberOf widgets/GRGDrafter/geometryUtils
     **/
     mo.getLengthOfGeometry = function (geometry) {
       var lengthInMeters, simplifiedGeometry;
@@ -250,7 +250,7 @@ define([
     /**
     * Returns the object containing area of the geometry, in acre, sqMeters,sqFeet, and sqUSFeet.
     * if geometry is not simplified it will return 0 in all units
-    * @memberOf widgets/ParcelDrafter/geometryUtils
+    * @memberOf widgets/GRGDrafter/geometryUtils
     **/
     mo.getAreaOfGeometry = function (geometry) {
       var simplifiedGeometry, areaConversions;
@@ -272,7 +272,7 @@ define([
 
     /**
     * Returns the polyline object form the paths array
-    * @memberOf widgets/ParcelDrafter/geometryUtils
+    * @memberOf widgets/GRGDrafter/geometryUtils
     **/
     mo.getPolyLineFromPaths = function (pathsArray) {
       var polyline, i;
@@ -286,7 +286,7 @@ define([
 
     /**
     * Returns the polygon object form the paths array
-    * @memberOf widgets/ParcelDrafter/geometryUtils
+    * @memberOf widgets/GRGDrafter/geometryUtils
     **/
     mo.getPolygonFromPolyLines = function (pathsArray, addLastPoint, updateLastPoint,
       spatialReference) {
@@ -319,7 +319,7 @@ define([
 
     /**
     * Returns the pointArray for an arc
-    * @memberOf widgets/ParcelDrafter/geometryUtils
+    * @memberOf widgets/GRGDrafter/geometryUtils
     **/
     mo.getPointsForArc = function (startAngle, endAngle, centerPoint, radius) {
       var i, pointArray = [], angleOfArc, segments, unitAngle, bearingForEachPoint, point;
@@ -346,7 +346,7 @@ define([
 
     /**
     * Returns the arc params required to draw arc
-    * @memberOf widgets/ParcelDrafter/geometryUtils
+    * @memberOf widgets/GRGDrafter/geometryUtils
     **/
     mo.getArcParam = function (param) {
       var returnValue;
@@ -393,7 +393,7 @@ define([
 
     /**
     * Returns the value after removing negative exponents from it
-    * @memberOf widgets/ParcelDrafter/geometryUtils
+    * @memberOf widgets/GRGDrafter/geometryUtils
     **/
     mo.removeNegativeExponents = function (num) {
       var returnValue;
@@ -407,7 +407,7 @@ define([
 
     /**
     * Converts the chord length to arc length
-    * @memberOf widgets/ParcelDrafter/geometryUtils
+    * @memberOf widgets/GRGDrafter/geometryUtils
     **/
     mo.getChordLengthFromArcLength = function (arcLength, radius) {
       var chordLength, arcLengthOfSemiCircle, theta;
@@ -430,7 +430,7 @@ define([
 
     /**
     * Converts the arc length to chord length
-    * @memberOf widgets/ParcelDrafter/geometryUtils
+    * @memberOf widgets/GRGDrafter/geometryUtils
     **/
     mo.getArcLengthFromChordLength = function (chordLength, radius) {
       var arcLength, absChordLength;
@@ -445,7 +445,7 @@ define([
 
     /**
     * Converts the chord bearing to tangent bearing
-    * @memberOf widgets/ParcelDrafter/geometryUtils
+    * @memberOf widgets/GRGDrafter/geometryUtils
     **/
     mo.chordBearingToTangentBearing = function (chordBearing, radius, chordLength) {
       var radToChordAngle, minorArc, leftOfChord, tanBearing;
@@ -471,7 +471,7 @@ define([
 
     /**
     * Converts the tangent bearing to chord bearing
-    * @memberOf widgets/ParcelDrafter/geometryUtils
+    * @memberOf widgets/GRGDrafter/geometryUtils
     **/
     mo.tangentBearingToChordBearing = function (tanBearing, radius, chordLength) {
       var radToChordAngle, minorArc, leftOfChord, chordBearing;
@@ -497,7 +497,7 @@ define([
 
     /**
     * This function is used to get unit from spatialReference
-    * @memberOf widgets/ParcelDrafter/geometryUtils
+    * @memberOf widgets/GRGDrafter/geometryUtils
     **/
     mo.getUnitValueForSR = function (spatialReference) {
       var mapUnit;
@@ -517,7 +517,7 @@ define([
 
     /**
     * Returns the angle between two points
-    * @memberOf widgets/ParcelDrafter/geometryUtils
+    * @memberOf widgets/GRGDrafter/geometryUtils
     **/
     mo.getRotationAngleBetweenPoints = function (originPoint, chordPoint) {
       var dx, dy, XByY, YByX;
@@ -561,7 +561,7 @@ define([
 
     /**
     * Returns the distance between two points
-    * @memberOf widgets/ParcelDrafter/geometryUtils
+    * @memberOf widgets/GRGDrafter/geometryUtils
     **/
     mo.getScaleDistanceBetweenPoints = function (startPoint, endPoint) {
       startPoint = webMercatorUtils.project(startPoint, new SpatialReference(102100));

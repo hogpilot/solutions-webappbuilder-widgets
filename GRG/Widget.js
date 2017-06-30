@@ -25,10 +25,12 @@ define([
   'esri/IdentityManager',
   'esri/arcgis/OAuthInfo',
   'esri/arcgis/Portal',
+  'esri/config',
   'esri/Color',
   'esri/dijit/util/busyIndicator',
   'esri/graphic',
-  'esri/geometry/geometryEngine',
+  'esri/geometry/geometryEngine',  
+  'esri/geometry/Polyline',
   'esri/geometry/webMercatorUtils',
   'esri/layers/FeatureLayer',
   'esri/layers/GraphicsLayer',
@@ -73,10 +75,12 @@ define([
     esriId,
     esriOAuthInfo,
     esriPortal,
+    esriConfig,
     Color,
     busyIndicator,
     Graphic,
     GeometryEngine,
+    Polyline,
     WebMercatorUtils,
     FeatureLayer,
     GraphicsLayer,
@@ -582,8 +586,14 @@ define([
         this.map.enableMapNavigation();
         this.dtArea.deactivate();
         
-        this.cellWidth.setValue(Math.ceil((GeometryEngine.distance(evt.geometry.getPoint(0,0), evt.geometry.getPoint(0,1), this._cellUnits))/10));
-        this._cellShape == "default"?this.cellHeight.setValue(Math.ceil((GeometryEngine.distance(evt.geometry.getPoint(0,0), evt.geometry.getPoint(0,3), this._cellUnits))/10)):this.cellHeight.setValue(0);
+        this.cellWidth.setValue(Math.ceil((GeometryEngine.geodesicLength(new Polyline({
+            paths: [[[evt.geometry.getPoint(0,0).x, evt.geometry.getPoint(0,0).y], [evt.geometry.getPoint(0,1).x, evt.geometry.getPoint(0,1).y]]],
+            spatialReference: this.map.spatialReference
+          }), this._cellUnits))/10));
+        this._cellShape == "default"?this.cellHeight.setValue(Math.ceil((GeometryEngine.geodesicLength(new Polyline({
+            paths: [[[evt.geometry.getPoint(0,0).x, evt.geometry.getPoint(0,0).y], [evt.geometry.getPoint(0,3).x, evt.geometry.getPoint(0,3).y]]],
+            spatialReference: this.map.spatialReference
+          }), this._cellUnits))/10)):this.cellHeight.setValue(0);
         
                   
         domClass.toggle(this.addGRGArea, "controlGroupHidden");
@@ -685,8 +695,15 @@ define([
           var geom = this._graphicsLayerGRGExtent.graphics[0].geometry;
 
           //work out width and height of AOI
-          var GRGAreaWidth = GeometryEngine.distance(geom.getPoint(0,0), geom.getPoint(0,1), 'meters');
-          var GRGAreaHeight = GeometryEngine.distance(geom.getPoint(0,0), geom.getPoint(0,3), 'meters');
+          var GRGAreaWidth = GeometryEngine.geodesicLength(new Polyline({
+            paths: [[[geom.getPoint(0,0).x, geom.getPoint(0,0).y], [geom.getPoint(0,1).x, geom.getPoint(0,1).y]]],
+            spatialReference: this.map.spatialReference
+          }), 'meters');
+          
+          var GRGAreaHeight = GeometryEngine.geodesicLength(new Polyline({
+            paths: [[[geom.getPoint(0,0).x, geom.getPoint(0,0).y], [geom.getPoint(0,3).x, geom.getPoint(0,3).y]]],
+            spatialReference: this.map.spatialReference
+          }), 'meters');
           
           
           var cellWidth = this.coordTool.inputCoordinate.util.convertToMeters(this.cellWidth.value, this._cellUnits);
@@ -712,8 +729,9 @@ define([
               this._labelType,
               this._cellShape,
               'center',
-              this.map); 
-            //apply the edits to the feature layer
+              this.map,
+              esriConfig.defaults.geometryService); 
+            //apply the e.dits to the feature layer
             this.GRGArea.applyEdits(features, null, null);
             this.deleteGRGAreaButtonClicked();              
             html.removeClass(this.saveGRGButton, 'controlGroupHidden');
@@ -747,7 +765,8 @@ define([
               this._labelType,
               this._cellShape,
               this._gridOrigin,
-              this.map); 
+              this.map,
+              esriConfig.defaults.geometryService); 
             //apply the edits to the feature layer
             this.GRGArea.applyEdits(features, null, null);
             html.removeClass(this.saveGRGPointButton, 'controlGroupHidden');

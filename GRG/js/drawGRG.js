@@ -42,7 +42,7 @@ define([
   
   var grg = {};
   
-  grg.createGRG = function(HorizontalCells,VerticalCells,centerPoint,cellWidth,cellHeight,angle,labelStartPosition,labelStyle,gridStyle,gridOrigin,map) {
+  grg.createGRG = function(HorizontalCells,VerticalCells,centerPoint,cellWidth,cellHeight,angle,labelStartPosition,labelStyle,gridStyle,gridOrigin,map,geometryService) {
     
     //set up variables
     var letterIndex,secondLetterIndex,letter,secondLetter,number;
@@ -92,17 +92,15 @@ define([
       }
     }else{
       var offsetY = (VerticalCells*cellHeight)/2;
-    }
-     
+    }     
     
-    var hexHorizontalCells = HorizontalCells;
-    
+    var hexHorizontalCells = HorizontalCells;    
        
     for (var i = 1; i <= VerticalCells; i++)
     {       
       for (var j = 1; j <= HorizontalCells; j++)
       {
-        var polygon = new Polygon(map.spatialReference.wkid);
+        var polygon = new Polygon();
         
         //always draw grid from lower left corner
         if(i == 1 && j == 1){
@@ -156,14 +154,23 @@ define([
           } else {
             nextStartPoint = TL;
           }
-        }
-        
+        }        
         
         /*
         For some reason if the angle is over below -45 or over 45 then the label will not show
         running the polygon through a simplify operation fixes this
         */
         polygon = geometryEngine.simplify(polygon);
+        
+        //project the geometry to the same spatial reference as the map
+        if(map.spatialReference.wkid !== 4326){
+          geometryUtils.getProjectedGeometry(polygon,map.spatialReference,geometryService).then(
+            function (projectedGeometry) {
+              polygon = projectedGeometry;
+            }
+          );
+        }
+        
         var graphic = new Graphic(polygon);
                 
         switch (labelStartPosition) {
@@ -196,10 +203,7 @@ define([
             break
         }
         
-        graphic.setAttributes(attr);
-        if(map.spatialReference.wkid === 102100){
-          graphic.geometry = webMercatorUtils.geographicToWebMercator(graphic.geometry);
-        }
+        graphic.setAttributes(attr);        
         features.push(graphic);
       }
       
