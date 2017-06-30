@@ -589,11 +589,11 @@ define([
         this.cellWidth.setValue(Math.ceil((GeometryEngine.geodesicLength(new Polyline({
             paths: [[[evt.geometry.getPoint(0,0).x, evt.geometry.getPoint(0,0).y], [evt.geometry.getPoint(0,1).x, evt.geometry.getPoint(0,1).y]]],
             spatialReference: this.map.spatialReference
-          }), this._cellUnits))/10));
+          }), this._cellUnits))/this.cellHorizontal.value));
         this._cellShape == "default"?this.cellHeight.setValue(Math.ceil((GeometryEngine.geodesicLength(new Polyline({
             paths: [[[evt.geometry.getPoint(0,0).x, evt.geometry.getPoint(0,0).y], [evt.geometry.getPoint(0,3).x, evt.geometry.getPoint(0,3).y]]],
             spatialReference: this.map.spatialReference
-          }), this._cellUnits))/10)):this.cellHeight.setValue(0);
+          }), this._cellUnits))/this.cellVertical.value)):this.cellHeight.setValue(0);
         
                   
         domClass.toggle(this.addGRGArea, "controlGroupHidden");
