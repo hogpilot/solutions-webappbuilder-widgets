@@ -1,21 +1,21 @@
 {
     "chemicalGPService": {
-        "url": "https://wdcintelgis.esri.com/arcgis/rest/services/ERG/ERG/GPServer/ERG%20By%20Chemical"
+        "url": "https://wdcintelgis.esri.com/arcgis/rest/services/ERG/ERG2016/GPServer/ERG%20By%20Chemical"
     },
     "placardGPService": {
-        "url": "https://wdcintelgis.esri.com/arcgis/rest/services/ERG/ERG/GPServer/ERG%20By%20Placard"    
+        "url": "https://wdcintelgis.esri.com/arcgis/rest/services/ERG/ERG2016/GPServer/ERG%20By%20Placard"    
     },
     "weatherStationGPService": {
-        "url": "https://wdcintelgis.esri.com/arcgis/rest/services/ERG/ERG/GPServer/FindNearestWeatherStation"
+        "url": "https://wdcintelgis.esri.com/arcgis/rest/services/ERG/ERG2016/GPServer/FindNearestWeatherStation"
     },
     "windDirectionLayer": {
-        "url": "https://wdcintelgis.esri.com/arcgis/rest/services/ERG/EmergencyOperations/MapServer/11",
+        "url": "https://wdcintelgis.esri.com/arcgis/rest/services/ERG/EmergencyOperations2016/MapServer/11",
         "windDirectionField": "WindDirection",
         "stationNameField": "StationName",
         "dateTimeField": "UTC_DateTime"
     },
     "facilitiesLayer": {
-        "url": "https://wdcintelgis.esri.com/arcgis/rest/services/ERG/EmergencyOperations/MapServer/0",
+        "url": "https://wdcintelgis.esri.com/arcgis/rest/services/ERG/EmergencyOperations2016/MapServer/0",
         "fields": ["NAME","FEATURECODE","STATE"],
         "labelField": "NAME"
     },
