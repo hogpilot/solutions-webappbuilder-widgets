@@ -86,16 +86,16 @@ define([
 
         if (!this.config.defaultXYFields) {
           this.config.defaultXYFields = [{
-            "fieldName": this.nls.xyFieldsLabelX,
+            "name": this.nls.xyFieldsLabelX,
             "alias": this.nls.xyFieldsLabelX,
             "visible": true,
-            "isRecognizedValues": [this.nls.xyFieldsLabelX, this.nls.longitude],
+            "isRecognizedValues": [this.nls.xyFieldsLabelX, this.nls.longitude, this.nls.easting],
             "type": "STRING"
           }, {
             "name": this.nls.xyFieldsLabelY,
             "alias": this.nls.xyFieldsLabelY,
             "visible": true,
-            "isRecognizedValues": [this.nls.xyFieldsLabelX, this.nls.latitude],
+            "isRecognizedValues": [this.nls.xyFieldsLabelY, this.nls.latitude, this.nls.northing],
             "type": "STRING"
           }];
         }
@@ -519,7 +519,7 @@ define([
         var editFields = new EditFields({
           nls: this.nls,
           type: 'locatorFields',
-          addressFields: fields || this.defaultXYFields,
+          addressFields: fields || this.config.defaultXYFields,
           popupTitle: this.nls.configureXYFields,
           disableDisplayOption: true
         });

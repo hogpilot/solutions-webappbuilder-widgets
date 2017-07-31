@@ -135,36 +135,36 @@ function (declare, array, lang, html, query, on, Deferred, DeferredList, Evented
                 "attributes": lang.clone(attributes)
               });
             } else {
-              attributes["ObjectID"] = unmatchedI;
-              //TODO need to handle the null location by doing something
-              this.unmatchedFC.featureSet.features.push({
-                "geometry": new Point(0, 0, this.map.spatialReference),
-                "attributes": lang.clone(attributes)
-              });
-              unmatchedI++;
+              //attributes["ObjectID"] = unmatchedI;
+              ////TODO need to handle the null location by doing something
+              //this.unmatchedFC.featureSet.features.push({
+              //  "geometry": new Point(0, 0, this.map.spatialReference),
+              //  "attributes": lang.clone(attributes)
+              //});
+              //unmatchedI++;
             }
         }
 
         if (unmatchedI > 0) {
           //TODO need to clear this.unMatchedContainer
-          if (this.unMatchedContainer.children.length > 0) {
-            array.forEach(this.unMatchedContainer.children, html.destroy);
-          }
+          //if (this.unMatchedContainer.children.length > 0) {
+          //  array.forEach(this.unMatchedContainer.children, html.destroy);
+          //}
 
-          this.hasUnmatched = true;
-          this.unMatchedFeatureLayer = this._initLayer(this.unmatchedFC,
-            this.file.name += "_UnMatched");
+          //this.hasUnmatched = true;
+          //this.unMatchedFeatureLayer = this._initLayer(this.unmatchedFC,
+          //  this.file.name += "_UnMatched");
 
-          var unmatchedList = new UnMatchedList();
-          unmatchedList.createList({
-            featureSet: this.unmatchedFC.featureSet,
-            map: this.map,
-            fields: this.fsFields,
-            configFields: this.mappedArrayFields,
-            nls: this.nls
-          });
+          //var unmatchedList = new UnMatchedList();
+          //unmatchedList.createList({
+          //  featureSet: this.unmatchedFC.featureSet,
+          //  map: this.map,
+          //  fields: this.fsFields,
+          //  configFields: this.mappedArrayFields,
+          //  nls: this.nls
+          //});
 
-          html.place(unmatchedList.list.domNode, this.unMatchedContainer);
+          //html.place(unmatchedList.list.domNode, this.unMatchedContainer);
         }
 
         //TODO this should be the theme color
@@ -194,6 +194,7 @@ function (declare, array, lang, html, query, on, Deferred, DeferredList, Evented
         this.geocodeManager.getCache().then(lang.hitch(this, function (cacheData) {
           //recursive function that will process un-matched records when more than one locator has been provided
           var _geocodeData = lang.hitch(this, function (cacheData, storeItems, _idx, finalResults) {
+            //cacheData = {};
             var def = new Deferred();
             var locatorSource = this._geocodeSources[_idx];
             var locator = locatorSource.locator;
@@ -248,6 +249,7 @@ function (declare, array, lang, html, query, on, Deferred, DeferredList, Evented
                   } else {
                     finalResults[cacheKey] = {
                       index: -1,
+                      csvIndex: csvID,
                       location: _cacheData[cacheKey].location
                     };
                   }
@@ -284,7 +286,7 @@ function (declare, array, lang, html, query, on, Deferred, DeferredList, Evented
                       if (finalResults[_i] && finalResults[_i].index === idx) {
                         if (_r.attributes["Score"] < minScore) {
                           if (additionalLocators) {
-                            unMatchedStoreItems.push(storeItems[finalResults[_i].csvIndex]);
+                            //unMatchedStoreItems.push(storeItems[finalResults[_i].csvIndex]);
                             delete finalResults[_i];
                           }
                         } else {
@@ -342,11 +344,12 @@ function (declare, array, lang, html, query, on, Deferred, DeferredList, Evented
         array.forEach(_attrs, function (a) {
           attributes[a] = csvStore.getValue(i, a);
         });
-        if (typeof (isGeographic) === 'undefined') {
-          isGeographic = /(?=^[-]?\d{1,3}\.)^[-]?\d{1,3}\.\d+|(?=^[-]?\d{4,})|^[-]?\d{1,3}/.exec(xCoord) ? true : false;
-        }
         var x = parseFloat(csvStore.getValue(i, options.xFieldName));
         var y = parseFloat(csvStore.getValue(i, options.yFieldName));
+        if (typeof (isGeographic) === 'undefined') {
+          isGeographic = /(?=^[-]?\d{1,3}\.)^[-]?\d{1,3}\.\d+|(?=^[-]?\d{4,})|^[-]?\d{1,3}/.exec(x) ? true : false;
+        }
+
         //TODO may want to consider some other tests here to make sure we avoid
         // potential funky/bad corrds from passing through
         if (x !== NaN && y !== NaN) {
@@ -358,7 +361,9 @@ function (declare, array, lang, html, query, on, Deferred, DeferredList, Evented
           }
           data.push({
             attributes: attributes,
-            location: geometry
+            location: geometry,
+            csvIndex: i._csvId,
+            score: 100
           })
         }
       });

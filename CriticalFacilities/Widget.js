@@ -424,23 +424,25 @@ define(['dojo/_base/declare',
 
         array.forEach(fields, function (f) {
           var add = false;
-          if (checkArrayFields) {
-            //Schema Map fields
-            add = ((keyFieldType === "int" && fieldTypes[f].supportsInt) ||
-              (keyFieldType === "float" && fieldTypes[f].supportsFloat) ||
-              (keyFieldType === "other")) ? true : add;
-          } else {
-            //XY or Address
-            if (checkFieldTypes) {
-              //XY
-              add = fieldTypes[f].supportsFloat || fieldTypes[f].supportsInt ? true : add;
+          if (fieldTypes[f]) {
+            if (checkArrayFields) {
+              //Schema Map fields
+              add = ((keyFieldType === "int" && fieldTypes[f].supportsInt) ||
+                (keyFieldType === "float" && fieldTypes[f].supportsFloat) ||
+                (keyFieldType === "other")) ? true : add;
             } else {
-              //Address
-              add = true;
+              //XY or Address
+              if (checkFieldTypes) {
+                //XY
+                add = fieldTypes[f].supportsFloat || fieldTypes[f].supportsInt ? true : add;
+              } else {
+                //Address
+                add = true;
+              }
             }
-          }
-          if (add) {
-            node.selectFields.addOption({ label: f, value: f });
+            if (add) {
+              node.selectFields.addOption({ label: f, value: f });
+            }
           }
         });
 
@@ -472,10 +474,17 @@ define(['dojo/_base/declare',
         domStyle.set(this.addToMap, "display", "none");
 
         this._setMappedFields(this._fsFields, this.schemaMapTable);
+        if (this.addrType === 'addr') {
+          this._setFieldsFromNodes(this.singleEnabled ? query('.field-node-tr', this.addressTable) : [], 'single');
+        }
 
-        this._setFieldsFromNodes(this.singleEnabled ? query('.field-node-tr', this.addressTable) : [], 'single');
-        this._setFieldsFromNodes(this.multiEnabled ? query('.field-node-tr', this.addressMultiTable) : [], 'multi');
-        this._setFieldsFromNodes(this.xyEnabled ? query('.field-node-tr', this.xyTable) : [], 'xy');
+        if (this.addrType === 'multi-addr') {
+          this._setFieldsFromNodes(this.multiEnabled ? query('.field-node-tr', this.addressMultiTable) : [], 'multi');
+        }
+
+        if (this.addrType === 'xy') {
+          this._setFieldsFromNodes(this.xyEnabled ? query('.field-node-tr', this.xyTable) : [], 'xy');
+        }
 
         domStyle.set(this.processingNode, 'display', 'block');
         this.myCsvStore.useMultiFields = this.myCsvStore.multiFields && this.myCsvStore.multiFields.length > 0; //TODO this may no longer be necessary if all will be supported
@@ -549,12 +558,22 @@ define(['dojo/_base/declare',
             this.myCsvStore.addrFieldName = node.selectFields.value;
             fields.push({ keyField: node.keyField, value: node.selectFields.value, label: node.label });
             break;
-          case this.nls.xyFieldsLabelX: //TODO are these still ok...or can the user change? Thinking the usre should be able to change
-            this.myCsvStore.xFieldName = node.selectFields.value;
-            break;
-          case this.nls.xyFieldsLabelY: //TODO are these still ok...or can the user change? Thinking the usre should be able to change
-            this.myCsvStore.yFieldName = node.selectFields.value;
-            break;
+          case 'xy':
+            if (node.keyField === this.nls.xyFieldsLabelX) {
+              this.myCsvStore.xFieldName = node.selectFields.value;
+              break;
+            }
+            if (node.keyField === this.nls.xyFieldsLabelY) {
+              this.myCsvStore.yFieldName = node.selectFields.value;
+              break;
+            }
+            
+          //case this.nls.xyFieldsLabelX: //TODO are these still ok...or can the user change? Thinking the usre should be able to change
+          //  this.myCsvStore.xFieldName = node.selectFields.value;
+          //  break;
+          //case this.nls.xyFieldsLabelY: //TODO are these still ok...or can the user change? Thinking the usre should be able to change
+          //  this.myCsvStore.yFieldName = node.selectFields.value;
+          //  break;
           default:
             multi = true;
             fields.push({ keyField: node.keyField, value: node.selectFields.value, label: node.label });

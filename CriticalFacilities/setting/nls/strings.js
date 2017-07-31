@@ -52,7 +52,9 @@
     noSelectField: "Please select the Feature Layer option first",
     newNamePlaceholder: "",
     xyFieldsLabelX: "X",
-    xyFieldsLabelY: "Y"
+    xyFieldsLabelY: "Y",
+    easting: "Easting",
+    northing: "Northing"
   }),
   "ar": 0,
   "cs": 0,
