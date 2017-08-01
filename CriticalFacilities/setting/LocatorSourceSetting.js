@@ -86,11 +86,11 @@ define(
         this.exampleHint = this.nls.locatorExample +
           ": http://&lt;myServerName&gt;/arcgis/rest/services/World/GeocodeServer";
 
-        this.enableSingleField = this._initCheckBox(this.enableSingleField, this.nls.enableSingleField, this.editSingleFields);
-        this.enableMultiField = this._initCheckBox(this.enableMultiField, this.nls.enableMultiField, this.editMultiFields);
+        //this.enableSingleField = this._initCheckBox(this.enableSingleField, this.nls.enableSingleField, this.editSingleFields);
+        //this.enableMultiField = this._initCheckBox(this.enableMultiField, this.nls.enableMultiField, this.editMultiFields);
        
-        this.own(on(this.editSingleFields, 'click', lang.hitch(this, this._editFields, 'single')));
-        this.own(on(this.editMultiFields, 'click', lang.hitch(this, this._editFields, 'multi')));
+        //this.own(on(this.editSingleFields, 'click', lang.hitch(this, this._editFields, 'single')));
+        //this.own(on(this.editMultiFields, 'click', lang.hitch(this, this._editFields, 'multi')));
 
         this._setMessageNodeContent(this.exampleHint);
 
@@ -155,7 +155,7 @@ define(
           this.enableMultiField.setValue(this.config.multiEnabled);
         }
 
-        this.shelter.show();
+        //this.shelter.show();
         if (this._locatorDefinition.url !== url) {
           this._getDefinitionFromRemote(url).then(lang.hitch(this, function(response) {
             if (url && (response && response.type !== 'error')) {
@@ -171,7 +171,7 @@ define(
                 'URL': response.url
               }, lang.clone(this.nls.invalidUrlTip)), true);
             }
-            this.shelter.hide();
+            //this.shelter.hide();
           }));
         } else {
           this._setSourceItems();
@@ -273,8 +273,8 @@ define(
       _enableSourceItems: function() {
         this.locatorName.set('disabled', false);
         this.countryCode.set('disabled', false);
-        this.enableSingleField.set('disabled', false);
-        this.enableMultiField.set('disabled', false);
+        //this.enableSingleField.set('disabled', false);
+        //this.enableMultiField.set('disabled', false);
       },
 
       _setSourceItems: function() {

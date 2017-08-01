@@ -2,7 +2,7 @@
   root: ({
     rdoLayer: "Feature Layer",
     txtLayerLabel: "Layer Name",
-    layerSettingLabel: "Layer Settings",
+    layerSettingLabel: "General Settings",
     locationSettingLabel: "Location Settings",
     actionsLabel: "Fields",
     locatorUrl: "Geocoder URL",
@@ -24,7 +24,7 @@
     radiusHint: "Specifies the radius of an area around current map center that is used to boost the rank of geocoding candidates so that candidates closest to the location are returned first",
     meters: "Meters",
     instructionGeocode: "Add and configure geocode services.",
-    instructionLayers: "Choose layer and configure fields.",
+    instructionLayers: "Choose layer, configure fields and define general options.",
     locatorTips: "Suggestions are not available because the geocoding service doesn't support suggest capability.",
     zoomScale: "Zoom Scale",
     invalidUrlTip: "The URL ${URL} is invalid or inaccessible.",
@@ -36,7 +36,10 @@
     geocodeTab: {
       geocodeTabLabel: "Location Settings",
       enableDisableXY: "Allow input from XY",
-      enableDisableGeocode: "Allow batch geocoding"
+      enableDisableGeocode: "Allow batch geocoding",
+      storedSerachLabel: "Search Results Settings",
+      storedSerachHint: "Store and utilize geocode results from previous sessions",
+      storeSerachResults: "Store Search Results"
     },
     lookupList: "Field Names to Recognize",
     isRecognized: "Field names in the table below are automatically recognized for this field",
@@ -54,7 +57,16 @@
     xyFieldsLabelX: "X",
     xyFieldsLabelY: "Y",
     easting: "Easting",
-    northing: "Northing"
+    northing: "Northing",
+    instructionText: "Choose a layer to store geocode results then configure field mapping and locator options.",
+    longInstructions: "This widget allows you to locate features from data stored in a file. After features are located they can be reviewed and updated prior to loading into an existing layer.",
+    layerOption: "Final layer:",
+    tempSymbol: "Temporary symbol:",
+    tempSymbolHint: "Used to display features before submitting to final layer",
+    maxRecords: "Max records:",
+    maxRecordsHint: "Max number of records to geocode",
+    searchRadius: "Search radius:",
+    searchRadiusHint: "Distance to search for duplicate features from layer"
   }),
   "ar": 0,
   "cs": 0,

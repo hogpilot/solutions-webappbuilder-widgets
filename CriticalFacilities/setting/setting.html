@@ -1,48 +1,168 @@
 <div class="main-section">
+  <p class="hint-text-large" class="main-instruction">${nls.longInstructions}</p>
   <div data-dojo-attach-point="tabContainer">
     <!--=Layer Options-->
-    <div data-dojo-attach-point="layerTabNode" class="jimu-r-row padTop20">
+    <div data-dojo-attach-point="layerTabNode" class="jimu-r-row">
       <div class="instruction hintText">
         <p>${nls.instructionLayers}</p>
       </div>
-      <div data-dojo-attach-point="tableLayerInfos"></div>
+      <table class="layer-table">
+        <colgroup>
+          <col width="28%"></col>
+          <col width="33%"></col>
+          <col width="39%"></col>
+        </colgroup>
+        <tbody>
+          <tr class="row-padding">
+            <td>${nls.layerOption}</td>
+            <td data-dojo-attach-point="layerTd" class="control-padding"></td>
+            <td data-dojo-attach-point="layerFieldsEdit"></td>
+          </tr>
+          <tr class="row-padding">
+            <td>${nls.tempSymbol}</td>
+            <td data-dojo-attach-point="tempSymbol">
+              <div data-dojo-attach-point="symbolPicker" data-dojo-type="jimu/dijit/SymbolPicker" class="jimu-r-row symPick control-padding"></div>
+            </td>
+            <td class="instruction hintText">${nls.tempSymbolHint}</td>
+          </tr>
+          <tr class="row-padding">
+            <td>${nls.maxRecords}</td>
+            <td><input data-dojo-attach-point="maxRecords" class="control-padding" title="${nls.searchRadiusHint}" data-dojo-type="dijit/form/ValidationTextBox" placeHolder="1000"/></td>
+            <td class="instruction hintText">${nls.maxRecordsHint}</td>
+          </tr>
+          <tr class="row-padding">
+            <td>${nls.searchRadius}</td>
+            <td>
+              <div style="width: 100%; ">
+                <input data-dojo-attach-point="searchRadiusNumber" class="search-radius control-padding" title="${nls.searchRadiusHint}" data-dojo-type="dijit/form/ValidationTextBox" />
+   
+                  <select data-dojo-attach-point="searchRadiusUnit" data-dojo-type="dijit/form/Select"></select>
+  
+              </div>
+              <!--<input data-dojo-attach-point="searchRadiusNumber" class="search-radius control-padding" title="${nls.searchRadiusHint}" data-dojo-type="dijit/form/ValidationTextBox" />
+              <div class="search-radius control-padding">
+                <select data-dojo-attach-point="searchRadiusUnit" data-dojo-type="dijit/form/Select"></select>
+              </div>-->
+            </td>
+            <td class="instruction hintText">${nls.searchRadiusHint}</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
-    <!--Geocode Options-->
-    <div data-dojo-attach-point="geocodeTabNode" class="jimu-r-row padTop20">
-      <div class="instruction hintText">
-        <p>${nls.instructionGeocode}</p>
-      </div>
-      <div class="add-button" role="button">
-        <div class="button" data-dojo-attach-event="click:_onAddClick">
-          <span class="button-text">${nls.add}</span>
-        </div>
-      </div>
-      <div class="sources">
-        <div class="source-list jimu-float-leading">
-          <div class="source-list-table" data-dojo-attach-point="sourceList"></div>
-        </div>
-        <div class="source-setting jimu-float-trailing" data-dojo-attach-point="sourceSettingNode"></div>
 
-        <!--test-->
-        <table class="xy-table" cellspacing="0">
-          <tbody>
-            <tr>
-              <td colspan="1" style="padding-top:10px;">
-                <div class="source-label" data-dojo-attach-point="enableXYField"></div>
-              </td>
-              <td colspan="1" style="padding-top:10px; padding-left:20px;">
-                <div data-dojo-attach-point="editXYFields" class="edit-fields"></div>
-              </td>
-            </tr>
-            <tr>
-              <td class="pad-sides" colspan="2">
-                <span class="tip">${nls.xyFieldHint}</span>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-        <!--end test-->
-      </div>
+    <!--Geocode Options-->
+    <div data-dojo-attach-point="geocodeTabNode" class="jimu-r-row">
+        <div class="instruction hintText">
+          <p>${nls.instructionGeocode}</p>
+        </div>
+        <div style="margin: 10px 10px 10px 10px;">
+          <!--test-->
+          <table class="xy-table" cellspacing="0">
+            <tbody>
+              <tr>
+                <td colspan="1" style="padding-top:10px;">
+                  <div class="source-label" data-dojo-attach-point="enableXYField"></div>
+                </td>
+                <td colspan="1" style="padding-top:10px; padding-left:20px;">
+                  <div data-dojo-attach-point="editXYFields" class="edit-fields"></div>
+                </td>
+
+                <td colspan="1" style="padding-top:10px;">
+                  <div class="source-label" data-dojo-attach-point="enableSingleField"></div>
+                </td>
+                <td colspan="1" style="padding-top:10px; padding-left:20px;">
+                  <div data-dojo-attach-point="editSingleFields" class="edit-fields"></div>
+                </td>
+
+                <td colspan="1" style="padding-top:10px;">
+                  <div class="source-edit-fields" data-dojo-attach-point="enableMultiField"></div>
+                </td>
+                <td colspan="1" style="padding-top:10px; padding-left:20px;">
+                  <div data-dojo-attach-point="editMultiFields" class="edit-fields"></div>
+                </td>
+
+              </tr>
+              <tr>
+                <td class="pad-sides" colspan="2">
+                  <span class="tip">${nls.xyFieldHint}</span>
+                </td>
+
+                <td class="pad-sides" colspan="2">
+                  <span class="tip">${nls.singleFieldHint}</span>
+                </td>
+
+                <td class="pad-sides" colspan="2">
+                  <span class="tip">${nls.multiFieldHint}</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div data-dojo-attach-point="locatorOptions" class="display-none">
+            <div class="add-button" role="button">
+              <div class="button" data-dojo-attach-event="click:_onAddClick">
+                <span class="button-text">${nls.add}</span>
+              </div>
+            </div>
+            <div class="sources">
+              <div class="source-list jimu-float-leading">
+                <div class="source-list-table" data-dojo-attach-point="sourceList"></div>
+              </div>
+              <div class="source-setting jimu-float-trailing" data-dojo-attach-point="sourceSettingNode"></div>
+
+
+            </div>
+
+            <fieldset class="settings-field-set">
+              <legend class="settings-field-set-legend">
+                ${nls.geocodeTab.storedSerachLabel}
+              </legend>
+              <div class="instruction hintText">
+                <p>${nls.geocodeTab.storedSerachHint}</p>
+              </div>
+
+              <div style="margin: 10px 10px 10px 10px;">
+                <table class="xy-table" cellspacing="0">
+                  <tbody>
+                    <tr>
+                      <td colspan="1" style="padding-top:10px;">
+                        <div class="source-label" data-dojo-attach-point="enableStoreResults"></div>
+                      </td>
+                      <td colspan="1" style="padding-top:10px; padding-left:20px;">
+                        <div data-dojo-attach-point="enableStoreResultsHuh" class="edit-fields"></div>
+                      </td>
+                    </tr>
+
+                    <tr>
+                      <td colspan="1" style="padding-top:10px;">
+                        <div class="source-label" data-dojo-attach-point="enableStoreResults"></div>
+                      </td>
+                      <td>
+                        <!--radio button for org-->
+                      </td>
+                      <td>
+                        <!--combo for share groups-->
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <!--nothing-->
+                      </td>
+                      <td>
+                        <!--server-->
+                      </td>
+                      <td>
+                        <!--textbox for url-->
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+
+            </fieldset>
+          </div>
+
+        </div>
+
     </div>
   </div>
 </div>

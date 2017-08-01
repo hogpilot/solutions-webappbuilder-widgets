@@ -15,27 +15,32 @@
 ///////////////////////////////////////////////////////////////////////////
 
 define([
-    'dojo/_base/declare',
-    'dijit/_WidgetsInTemplateMixin',
-    'jimu/BaseWidgetSetting',
-    'jimu/dijit/SimpleTable',
-    'jimu/dijit/TabContainer3',
-    'jimu/LayerInfos/LayerInfos',
-    'jimu/utils',
-    'jimu/dijit/Message',
-    'dojo/_base/lang',
-    'dojo/_base/html',
-    'dojo/on',
-    "dojo/when",
-    "dojo/query",
-    'dojo/_base/array',
-    "../locatorUtils",
-    "./EditFields",
-    "./LocatorSourceSetting",
-    'dijit/form/NumberSpinner',
-    "jimu/dijit/CheckBox",
-    'dojo/dom-construct',
-    'dojo/dom-style'
+  'dojo/_base/declare',
+  'dijit/_WidgetsInTemplateMixin',
+  'jimu/BaseWidgetSetting',
+  'jimu/dijit/SimpleTable',
+  'jimu/dijit/TabContainer3',
+  'jimu/LayerInfos/LayerInfos',
+  'jimu/utils',
+  'jimu/dijit/Message',
+  'jimu/dijit/SymbolPicker',
+  'dojo/_base/lang',
+  'dojo/_base/html',
+  'dojo/on',
+  'dojo/when',
+  'dojo/query',
+  'dojo/_base/array',
+  '../locatorUtils',
+  './EditFields',
+  './LocatorSourceSetting',
+  'dijit/form/NumberSpinner',
+  'dijit/form/Select',
+  'dijit/form/ValidationTextBox',
+  'jimu/dijit/CheckBox',
+  'jimu/dijit/LayerChooserFromMap',
+  'jimu/dijit/LayerChooserFromMapWithDropbox',
+  'dojo/dom-construct',
+  'dojo/dom-style'
 ],
   function (
     declare,
@@ -46,6 +51,7 @@ define([
     LayerInfos,
     utils,
     Message,
+    SymbolPicker,
     lang,
     html,
     on,
@@ -56,7 +62,11 @@ define([
     EditFields,
     LocatorSourceSetting,
     NumberSpinner,
+    Select,
+    ValidationTextBox,
     CheckBox,
+    LayerChooserFromMap,
+    LayerChooserFromMapSelect,
     domConstruct,
     domStyle) {
     return declare([BaseWidgetSetting, _WidgetsInTemplateMixin], {
@@ -65,6 +75,11 @@ define([
       //TODO disable OK when no layer is selected
       //TODO add logic for needing at least one of the checkboxes checked...ok should disable
       //TODO figure out what's up with the css for all SimpleTable instances with the rows. I handled in some way for IS but it was not correct
+
+      //TODO design was not well recieved...too much white space...not really necessry to see
+      // multiple layers
+      //Plan for now is to move away from the tabs...give high level instruction at the top
+      // have a single drop down for selecting the layer 
 
       //Questions
       //TODO should we support an option for configure user to mark certain fields as required or optional?
@@ -84,25 +99,11 @@ define([
           this.config.sources = [];
         }
 
-        if (!this.config.defaultXYFields) {
-          this.config.defaultXYFields = [{
-            "name": this.nls.xyFieldsLabelX,
-            "alias": this.nls.xyFieldsLabelX,
-            "visible": true,
-            "isRecognizedValues": [this.nls.xyFieldsLabelX, this.nls.longitude, this.nls.easting],
-            "type": "STRING"
-          }, {
-            "name": this.nls.xyFieldsLabelY,
-            "alias": this.nls.xyFieldsLabelY,
-            "visible": true,
-            "isRecognizedValues": [this.nls.xyFieldsLabelY, this.nls.latitude, this.nls.northing],
-            "type": "STRING"
-          }];
-        }
-
         LayerInfos.getInstance(this.map, this.map.itemInfo)
           .then(lang.hitch(this, function (operLayerInfos) {
             this._operLayerInfos = operLayerInfos;
+
+            //TODO handle this in custom filter for LayerChooserFrmMap
             this._editablePointLayerInfos = this._getEditablePointLayerInfos();
             this._initUI();
             _utils.setMap(this.map);
@@ -118,9 +119,45 @@ define([
           }));
       },
 
+      _setDefaultXYFields: function () {
+        this.config.defaultXYFields = [{
+          "name": this.nls.xyFieldsLabelX,
+          "alias": this.nls.xyFieldsLabelX,
+          "visible": true,
+          "isRecognizedValues": [this.nls.xyFieldsLabelX, this.nls.longitude, this.nls.easting],
+          "type": "STRING"
+        }, {
+          "name": this.nls.xyFieldsLabelY,
+          "alias": this.nls.xyFieldsLabelY,
+          "visible": true,
+          "isRecognizedValues": [this.nls.xyFieldsLabelY, this.nls.latitude, this.nls.northing],
+          "type": "STRING"
+        }];
+      },
+
+      _initMaxRecords: function () {
+        if (typeof(this.config.maxRecords) !== 'undefined' && this.config.maxRecords !== NaN) {
+          this.maxRecords.value = this.config.maxRecords;
+        }
+      },
+
+      _initSearchRadius: function () {
+        if (typeof (this.config.searchRadiusNumber) !== 'undefined' && this.config.searchRadiusNumber !== NaN) {
+          this.searchRadiusNumber.setValue(this.config.searchRadiusNumber);
+        } else {
+          this.searchRadiusNumber.setValue(2);
+        }
+      },
+
+      _initSymbolPicker: function () {
+        //TODO set the stored value or show a default
+        this.symbolPicker.showByType('marker');
+      },
+
       _initUI: function () {
         this._initTabs();
-        this._initLayersTable();
+        //this._initLayersTable();
+        this._createLayerChooserSelect(true);
         this._initLocationOptions();
       },
 
@@ -140,34 +177,68 @@ define([
         this._tabsContainer.startup();
       },
 
-      _initLayersTable: function () {
-        this._layersTable = new SimpleTable({
-          fields: [{
-            name: 'rdoLayer',
-            title: this.nls.rdoLayer,
-            type: 'radio',
-            width: '250px',
-            'class': 'select'
-          }, {
-            name: 'txtLayerLabel',
-            title: this.nls.txtLayerLabel,
-            type: 'text'
-          }, {
-            name: 'actionFields',
-            title: this.nls.actionsLabel,
-            type: 'actions',
-            actions: ['edit'],
-            width: '250px'
-          }],
-          selectable: true
+      //_initLayersTable: function () {
+      //  this._layersTable = new SimpleTable({
+      //    fields: [{
+      //      name: 'rdoLayer',
+      //      title: this.nls.rdoLayer,
+      //      type: 'radio',
+      //      width: '250px',
+      //      'class': 'select'
+      //    }, {
+      //      name: 'txtLayerLabel',
+      //      title: this.nls.txtLayerLabel,
+      //      type: 'text'
+      //    }, {
+      //      name: 'actionFields',
+      //      title: this.nls.actionsLabel,
+      //      type: 'actions',
+      //      actions: ['edit'],
+      //      width: '250px'
+      //    }],
+      //    selectable: true
+      //  });
+      //  this._layersTable.placeAt(this.tableLayerInfos);
+      //  this._layersTable.startup();
+
+      //  this.own(on(this._layersTable, 'actions-edit',
+      //    lang.hitch(this, this._onEditFieldsClick)));
+
+      //  this._addLayerRows();
+      //},
+
+      _createLayerChooserSelect: function (bindEvent) {
+        if (this.layerChooserSelect) {
+          this.layerChooserSelect.destroy();
+        }
+        this.layerChooserSelect = null;
+
+        var layerChooserFromMap = new LayerChooserFromMap({
+          multiple: false,
+          filter: LayerChooserFromMap.createFeaturelayerFilter([], false, false),
+          createMapResponse: this.map.webMapResponse
         });
-        this._layersTable.placeAt(this.tableLayerInfos);
-        this._layersTable.startup();
+        layerChooserFromMap.startup();
 
-        this.own(on(this._layersTable, 'actions-edit',
-          lang.hitch(this, this._onEditFieldsClick)));
+        this.layerChooserSelect = new LayerChooserFromMapSelect({
+          layerChooser: layerChooserFromMap
+        });
+        this.layerChooserSelect.placeAt(this.layerTd);
+        this.layerChooserSelect.startup();
+        if (bindEvent) {
+          this.own(on(this.layerChooserSelect, 'selection-change', lang.hitch(this, function (l) {
+            console.log(l);
+          })));
+        }
+      },
 
-        this._addLayerRows();
+      _onLayerChanged: function () {
+        var item = this.layerChooserSelect.getSelectedItem();
+        if (!item) {
+          return;
+        }
+        var layerInfo = item.layerInfo;
+        var layer = layerInfo.layerObject;
       },
 
       _initLocationOptions: function () {
@@ -196,6 +267,71 @@ define([
         this.enableXYField = this._initCheckBox(this.enableXYField, this.nls.enableXYField, this.editXYFields);
         this.own(on(this.editXYFields, 'click', lang.hitch(this, this._editFields)));
 
+        this.enableSingleField = this._initCheckBox2(this.enableSingleField, this.nls.enableSingleField, this.editSingleFields);
+        this.enableMultiField = this._initCheckBox2(this.enableMultiField, this.nls.enableMultiField, this.editMultiFields);
+
+        this.own(on(this.editSingleFields, 'click', lang.hitch(this, this._editFields, 'single')));
+        this.own(on(this.editMultiFields, 'click', lang.hitch(this, this._editFields, 'multi')));
+
+        
+      },
+
+      _initCheckBox2: function (domNode, nlsValue, editNode) {
+        domNode = new CheckBox({
+          checked: false,
+          label: nlsValue
+        }, domNode);
+        this._toggleNode(editNode, false);
+        this.own(on(domNode, 'change', lang.hitch(this, function () {
+          var enabled = domNode.getValue();
+          switch (domNode.label) {
+            case this.nls.enableSingleField:
+              this.singleEnabled = enabled;
+              break;
+            case this.nls.enableMultiField:
+              this.multiEnabled = enabled;
+              break;
+          }
+          this._toggleNode(editNode, enabled);
+          this._toggleContainerNode((this.singleEnabled || this.multiEnabled) ? true : false);
+        })));
+        return domNode;
+      },
+
+      _toggleContainerNode: function (enable) {
+        html.removeClass(this.locatorOptions, enable ? 'display-none' : 'display-block');
+        html.addClass(this.locatorOptions, enable ? 'display-block' : 'display-none');
+      },
+
+      _getLayerDefinitionForFilterDijit: function (layer) {
+        var layerDefinition = null;
+
+        if (layer.declaredClass === 'esri.layers.FeatureLayer') {
+          layerDefinition = jimuUtils.getFeatureLayerDefinition(layer);
+        }
+
+        if (!layerDefinition) {
+          layerDefinition = {
+            currentVersion: layer.currentVersion,
+            fields: lang.clone(layer.fields)
+          };
+        }
+
+        return layerDefinition;
+      },
+
+      _initStoreResultsCheckBox: function (domNode, nlsValue, editNode) {
+        domNode = new CheckBox({
+          checked: false,
+          label: nlsValue
+        }, domNode);
+        this._toggleNode(editNode, false);
+        this.own(on(domNode, 'change', lang.hitch(this, function () {
+          var enabled = domNode.getValue();
+          this.xyEnabled = enabled;
+          this._toggleNode(editNode, enabled);
+        })));
+        return domNode;
       },
 
       //addded for xy fields may simplify
@@ -279,24 +415,49 @@ define([
           }
         }));
 
-        var trs = this._layersTable.getRows();
-        var tr;
-        if (this.config.layerInfos && this.config.layerInfos.hasOwnProperty(0)) {
-          var configLayerInfo = this.config.layerInfos[0];       
-          for (var i = 0; i < trs.length; i++) {
-            tr = trs[i];
-            var rc = this._getRowConfig(tr);
-            if (rc.featureLayer.id === configLayerInfo.featureLayer.id) {
-              break;
-            }
-          }
+        //var trs = this._layersTable.getRows();
+        //var tr;
+        //if (this.config.layerInfos && this.config.layerInfos.hasOwnProperty(0)) {
+        //  var configLayerInfo = this.config.layerInfos[0];       
+        //  for (var i = 0; i < trs.length; i++) {
+        //    tr = trs[i];
+        //    var rc = this._getRowConfig(tr);
+        //    if (rc.featureLayer.id === configLayerInfo.featureLayer.id) {
+        //      break;
+        //    }
+        //  }
+        //} else {
+        //  tr = trs[0];
+        //}
+        //if (tr) {
+        //  var radio = query('input', tr.firstChild)[0];
+        //  radio.checked = true;
+        //}
+
+        if (!this.config.defaultXYFields) {
+          this._setDefaultXYFields();
+        }
+
+        //May move these to setConfig
+        this._initSymbolPicker();
+        this._initMaxRecords();
+        this._initSearchRadius();
+
+        //TODO consolidate after I remind myself if thsi is already handled elsewhere
+        if (typeof (this.config.singleEnabled) !== 'undefined' && this.config.singleEnabled !== NaN) {
+          this.singleEnabled = this.config.singleEnabled;
         } else {
-          tr = trs[0];
+          this.singleEnabled = false;
         }
-        if (tr) {
-          var radio = query('input', tr.firstChild)[0];
-          radio.checked = true;
+
+        if (typeof (this.config.multiEnabled) !== 'undefined' && this.config.multiEnabled !== NaN) {
+          this.multiEnabled = this.config.multiEnabled;
+        } else {
+          this.multiEnabled = false;
         }
+
+        this._toggleContainerNode((this.singleEnabled || this.multiEnabled) ? true : false);
+
 
         if (typeof (this.config.xyEnabled) !== 'undefined') {
           this.xyEnabled = this.config.xyEnabled;
@@ -481,24 +642,24 @@ define([
 
         // get layerInfos config
         var checkedLayerInfos = [];
-        trs = this._layersTable.getRows();
-        array.forEach(trs, lang.hitch(this, function (tr) {
-          var layerInfo = this._getRowConfig(tr);
-          var radio = query('input', tr.firstChild)[0];
-          if (radio.checked) {
-            array.forEach(layerInfo.fieldInfos, lang.hitch(this, function (fi) {
-              var name = fi.fieldName;
-              for (var i = 0; i < layerInfo.featureLayer.fields.length; i++) {
-                var f = layerInfo.featureLayer.fields[i];
-                if (f.name === name) {
-                  fi.type = f.type;
-                  break;
-                }
-              }
-            }));
-            checkedLayerInfos.push(layerInfo);
-          }
-        }));
+        //trs = this._layersTable.getRows();
+        //array.forEach(trs, lang.hitch(this, function (tr) {
+        //  var layerInfo = this._getRowConfig(tr);
+        //  var radio = query('input', tr.firstChild)[0];
+        //  if (radio.checked) {
+        //    array.forEach(layerInfo.fieldInfos, lang.hitch(this, function (fi) {
+        //      var name = fi.fieldName;
+        //      for (var i = 0; i < layerInfo.featureLayer.fields.length; i++) {
+        //        var f = layerInfo.featureLayer.fields[i];
+        //        if (f.name === name) {
+        //          fi.type = f.type;
+        //          break;
+        //        }
+        //      }
+        //    }));
+        //    checkedLayerInfos.push(layerInfo);
+        //  }
+        //}));
         if (checkedLayerInfos.length === 0) {
           delete this.config.layerInfos;
         } else {

@@ -11,8 +11,14 @@
   font-weight: bold;
 }
 
+.jimu-widget-setting-critical-facilities .main-instruction {
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
 .jimu-widget-setting-critical-facilities .instruction{
-  font-size: 12px;
+  margin-left: 10px;
+  margin-top: 10px;
 }
 
 .jimu-widget-setting-critical-facilities .padTop20{
@@ -25,7 +31,46 @@
   font-style: oblique;
 }
 
+.jimu-widget-setting-critical-facilities .hint-text-large {
+  font-size: 14px;
+  color: #596679;
+}
+
+.jimu-widget-setting-critical-facilities .search-radius {
+  width: 40%;
+}
+
+.jimu-widget-setting-critical-facilities .dijitSelect {
+  width: 40%;
+  float: right;
+}
+
+.jimu-widget-setting-critical-facilities .dijitTextBox {
+  width: 40%;
+}
+/*.jimu-widget-setting-critical-facilities .control-padding {
+  padding-left: 5%;
+  padding-right: 5%;
+}
+
+.jimu-widget-setting-critical-facilities .row-padding {
+  padding-top: 8px;
+}*/
+.jimu-widget-setting-critical-facilities .symPick {
+  padding-top: 1px;
+  padding-bottom: 1px;
+  border: 0px solid #D7D7D7;
+}
+
 /*Start Geocode Section*/
+.jimu-widget-setting-critical-facilities .display-none {
+  display: none;
+}
+
+.jimu-widget-setting-critical-facilities .display-block {
+  display: block;
+}
+
 .jimu-widget-setting-critical-facilities .add-button {
   margin: 8px 0;
   display: inline-block;
@@ -55,23 +100,23 @@
   background: url(images/add_hover.png) no-repeat right;
 }
 
-.jimu-widget-setting-critical-facilities .sources{
+.jimu-widget-setting-critical-facilities .sources {
   height: 100%;
 }
 
-.jimu-widget-setting-critical-facilities .source-list{
+.jimu-widget-setting-critical-facilities .source-list {
   width: 270px;
   height: 155px;
 }
 
-.jimu-widget-setting-critical-facilities .source-setting{
+.jimu-widget-setting-critical-facilities .source-setting {
   width: 660px;
   position: relative;
   height: 100%;
   overflow: auto;
 }
 
-.jimu-widget-setting-critical-facilities .source-setting .source-tips{
+.jimu-widget-setting-critical-facilities .source-setting .source-tips {
   display: none;
   font-size: 12px;
   color: #999;
@@ -242,10 +287,6 @@
 .jimu-widget-setting-critical-facilities .dijitArrowButtonContainer{
   width: 17px;
 }
-.jimu-widget-setting-critical-facilities .dijitSelect{
-  height: 30px;
-  width: 100%;
-}
 
 .jimu-widget-setting-critical-facilities .toolbar-options-tr {
   position: relative;
@@ -297,6 +338,10 @@
   cursor: pointer;
 }
 
+.jimu-widget-setting-critical-facilities .fields-table {
+  width: 100%;
+}
+
 .jimu-widget-setting-critical-facilities .fields-table > tbody > tr {
   margin: 10px;
   cursor: default;
@@ -344,13 +389,13 @@
 
 .jimu-widget-setting-critical-facilities .xy-table{
   position: relative;
-  padding-left: 304px;
+  width: 100%;
 }
 
-.jimu-rtl .jimu-widget-setting-critical-facilities .xy-table{
+/*.jimu-rtl .jimu-widget-setting-critical-facilities .xy-table{
   position: relative;
   padding-right: 304px;
-}
+}*/
 
 .jimu-widget-setting-critical-facilities .xy-table-no-locator{
   position: relative;
@@ -389,3 +434,145 @@
   background-image: url(images/edit_disabled.png);
   cursor: default;
 }
+
+
+/*new table*/
+.jimu-widget-setting-critical-facilities .layer-table {
+  table-layout: fixed;
+  border-collapse: collapse;
+  margin: 10px 10px 10px 10px;
+}
+
+.jimu-widget-setting-critical-facilities .layer-table > tbody > tr > td {
+  padding: 5px 10px;
+}
+
+.jimu-widget-setting-critical-facilities .settings-field-set {
+  height: auto;
+  width: 100%;
+  border: 1px solid #a0acbf;
+  border-radius: 5px;
+  font-size: 14px;
+  color: #596679;
+  margin-bottom: 10px;
+  min-width: 0px;
+}
+
+.jimu-widget-setting-critical-facilities .settings-field-set-legend {
+  margin-left: 20px;
+}
+
+
+/*test*/
+
+
+/*.jimu-widget-setting-critical-facilities .dijitSelect {
+
+}*/
+
+.jimu-widget-setting-critical-facilities .dijitSelect .dijitArrowButton {
+  background-color: #ffffff;
+}
+
+.jimu-widget-setting-critical-facilities .dijitSelect {
+  background-color: #ffffff;
+}
+
+.jimu-widget-setting-critical-facilities .dijitSelect .dijitArrowButtonContainer {
+  border: 0px solid #ffffff;
+}
+
+
+.jimu-widget-setting-critical-facilities .dijitSelect .dijitArrowButtonInner, .jimu-widget-setting-critical-facilities .dijitComboBox .dijitArrowButtonInner .jimu-widget-setting-critical-facilities .dijitButtonContents {
+  border-style: none;
+}
+
+.jimu-widget-setting-critical-facilities .dijitSelect .dijitButtonContents {
+  border-style: none;
+}
+
+  .jimu-widget-setting-critical-facilities .dijitSelectFocused .dijitButtonContents {
+    border-style: none;
+  }
+
+.jimu-widget-setting-critical-facilities .dijitSelectFocused .dijitArrowButton {
+ background-image: none;
+}
+
+.jimu-widget-setting-critical-facilities .claro .dijitSelectHover {
+  border-color: #aaaaaa;
+  background-color: #ffffff;
+}
+
+.jimu-widget-setting-critical-facilities .dijitValidationTextBoxHover {
+  border-color: #aaaaaa;
+  background-color: #ffffff;
+}
+
+.jimu-widget-setting-critical-facilities .dijitHover {
+  border-color: #aaaaaa;
+  background-color: #ffffff;
+}
+
+.jimu-widget-setting-critical-facilities .dijitTextBox {
+  border-color: #aaaaaa;
+}
+
+/*css for layer chooser*/
+/*.jimu-widget-setting-critical-facilities {
+  position: relative;
+  height: 30px;
+  border: solid 1px #aaaaaa;
+}
+
+  .jimu-widget-setting-critical-facilities > table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+    cursor: pointer;
+  }
+
+  .jimu-widget-setting-critical-facilities .layer-name {
+    height: 30px;
+    line-height: 30px;
+    width: 100%;
+  }
+
+  .jimu-widget-setting-critical-facilities .drop-select {
+    position: relative;
+    width: 30px;
+    height: 30px;
+  }
+
+    .jimu-widget-setting-critical-facilities.drop-select .jimu-icon-down-arrow-8 {
+      position: absolute;
+      left: 11px;
+      top: 11px;
+    }
+
+  .jimu-widget-setting-critical-facilities > .layer-chooser {
+    position: absolute;
+    width: 100%;
+    left: 0;
+    right: 0;
+    top: 100%;
+    height: 0;
+    overflow: visible;
+  }*/
+
+  /*.jimu-widget-setting-critical-facilities .jimu-basic-layer-chooser-from-map {
+    border: 1px solid #ccc;
+  }*/
+
+  /*.jimu-widget-setting-critical-facilities .layer-chooser-tree {
+    border: 1px solid #ccc;
+    -ms-overflow-x: hidden;
+    overflow-x: hidden;
+  }
+
+  .jimu-widget-setting-critical-facilities .jimu-tree .dijitTreeNodeContainer > .dijitTreeNode > .dijitTreeRow {
+    border-left: 0 !important;
+    border-right: 0 !important;
+  }*/
+
+/*test*/
