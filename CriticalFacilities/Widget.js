@@ -36,7 +36,7 @@ define(['dojo/_base/declare',
 
     baseClass: 'jimu-widget-critical-facilities',
 
-    arrayFields: null,
+    fsFields: null,
     myCsvStore: null,
     csvStores: [],
     correctArrayFields: null,
@@ -47,15 +47,23 @@ define(['dojo/_base/declare',
     _useAddr: true,
     _valid: false,
     addrType: "addr",
+    xyEnabled: false,
+    singleEnabled: false,
+    multiEnabled: false,
 
     //TODO need a way to update map results
     //TODO need a way for the user to process the results prior to submit
 
-    //TODO need to handle geocode errors...for example they choose a field that is not addresses or they have bad addresses
+    //TODO need to handle geocode errors...for example they choose a field that is not addresses or they have bad address
     //TODO test web mercator points in CSV 
 
-    //TODO need to handle the chunking of geocode requests...done...need to verify that errors or null features returned
-    // are being handled properly
+    //TODO add to map needs to be disabled until one of the location mapping options have been chosen
+
+    //TODO when I use a mix of single vs multi between the locators in a list the alias idea is not working correctly
+    //...at least on re-config....may just be an issue with the UI updates but need to investigate
+
+    //TOOD also seemd like when I did the simple sinlge line that I stood up tat the feature had the correct location but wrong attributres after the updates to use multi-locators
+    // need to investigate further
 
     postCreate: function () {
       this.inherited(arguments);
@@ -64,13 +72,16 @@ define(['dojo/_base/declare',
       this.own(on(this.map.container, "dragover", this.onDragOver));
       this.own(on(this.map.container, "drop", lang.hitch(this, this.onDrop)));
 
-      this.own(on(this.useAddrNode, 'click', lang.hitch(this, this.onChooseType, 'addr')));
-      this.own(on(this.useMultiAddrNode, 'click', lang.hitch(this, this.onChooseType, 'multi-addr')));
-      this.own(on(this.useXYNode, 'click', lang.hitch(this, this.onChooseType, 'xy')));
+      this.xyEnabled = this.config.xyEnabled;
+      
+      for (var i = 0; i < this.config.sources.length; i++) {
+        var src = this.config.sources[i];
+        this.singleEnabled = src.singleEnabled ? true : this.singleEnabled;
+        this.multiEnabled = src.multiEnabled ? true : this.multiEnabled;
+      }
 
-      domStyle.set(this.addressBodyContainer, "display", "block");
-      domStyle.set(this.xyBodyContainer, "display", "none");
-      domStyle.set(this.addressMultiBodyContainer, "display", "none");
+      this._initLocationUI();
+    
       domStyle.set(this.processingNode, 'display', 'none');
 
       this.panalManager = PanelManager.getInstance();
@@ -93,19 +104,16 @@ define(['dojo/_base/declare',
         if (this._configLayerInfo) {
           array.forEach(this._configLayerInfo.fieldInfos, lang.hitch(this, function (field) {
             if (field && field.visible) {
-              this._fsFields.push({ "name": field.fieldName, "value": field.type, isRecognizedValues: field.isRecognizedValues });
+              this._fsFields.push({
+                name: field.fieldName,
+                value: field.type,
+                isRecognizedValues: field.isRecognizedValues
+              });
               this.addFieldRow(this.schemaMapTable, field.fieldName, field.label);
             }
           }));
 
-          var multiAddrFields = [this.nls.address, this.nls.city, this.nls.state, this.nls.zip];
-          array.forEach(multiAddrFields, lang.hitch(this, function (addr) {
-            this.addFieldRow(this.addressMultiTable, addr, addr);
-          }));
-
-          this.addFieldRow(this.addressTable, this.nls.addressFieldLabel, this.nls.addressFieldLabel);
-          this.addFieldRow(this.xyTable, this.nls.xyFieldsLabelX, this.nls.xyFieldsLabelX);
-          this.addFieldRow(this.xyTable, this.nls.xyFieldsLabelY, this.nls.xyFieldsLabelY);
+          this._addLocationFieldRows();
         }
 
         LayerInfos.getInstance(this.map, this.map.itemInfo).then(lang.hitch(this, function (operLayerInfos) {
@@ -115,6 +123,142 @@ define(['dojo/_base/declare',
       } else {
         domStyle.set(this.schemaMapInstructions, "display", "none");
         domStyle.set(this.loadWarning, "display", "block");
+      }
+    },
+
+    _initLocationUI: function () {
+      var numEnabled = 0;
+
+      //set state of single line address controls
+      if (this.singleEnabled) {
+        numEnabled += 1;
+        this.own(on(this.useAddrNode, 'click', lang.hitch(this, this.onChooseType, 'addr')));
+        domStyle.set(this.addressBodyContainer, "display", "block");
+      } else {
+        domStyle.set(this.addressBodyContainer, "display", "none");
+        domStyle.set(this.useAddrNodeContainer, "display", "none");
+      }
+
+      //set state of multi line address controls
+      if (this.multiEnabled) {
+        numEnabled += 1;
+        this.own(on(this.useMultiAddrNode, 'click', lang.hitch(this, this.onChooseType, 'multi-addr')));
+        domStyle.set(this.addressMultiBodyContainer, "display", !this.singleEnabled ? "block" : "none");
+      } else {
+        domStyle.set(this.addressMultiBodyContainer, "display", "none");
+        domStyle.set(this.useMultiAddrNodeContainer, "display", "none");
+      }
+
+      //set state of x/y controls
+      if (this.xyEnabled) {
+        numEnabled += 1;
+        this.own(on(this.useXYNode, 'click', lang.hitch(this, this.onChooseType, 'xy')));
+        domStyle.set(this.xyBodyContainer, "display", (!this.singleEnabled && !this.multiEnabled) ? "block" : "none");
+      } else {
+        domStyle.set(this.xyBodyContainer, "display", "none");
+        domStyle.set(this.useXYNodeContainer, "display", "none");
+      }
+
+      //if only a single type is enabled adjust the UI..no need to see the radio 
+      if (numEnabled === 1) {
+        this._useAddr = this.singleEnabled || this.multiEnabled ? true : false;
+        this.addrType = this.singleEnabled ? "addr" : this.multiEnabled ? "multi-addr" : "xy";
+        domStyle.set(this.singleEnabled ? this.useAddrNodeContainer : this.multiEnabled ? this.useMultiAddrNodeContainer : this.useXYNodeContainer, "display", "none");
+        var bodyContainer = this.singleEnabled ? this.addressBodyContainer : this.multiEnabled ? this.addressMultiBodyContainer : this.xyBodyContainer;
+        domStyle.set(bodyContainer, window.isRTL ? "padding-right" : "padding-left", "0px");
+      }
+    },
+
+    _addLocationFieldRows: function () {
+      var l = navigator.language.toLowerCase();
+      this.singleAddressFields = [];
+      this.multiAddressFields = [];
+      this.xyFields = [];
+
+      var singleFieldAliases = [];
+      var multiFieldAliases = [];
+      var xyFieldAliases = [];
+
+      for (var i = 0; i < this._geocodeSources.length; i++) {
+        var src = this._geocodeSources[i];
+        var name = "";
+        var label = "";
+
+        if (src.singleEnabled) {
+          var field = src.singleAddressFields[0];
+          var rv = (field.recognizedNames && field.recognizedNames.hasOwnProperty(l)) ? field.recognizedNames[l] : [];
+          label = field.label || field.alias;
+          name = field.fieldName || field.name;
+          if (singleFieldAliases.indexOf(label) === -1) {
+            singleFieldAliases.push(label);
+            this.singleAddressFields.push({
+              name: name,
+              value: field.type, //TODO ??
+              isRecognizedValues: field.isRecognizedValues || rv,
+              label: label
+            });
+            this.addFieldRow(this.addressTable, name, label);
+          } else {
+            for (var i = 0; i < this.singleAddressFields.length; i++) {
+              var f = this.singleAddressFields[i];
+              if (f.label === label) {
+                f.isRecognizedValues.push.apply(f.isRecognizedValues, field.isRecognizedValues || rv);
+                break;
+              }
+            }
+          }
+        }
+     
+        if (src.multiEnabled) {
+          array.forEach(src.addressFields, lang.hitch(this, function (field) {
+            if (field.visible) {
+              label = field.label || field.alias;
+              name = field.fieldName || field.name;
+              var rv = (field.recognizedNames && field.recognizedNames.hasOwnProperty(l)) ? field.recognizedNames[l] : [];
+              if (multiFieldAliases.indexOf(label) === -1) {
+                multiFieldAliases.push(label);
+                this.multiAddressFields.push({
+                  name: name,
+                  value: field.type, //TODO ??
+                  isRecognizedValues: field.isRecognizedValues || rv,
+                  label: label
+                });
+                this.addFieldRow(this.addressMultiTable, name, label);
+              } else {
+                for (var i = 0; i < this.multiAddressFields.length; i++) {
+                  var f = this.multiAddressFields[i];
+                  if (f.label === label) {
+                    f.isRecognizedValues.push.apply(f.isRecognizedValues, field.isRecognizedValues || rv);
+                    break;
+                  }
+                }
+              }
+            }
+          }));
+        }
+      }
+
+      //independant of configured locators
+      if (this.xyEnabled) {
+        var fieldOne = this.config.xyFields[0].fieldName || this.config.xyFields[0].name;
+        var xField = fieldOne === this.nls.xyFieldsLabelX ? this.config.xyFields[0] : this.config.xyFields[1];
+        var fieldTwo = this.config.xyFields[1].fieldName || this.config.xyFields[1].name;
+        var yField = fieldTwo === this.nls.xyFieldsLabelY ? this.config.xyFields[1] : this.config.xyFields[0];
+
+        this.xyFields.push({
+          name: xField.fieldName || xField.name,
+          value: xField.type,
+          isRecognizedValues: xField.isRecognizedValues
+        });
+
+        this.xyFields.push({
+          name: yField.fieldName || yField.name,
+          value: yField.type,
+          isRecognizedValues: yField.isRecognizedValues
+        });
+
+        this.addFieldRow(this.xyTable, xField.fieldName || xField.name, xField.label || xField.alias);
+        this.addFieldRow(this.xyTable, yField.fieldName || yField.name, yField.label || yField.alias);
       }
     },
 
@@ -143,6 +287,7 @@ define(['dojo/_base/declare',
       })));
       tr.selectFields = selectFields;
       tr.keyField = keyField;
+      tr.label = label;
     },
 
     validateValues: function(){
@@ -154,7 +299,7 @@ define(['dojo/_base/declare',
       //}));
 
       //TODO this x stuff is a temp workaround...not all fields are actually required for multi-field input
-      //need to think through this more
+      //need to think through this more...would be easy if fields were marked as required/optional
       var x = 0;
       array.forEach(controlNodes, lang.hitch(this, function (node) {
         var selectNode = query('.field-select-node', node)[0];
@@ -187,7 +332,9 @@ define(['dojo/_base/declare',
 
     onDrop: function (event) {
       if (this._valid) {
-        this.onClearClick();
+        if (this.myCsvStore) {
+          this.myCsvStore.clear();
+        }
         event.preventDefault();
 
         var dataTransfer = event.dataTransfer,
@@ -199,16 +346,24 @@ define(['dojo/_base/declare',
           if (file.name.indexOf(".csv") !== -1) {
             this.myCsvStore = new CsvStore({
               file: file,
-              arrayFields: this._fsFields,
+              fsFields: this._fsFields,
               map: this.map,
               geocodeSources: this._geocodeSources,
-              nls: this.nls
+              nls: this.nls,
+              appConfig: this.appConfig,
+              unMatchedContainer: this.unMatchedContainer
             });
-            this.myCsvStore.onHandleCsv().then(lang.hitch(this, function (obj) {
-              this._updateFieldControls(this.schemaMapTable, obj, true, true);
-              this._updateFieldControls(this.xyTable, obj, true, false);
-              this._updateFieldControls(this.addressTable, obj, false, false);
-              this._updateFieldControls(this.addressMultiTable, obj, false, false);
+            this.myCsvStore.handleCsv().then(lang.hitch(this, function (obj) {
+              this._updateFieldControls(this.schemaMapTable, obj, true, true, obj.fsFields, 'keyField');
+              if (this.xyEnabled) {
+                this._updateFieldControls(this.xyTable, obj, true, true, this.xyFields, 'keyField');
+              }
+              if (this.singleEnabled) {
+                this._updateFieldControls(this.addressTable, obj, false, true, this.singleAddressFields, 'label');
+              }
+              if (this.multiEnabled) {
+                this._updateFieldControls(this.addressMultiTable, obj, false, true, this.multiAddressFields, 'label');
+              }
               this.validateValues();
               domStyle.set(this.schemaMapInstructions, "display", "none");
               domStyle.set(this.mainContainer, "display", "block");
@@ -228,10 +383,21 @@ define(['dojo/_base/declare',
       domStyle.set(this.xyBodyContainer, "display", type === "xy" ? "block" : "none");
     },
 
-    _updateFieldControls: function (table, obj, checkFieldTypes, checkArrayFields) {
+    _updateFieldControls: function (table, obj, checkFieldTypes, checkArrayFields, arrayFields, type) {
+
+      if (typeof Array.prototype.rxIndexOf === 'undefined') {
+        Array.prototype.rxIndexOf = function (rx) {
+          for (var i in this) {
+            if (this[i].toString().match(rx)) {
+              return i;
+            }
+          }
+          return -1;
+        };
+      }
+
       var fields = obj.fields;
       var fieldTypes = obj.fieldTypes;
-      var arrayFields = obj.arrayFields;
       var controlNodes = query('.field-node-tr', table);
       var noValue = this.nls.noValue;
       var selectMatchField = false;
@@ -258,41 +424,47 @@ define(['dojo/_base/declare',
 
         array.forEach(fields, function (f) {
           var add = false;
-          if (checkArrayFields) {
-            //Schema Map fields
-            add = ((keyFieldType === "int" && fieldTypes[f].supportsInt) ||
-              (keyFieldType === "float" && fieldTypes[f].supportsFloat) ||
-              (keyFieldType === "other")) ? true : add;
-          } else {
-            //XY or Address
-            if (checkFieldTypes) {
-              //XY
-              add = fieldTypes[f].supportsFloat || fieldTypes[f].supportsInt ? true : add;
+          if (fieldTypes[f]) {
+            if (checkArrayFields) {
+              //Schema Map fields
+              add = ((keyFieldType === "int" && fieldTypes[f].supportsInt) ||
+                (keyFieldType === "float" && fieldTypes[f].supportsFloat) ||
+                (keyFieldType === "other")) ? true : add;
             } else {
-              //Address
-              add = true;
+              //XY or Address
+              if (checkFieldTypes) {
+                //XY
+                add = fieldTypes[f].supportsFloat || fieldTypes[f].supportsInt ? true : add;
+              } else {
+                //Address
+                add = true;
+              }
             }
-          }
-          if (add) {
-            node.selectFields.addOption({ label: f, value: f });
+            if (add) {
+              node.selectFields.addOption({ label: f, value: f });
+            }
           }
         });
 
         //Select Matching Field Name if found
         var kf = noValue;
+        array_field_loop:
         for (var i = 0; i < arrayFields.length; i++) {
           var af = arrayFields[i];
-          if (af.name === node.keyField) {
-            for (var ii = 0; ii < af.isRecognizedValues.length; ii++) {
-              var irv = af.isRecognizedValues[ii];
-              if (fields.indexOf(irv) > -1) {
-                kf = irv;
-                break;
+          var tester = type === 'keyField' ? af.name : af.label;
+          if (tester === node[type]) {
+            if (typeof (af.isRecognizedValues) !== 'undefined') {
+              is_rec_loop:
+              for (var ii = 0; ii < af.isRecognizedValues.length; ii++) {
+                var idx = fields.rxIndexOf(new RegExp("\\b(" + af.isRecognizedValues[ii] + ")\\b", "i"));//case insensitive
+                if (idx > -1) {
+                  kf = fields[idx];
+                  break array_field_loop;
+                }
               }
             }
           }
         }
-
         node.selectFields.set('value', kf);
       });
     },
@@ -301,58 +473,115 @@ define(['dojo/_base/declare',
       if (!domClass.contains(this.addToMap, 'disabled')) {
         domStyle.set(this.addToMap, "display", "none");
 
-        var useMultiFields = false;
-        var multiFields = [];
-        var mappedFields = {};
-        array.forEach(this._fsFields, lang.hitch(this, function (setField) {
-          if (setField) {
-            var fieldName = setField.name;
-            var controlNodes = query('.field-node-tr', this.schemaMapTable);
-            var mappedField = "";
-            for (var i = 0; i < controlNodes.length; i++) {
-              var node = controlNodes[i];
-              if (node.keyField === fieldName) {
-                mappedField = node.selectFields.value;
-                break;
-              }
-            }
-            mappedFields[fieldName] = mappedField;
-          }
-        }));
-        var controlNodes = query('.field-node-tr', this._useAddr ? this.addrType === "addr" ? this.addressTable : this.addressMultiTable : this.xyTable);
-        array.forEach(controlNodes, lang.hitch(this, function (node) {
-          switch (node.keyField) {
-            case this.nls.addressFieldLabel:
-              this.myCsvStore.addrFieldName = node.selectFields.value;
-              multiFields.push({ keyField: node.keyField, value: node.selectFields.value });
-              break;
-            case this.nls.xyFieldsLabelX:
-              this.myCsvStore.xFieldName = node.selectFields.value;
-              break;
-            case this.nls.xyFieldsLabelY:
-              this.myCsvStore.yFieldName = node.selectFields.value;
-              break;
-            default:
-              useMultiFields = true;
-              multiFields.push({ keyField: node.keyField, value: node.selectFields.value });
-              break;
-          }
-        }));
+        this._setMappedFields(this._fsFields, this.schemaMapTable);
+        if (this.addrType === 'addr') {
+          this._setFieldsFromNodes(this.singleEnabled ? query('.field-node-tr', this.addressTable) : [], 'single');
+        }
+
+        if (this.addrType === 'multi-addr') {
+          this._setFieldsFromNodes(this.multiEnabled ? query('.field-node-tr', this.addressMultiTable) : [], 'multi');
+        }
+
+        if (this.addrType === 'xy') {
+          this._setFieldsFromNodes(this.xyEnabled ? query('.field-node-tr', this.xyTable) : [], 'xy');
+        }
+
         domStyle.set(this.processingNode, 'display', 'block');
-        this.myCsvStore.useMultiFields = useMultiFields;
-        this.myCsvStore.multiFields = multiFields;
-        this.myCsvStore.useAddr = this._useAddr;
-        this.myCsvStore.mappedArrayFields = mappedFields;
-        this.myCsvStore.onProcessForm().then(lang.hitch(this, function () {
+        this.myCsvStore.useMultiFields = this.myCsvStore.multiFields && this.myCsvStore.multiFields.length > 0; //TODO this may no longer be necessary if all will be supported
+        this.myCsvStore.useAddr = this._useAddr; //TODO this may no longer be necessary if all will be supported
+        this.myCsvStore.processForm().then(lang.hitch(this, function () {
           domStyle.set(this.processingNode, 'display', 'none');
           domStyle.set(this.clearMapData, "display", "block");
           domStyle.set(this.submitData, "display", "block");
           domStyle.set(this.updateData, "display", "block");
+          this._toggleUnmatched(this.myCsvStore.hasUnmatched);
         }), lang.hitch(this, function (err) {
           domStyle.set(this.processingNode, 'display', 'none');
           domStyle.set(this.addToMap, "display", "block");
         }));
       }
+    },
+
+    _toggleUnmatched: function (show) {
+      //TODO simplify this and handle bottom-radius
+      //make sure anything that is set he is reset when clear occurs
+
+      //this is not being handled correctly yet
+      this._toggle(this.unMatchedContainerRow, show ? 'content-hide' : 'content-show', undefined);
+
+      var removeRadiusClass = show ? 'bottom-radius' : undefined;
+      var addRadiusClass = !show ? 'bottom-radius' : undefined;
+      this._toggle(this.schemaMapContainerRow, removeRadiusClass, addRadiusClass);
+      this._toggle(this.schemaMapContainer, removeRadiusClass, addRadiusClass);
+    },
+
+    _toggle: function (container, remove, add) {
+      if (typeof (remove) !== 'undefined') {
+        if (domClass.contains(container, remove)) {
+          domClass.remove(container, remove);
+        }
+      }
+      if (typeof (add) !== 'undefined') {
+        domClass.add(container, add);
+      }
+    },
+
+    _setMappedFields: function (fields, table) {
+      var mappedFields = {};
+      array.forEach(fields, function (setField) {
+        if (setField) {
+          var fieldName = setField.name;
+          var controlNodes = query('.field-node-tr', table); //does this still work correctly with the context chnge
+          var mappedField = "";
+          for (var i = 0; i < controlNodes.length; i++) {
+            var node = controlNodes[i];
+            if (node.keyField === fieldName) {
+              mappedField = node.selectFields.value;
+              break;
+            }
+          }
+          mappedFields[fieldName] = mappedField;
+        }
+      });
+      this.myCsvStore.mappedArrayFields = mappedFields;
+    },
+
+    _setFieldsFromNodes: function (controlNodes, type) {
+      var single = false;
+      var multi = false;
+      var fields = [];
+      array.forEach(controlNodes, lang.hitch(this, function (node) {
+        switch (type) {
+          case 'single':
+            single = true;
+            //TODO this would not work correctly if multiple single fields are enabled
+            this.myCsvStore.addrFieldName = node.selectFields.value;
+            fields.push({ keyField: node.keyField, value: node.selectFields.value, label: node.label });
+            break;
+          case 'xy':
+            if (node.keyField === this.nls.xyFieldsLabelX) {
+              this.myCsvStore.xFieldName = node.selectFields.value;
+              break;
+            }
+            if (node.keyField === this.nls.xyFieldsLabelY) {
+              this.myCsvStore.yFieldName = node.selectFields.value;
+              break;
+            }
+            
+          //case this.nls.xyFieldsLabelX: //TODO are these still ok...or can the user change? Thinking the usre should be able to change
+          //  this.myCsvStore.xFieldName = node.selectFields.value;
+          //  break;
+          //case this.nls.xyFieldsLabelY: //TODO are these still ok...or can the user change? Thinking the usre should be able to change
+          //  this.myCsvStore.yFieldName = node.selectFields.value;
+          //  break;
+          default:
+            multi = true;
+            fields.push({ keyField: node.keyField, value: node.selectFields.value, label: node.label });
+            break;
+        }
+      }));
+      this.myCsvStore.multiFields = multi ? fields : this.myCsvStore.multiFields;
+      this.myCsvStore.singleFields = single ? fields : this.myCsvStore.singleFields;
     },
 
     onUpdateClick: function () {
@@ -364,25 +593,16 @@ define(['dojo/_base/declare',
     },
 
     toggleContainer: function (e) {
-      this._toggle(this[e.currentTarget.dataset.clickParams], false);
-    },
+      var container = this[e.currentTarget.dataset.clickParams];
+      var removeClass = domClass.contains(container, 'content-show') ? 'content-show' : 'content-hide';
+      domClass.remove(container, removeClass);
+      domClass.add(container, removeClass === 'content-show' ? 'content-hide' : 'content-show');
 
-    _toggle: function (container, forceClose) {
-      var removeClass;
-      if (forceClose) {
-        if (domClass.contains(container, 'content-show')) {
-          domClass.remove(container, 'content-show');
-          domClass.add(container, 'content-hide');
-        }
-      } else {
-        removeClass = domClass.contains(container, 'content-show') ? 'content-show' : 'content-hide';
-        domClass.remove(container, removeClass);
-        domClass.add(container, removeClass === 'content-show' ? 'content-hide' : 'content-show');
-      }
       var accordian = container.previousElementSibling;
       if (domClass.contains(accordian, 'bottom-radius')) {
         domStyle.set(accordian, 'border-radius', removeClass === 'content-hide' ? '0 0 0 0' : '0 0 4px 4px');
       }
+
       domClass.remove(accordian.children[1], removeClass === 'content-hide' ? 'image-down' : 'image-up');
       domClass.add(accordian.children[1], removeClass === 'content-hide' ? 'image-up' : 'image-down');
     },
@@ -392,14 +612,14 @@ define(['dojo/_base/declare',
       domStyle.set(this.submitData, "display", "none");
       domStyle.set(this.updateData, "display", "none");
       domStyle.set(this.addToMap, "display", "block");
+
       domStyle.set(this.mainContainer, "display", "none");
       domStyle.set(this.schemaMapInstructions, "display", "block");
+
       domStyle.set(this.processingNode, 'display', 'none');
-      this._toggle(this.locationMapContainer, true);
-      this._toggle(this.schemaMapContainer, true);
-      if (this.myCsvStore) {
-        this.myCsvStore.clear();
-      }
+      this._toggleUnmatched(false);
+
+      this.myCsvStore.clear();
     },
 
     onSubmitClick: function () {

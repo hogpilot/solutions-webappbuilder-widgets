@@ -46,6 +46,10 @@ define([
     this.appConfig = apc;
   };
 
+  mo.setDefaultXYFields = function (xyFields) {
+    this.defaultXYFields = xyFields;
+  };
+
   mo.getConfigInfo = function(config) {
     if (config && config.sources && config.sources.length > 0) {
       var searchInfo = null;

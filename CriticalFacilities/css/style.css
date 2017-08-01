@@ -20,7 +20,7 @@
   text-align: center;
   font-size: 14px;
   font-weight: bold;
-  color: #86909c;
+  /*color: #86909c;*/
 }
 
 .jimu-widget-critical-facilities .schema-map-body{
@@ -225,6 +225,192 @@
 }
 
 /*end accordion*/
+
+
+/*start unmatched-list*/
+/*TODO these need stop embed prefixed command image paths need to be updated*/
+.dGridContainer{
+  position: absolute; 
+  top: 0px; 
+  bottom: 50px; 
+  width: 100%;
+}
+
+.dgrid.list {
+  margin: 0;
+  padding: 0;
+  /*height: 100%;
+  width: 100%;*/
+}
+
+.dgrid-selected {
+background-color: none;
+}
+
+.list{
+  overflow: auto;
+  width: 100%;
+}
+
+.btnContainer{
+  position: absolute; 
+  bottom: 0px; 
+  width: 100%;
+}
+
+.btnParent{
+  position: relative; 
+  text-align: center;
+  margin: 10px 0 10px 0;
+}
+
+.my-btn{
+  margin-right: 5px;
+  margin-bottom: 5px;
+  margin-top: 5px;
+  cursor:pointer;
+  min-width: 70px;
+  display:inline-block;
+  line-height: 33px;
+  font-size:14px;
+  text-align:center;
+  vertical-align:middle;
+  -webkit-border-radius:5px;
+  -moz-border-radius:5px;
+  -o-border-radius:5px;
+  -ms-border-radius:5px;
+  border-radius: 5px;
+  border: 1px solid transparent;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.bottomBorder {
+  border-bottom: 1px solid #dcdcdc;
+}
+
+.titleDiv:hover .image-up-highlight{
+  background-image: url(../images/fold_up.png);
+  /*background-color: #083F77;*/
+}
+
+.titleDiv:hover .image-down-highlight{
+  background-image: url(../images/fold_down.png);
+  /*background-color: #083F77;*/
+}
+
+.titleDiv {
+  cursor: pointer;
+  height: 30px;
+  width: 100%;
+  line-height: 30px;
+  overflow: hidden;
+}
+
+.title {
+  height: 30px;
+  line-height: 30px;
+  overflow: hidden;
+  margin-left: 8px;
+  display: inline;
+  color: white;
+}
+
+.rowOn{
+  display: block;
+}
+
+.rowOff{
+  display: none;
+}
+
+.upImage{
+  background-image: url(../images/nav_up.png);
+}
+
+.downImage{
+  background-image: url(../images/nav_down.png);
+}
+
+.baseImage{
+  vertical-align:middle;
+  width: 15px;
+  height: 15px;
+  background-repeat: no-repeat;
+  background-position: 50% 50%;
+  background-size: contain;
+  display: inline-block;
+  margin-left: 5px;
+  background-size: 11px 7px;
+  /*background-color: white;
+  border-radius: 50%;
+  border: 1px solid #083F77;*/
+}
+
+.fieldItemLabel{
+  position: relative;
+  margin-top: 5px;
+  margin-left: 5px;
+  color: white;
+}
+
+.fieldItemValue{
+  position: relative;
+  margin-top: 5px;
+  margin-left: 10px;
+  margin-right: 10px;
+  width: 90%;
+}
+
+.locate-btn {
+  /*display: block;*/
+  width: 15px;
+  height: 15px;
+  background-image: url(../images/locate.png);
+    vertical-align:middle;
+  /*width: 15px;
+  height: 15px;*/
+  background-repeat: no-repeat;
+  background-position: 50% 50%;
+  background-size: contain;
+  display: inline-block;
+  /*margin-left: 5px;
+  background-size: 11px 7px;*/
+}
+
+.locate-btn:hover {
+  background-image: url(../images/locate_hover.png);
+  cursor: pointer;
+}
+
+/*#grid {
+height: auto;
+}
+#grid .dgrid-scroller {
+position: relative;
+overflow-y: hidden;
+}
+#grid .dgrid-header-scroll {
+display: none;
+}
+#grid .dgrid-header {
+right: 0;
+}*/
+
+.dgrid-autoheight {
+  height: auto;
+}
+.dgrid-autoheight .dgrid-scroller {
+  position: relative;
+  overflow-y: hidden;
+}
+.dgrid-autoheight .dgrid-header-scroll {
+  display: none;
+}
+.dgrid-autoheight .dgrid-header {
+  right: 0;
+}
+/*end unmatched-list*/
 
 /*.dijitSelect {
     font-weight: 600;

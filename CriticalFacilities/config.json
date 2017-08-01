@@ -1,6 +1,4 @@
 {    
   "selectedFeatureService" : "",
-  "latitudeField" : "",
-  "longitudeField" : "",    
-  "layerInfos": []
+  "layerInfos": [ ]
 }

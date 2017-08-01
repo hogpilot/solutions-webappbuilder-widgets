@@ -7,7 +7,7 @@
       </div>
       <div class="content-container content-hide box-shadow" data-dojo-attach-point="locationMapContainer">
         <!--Single Line Address-->
-        <div data-dojo-attach-point="useAddrNode">
+        <div data-dojo-attach-point="useAddrNodeContainer">
           <input name="locationOption" type="radio" data-dojo-type="jimu/dijit/RadioBtn" value="addr"
                   checked=true data-dojo-attach-point="useAddrNode">
           <label>${nls.useAddress}</label>
@@ -20,7 +20,7 @@
           </div>
         </div>
         <!--Multi-line Address-->
-        <div class="" data-dojo-attach-point="useMultiAddrNode">
+        <div class="" data-dojo-attach-point="useMultiAddrNodeContainer">
           <input name="locationOption" type="radio" data-dojo-type="jimu/dijit/RadioBtn" value="MultiAddr"
                   data-dojo-attach-point="useMultiAddrNode">
           <label>${nls.useMultiAddress}</label>
@@ -33,7 +33,7 @@
           </div>
         </div>
         <!--X/Y-->
-        <div data-dojo-attach-point="useXYNode">
+        <div data-dojo-attach-point="useXYNodeContainer">
           <input name="locationOption" type="radio" data-dojo-type="jimu/dijit/RadioBtn" value="xy"
                   data-dojo-attach-point="useXYNode">
           <label>${nls.useXY}</label>
@@ -47,7 +47,7 @@
         </div>
       </div>
       <!--Schema Map-->
-      <div class="accordion-btn jimu-main-background bottom-radius" data-dojo-type="jimu/dijit/Button" data-click-params="schemaMapContainer" data-dojo-attach-event="onclick:toggleContainer">
+      <div class="accordion-btn jimu-main-background bottom-radius" data-dojo-attach-point="schemaMapContainerRow" data-dojo-type="jimu/dijit/Button" data-click-params="schemaMapContainer" data-dojo-attach-event="onclick:toggleContainer">
         <div class="btn-title">${nls.schemaMapping}</div> 
         <div class="expand-image image-down"></div>
       </div>
@@ -58,6 +58,11 @@
           </table>
         </div>
       </div>
+      <div class="content-hide accordion-btn jimu-main-background bottom-radius" data-dojo-attach-point="unMatchedContainerRow" data-dojo-type="jimu/dijit/Button" data-click-params="unMatchedContainer" data-dojo-attach-event="onclick:toggleContainer">
+        <div class="btn-title">${nls.unmatched}</div>
+        <div class="expand-image image-down"></div>
+      </div>
+      <div class="content-container content-hide box-shadow bottom-radius" data-dojo-attach-point="unMatchedContainer"></div>
     </div>
     <div class="processing" data-dojo-attach-point="processingNode"></div>
     <!--Buttons-->

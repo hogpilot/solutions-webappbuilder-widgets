@@ -19,12 +19,14 @@ define(['dojo/_base/declare',
     'dojo/Evented',
     'jimu/dijit/SimpleTable',
     'dojo/dom-style',
+    'dojo/dom-construct',
     'dojo/query',
     'dojo/_base/lang',
     'dojo/_base/array',
-    'dojo/on'
+    'dojo/on',
+    'dijit/form/TextBox'
 ],
-  function (declare,  _WidgetsInTemplateMixin, BaseWidget, Evented, SimpleTable, domStyle, query, lang, array, on) {
+  function (declare, _WidgetsInTemplateMixin, BaseWidget, Evented, SimpleTable, domStyle, domConstruct, query, lang, array, on, TextBox) {
     return declare([BaseWidget, _WidgetsInTemplateMixin, Evented], {
       templateString: '<div style="width: 100%; height: 100%;">' +
         '<div class="instruction hintText">' +
@@ -87,9 +89,11 @@ define(['dojo/_base/declare',
           fields: [{
             name: "name",
             title: this.nls.name,
-            width: "auto",
-            type: "text",
-            editable: true
+            type: 'extension',
+            hidden: false,
+            create: lang.hitch(this, this._createTextBox),
+            setValue: lang.hitch(this, this._setTextValue),
+            getValue: lang.hitch(this, this._getTextValue)
           }, {
             name: "actions",
             title: "",
@@ -100,6 +104,25 @@ define(['dojo/_base/declare',
         }, this.sourceList);
         domStyle.set(this.sourceList.domNode, 'height', '100%');
         this.sourceList.startup();
+      },
+
+      _createTextBox: function (td) {
+        var labelBox = new TextBox({
+          style: {
+            'height': '85%',
+            'width': '100%'
+          }
+        });
+        td.labelBox = labelBox;
+        domConstruct.place(labelBox.domNode, td);
+      },
+
+      _setTextValue: function (td, value) {
+        td.labelBox.set('value', value);
+      },
+
+      _getTextValue: function (td) {
+        return td.labelBox.get('value');
       },
 
       destroy: function () {

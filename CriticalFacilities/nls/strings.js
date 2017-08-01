@@ -2,6 +2,7 @@
   root: ({
     schemaMapping: "Field Mapping",
     locationMapping: "Location Mapping",
+    unmatched: "Un-matched Records",
     addToMap: "Add to map",
     submit: "Submit",
     clear: "Clear",
@@ -20,7 +21,10 @@
     address: "Address",
     city: "City",
     state: "State",
-    zip: "Zip"
+    zip: "Zip",
+    geocodeCache: "GeocodeCache",
+    unableToFindOrCreateCache: "Unable to find or create a geocode cache.",
+    locateFeature: "Locate Feature"
   }),
   "ar": 0,
   "cs": 0,

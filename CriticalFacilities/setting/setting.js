@@ -62,14 +62,13 @@ define([
     return declare([BaseWidgetSetting, _WidgetsInTemplateMixin], {
       baseClass: 'jimu-widget-setting-critical-facilities',
 
-      //TODO disable OK when no layer is selected or if all locators have been removed
-      //TODO understand the fee vs paid loacting options https://developers.arcgis.com/rest/geocode/api-reference/geocoding-free-vs-paid.htm#ESRI_SECTION1_B9D659BA26584F26A65CBA24E59AFE6E
+      //TODO disable OK when no layer is selected
+      //TODO add logic for needing at least one of the checkboxes checked...ok should disable
+      //TODO figure out what's up with the css for all SimpleTable instances with the rows. I handled in some way for IS but it was not correct
 
       //Questions
       //TODO should we support an option for configure user to mark certain fields as required or optional?
-      //TODO should lat/lon input be a configurable choice?
-
-
+      
       _operLayerInfos: null,
       _layersTable: null,
       _editablePointLayerInfos: null,
@@ -79,8 +78,26 @@ define([
       startup: function () {
         this.inherited(arguments);
 
+        this.nls = lang.mixin(this.nls, window.jimuNls.common);
+
         if (!(this.config && this.config.sources)) {
           this.config.sources = [];
+        }
+
+        if (!this.config.defaultXYFields) {
+          this.config.defaultXYFields = [{
+            "name": this.nls.xyFieldsLabelX,
+            "alias": this.nls.xyFieldsLabelX,
+            "visible": true,
+            "isRecognizedValues": [this.nls.xyFieldsLabelX, this.nls.longitude, this.nls.easting],
+            "type": "STRING"
+          }, {
+            "name": this.nls.xyFieldsLabelY,
+            "alias": this.nls.xyFieldsLabelY,
+            "visible": true,
+            "isRecognizedValues": [this.nls.xyFieldsLabelY, this.nls.latitude, this.nls.northing],
+            "type": "STRING"
+          }];
         }
 
         LayerInfos.getInstance(this.map, this.map.itemInfo)
@@ -91,6 +108,7 @@ define([
             _utils.setMap(this.map);
             _utils.setLayerInfosObj(this._operLayerInfos);
             _utils.setAppConfig(this.appConfig);
+            _utils.setDefaultXYFields(this.config.defaultXYFields);
             when(_utils.getConfigInfo(this.config)).then(lang.hitch(this, function (config) {
               if (!this.domNode) {
                 return;
@@ -165,7 +183,7 @@ define([
           }, {
             name: "actions",
             title: "",
-            width: "70px",
+            width: "80px",
             type: "actions",
             actions: ["up", "down", "delete"]
           }]
@@ -174,6 +192,33 @@ define([
         this.sourceList.startup();
         this.own(on(this.sourceList, 'row-select', lang.hitch(this, this._onSourceItemSelected)));
         this.own(on(this.sourceList, 'row-delete', lang.hitch(this, this._onSourceItemRemoved)));
+
+        this.enableXYField = this._initCheckBox(this.enableXYField, this.nls.enableXYField, this.editXYFields);
+        this.own(on(this.editXYFields, 'click', lang.hitch(this, this._editFields)));
+
+      },
+
+      //addded for xy fields may simplify
+      _initCheckBox: function (domNode, nlsValue, editNode) {
+        domNode = new CheckBox({
+          checked: false,
+          label: nlsValue
+        }, domNode);
+        this._toggleNode(editNode, false);
+        this.own(on(domNode, 'change', lang.hitch(this, function () {
+          var enabled = domNode.getValue();
+          this.xyEnabled = enabled;
+          this._toggleNode(editNode, enabled);
+        })));
+        return domNode;
+      },
+
+      //addded for xy fields may simplify
+      _toggleNode: function (domNode, enable) {
+        if (domNode) {
+          html.removeClass(domNode, enable ? 'edit-fields-disabled' : 'edit-fields');
+          html.addClass(domNode, enable ? 'edit-fields' : 'edit-fields-disabled');
+        }
       },
 
       _addLayerRows: function () {
@@ -202,7 +247,8 @@ define([
         if (rowData && rowData.rdoLayer) {
           var editFields = new EditFields({
             nls: this.nls,
-            _layerInfo: this._getRowConfig(tr)
+            _layerInfo: this._getRowConfig(tr),
+            type: 'fieldInfos'
           });
           editFields.popupEditPage();
         } else {
@@ -251,6 +297,13 @@ define([
           var radio = query('input', tr.firstChild)[0];
           radio.checked = true;
         }
+
+        if (typeof (this.config.xyEnabled) !== 'undefined') {
+          this.xyEnabled = this.config.xyEnabled;
+          this.enableXYField.setValue(this.config.xyEnabled);
+        }
+
+        this._setXYFields(this.defaultXYFields, this.config);
       },
 
       _getEditablePointLayerInfos: function () {
@@ -323,7 +376,7 @@ define([
 
       _getWebmapFieldInfos: function (layerObject) {
         var fieldInfos = [];
-        var wFieldInfos = this.getFieldInfosFromWebmap(layerObject.id, this._operLayerInfos);
+        var wFieldInfos = this._getFieldInfosFromWebmap(layerObject.id, this._operLayerInfos);
         if (wFieldInfos) {
           array.forEach(wFieldInfos, function (fi) {
             if ((fi.isEditableOnLayer !== undefined && fi.isEditableOnLayer) &&
@@ -347,7 +400,7 @@ define([
         return fieldInfos;
       },
 
-      getFieldInfosFromWebmap: function(layerId, jimuLayerInfos) {
+      _getFieldInfosFromWebmap: function(layerId, jimuLayerInfos) {
         var fieldInfos = null;
         var jimuLayerInfo = jimuLayerInfos.getLayerInfoByTopLayerId(layerId);
         if(jimuLayerInfo) {
@@ -451,7 +504,35 @@ define([
         } else {
           this.config.layerInfos = checkedLayerInfos;
         }
+        this.config.xyFields = this.xyFields || this.config.defaultXYFields;
+        this.config.xyEnabled = this.xyEnabled;
         return this.config;
+      },
+
+      _editFields: function () {
+        if (this.xyEnabled) {
+          this._editXYFieldsTableValues(this.xyFields);
+        }
+      },
+
+      _editXYFieldsTableValues: function (fields) {
+        var editFields = new EditFields({
+          nls: this.nls,
+          type: 'locatorFields',
+          addressFields: fields || this.config.defaultXYFields,
+          popupTitle: this.nls.configureXYFields,
+          disableDisplayOption: true
+        });
+        this.own(on(editFields, 'edit-fields-popup-ok', lang.hitch(this, function () {
+          this.xyFields = editFields.fieldInfos;
+        })));
+        editFields.popupEditPage();
+      },
+
+      _setXYFields: function (xyFields, config) {
+        var useConfig = config && config.xyFields &&
+          config.xyFields.hasOwnProperty('length') && config.xyFields.length > 0;
+        this.xyFields = useConfig ? config.xyFields : xyFields;
       },
 
       _onAddClick: function (evt) {
@@ -461,18 +542,21 @@ define([
       _createNewLocatorSourceSettingFromMenuItem: function (setting, definition) {
         var locatorSetting = new LocatorSourceSetting({
           nls: this.nls,
-          map: this.map
+          map: this.map,
+          defaultXYFields: this.config.defaultXYFields
         });
         locatorSetting.setDefinition(definition);
         locatorSetting.setConfig({
           url: setting.url || "",
           name: setting.name || "",
           singleLineFieldName: setting.singleLineFieldName || "",
-          placeholder: setting.placeholder || "",
           countryCode: setting.countryCode || "",
-          zoomScale: setting.zoomScale || 50000,
-          maxSuggestions: setting.maxSuggestions || 6,
-          maxResults: setting.maxResults || 6,
+          addressFields: setting.addressFields || [],
+          singleAddressFields: setting.singleAddressFields || [],
+          xyFields: setting.xyFields || [],
+          singleEnabled: setting.singleEnabled || false,
+          multiEnabled: setting.multiEnabled || false,
+          xyEnabled: setting.xyEnabled || false,
           type: "locator"
         });
         locatorSetting._openLocatorChooser();
@@ -489,8 +573,12 @@ define([
               locatorSetting.setRelatedTr(addResult.tr);
               locatorSetting.placeAt(this.sourceSettingNode);
               this.sourceList.selectRow(addResult.tr);
-
               this._currentSourceSetting = locatorSetting;
+            }
+            var xy = query('.xy-table-no-locator');
+            if (xy.length > 0) {
+              html.removeClass(xy[0], 'xy-table-no-locator');
+              html.addClass(xy[0], 'xy-table');
             }
           }))
         );
@@ -519,21 +607,21 @@ define([
 
         this._currentSourceSetting = new LocatorSourceSetting({
           nls: this.nls,
-          map: this.map
+          map: this.map,
+          defaultXYFields: this.config.defaultXYFields
         });
         this._currentSourceSetting.setDefinition(definition);
         this._currentSourceSetting.setConfig({
           url: setting.url || "",
           name: setting.name || "",
           singleLineFieldName: setting.singleLineFieldName || "",
-          placeholder: setting.placeholder || "",
           countryCode: setting.countryCode || "",
-          zoomScale: setting.zoomScale || 50000,
-          maxSuggestions: setting.maxSuggestions || 6,
-          maxResults: setting.maxResults || 6,
-          enableLocalSearch: !!setting.enableLocalSearch,
-          localSearchMinScale: setting.localSearchMinScale,
-          localSearchDistance: setting.localSearchDistance,
+          addressFields: setting.addressFields,
+          singleAddressFields: setting.singleAddressFields,
+          xyFields: setting.xyFields,
+          singleEnabled: setting.singleEnabled,
+          multiEnabled: setting.multiEnabled,
+          xyEnabled: setting.xyEnabled,
           type: "locator"
         });
         this._currentSourceSetting.setRelatedTr(relatedTr);
@@ -559,6 +647,16 @@ define([
         if (currentTr === tr) {
           this._currentSourceSetting.destroy();
           this._currentSourceSetting = null;
+        }
+        var rows = this.sourceList.getRows();
+        if (rows.length > 0) {
+          this._onSourceItemSelected(rows[0]);
+        } else {
+          var xy = query('.xy-table');
+          if (xy.length > 0) {
+            html.removeClass(xy[0], 'xy-table');
+            html.addClass(xy[0], 'xy-table-no-locator');
+          }
         }
       },
 

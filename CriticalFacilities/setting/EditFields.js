@@ -18,29 +18,41 @@ define(['dojo/_base/declare',
     'dojo/_base/array',
     'dojo/query',
     'dojo/on',
+    'dojo/Evented',
+    'dojo/dom-construct',
+    'dijit/form/TextBox',
     'dijit/_TemplatedMixin',
     'jimu/BaseWidgetSetting',
     'jimu/dijit/SimpleTable',
     'jimu/dijit/Popup',
     './LookupList'
   ],
-  function (declare, lang, array, query, on, _TemplatedMixin, BaseWidgetSetting, SimpleTable, Popup, LookupList) {
-    return declare([BaseWidgetSetting, _TemplatedMixin], {
+  function (declare, lang, array, query, on, Evented, domConstruct, TextBox, _TemplatedMixin, BaseWidgetSetting, SimpleTable, Popup, LookupList) {
+    return declare([BaseWidgetSetting, _TemplatedMixin, Evented], {
       baseClass: "jimu-widget-setting-fields-critical-facilities",
       templateString: '<div><div data-dojo-attach-point="fieldsTable"></div></div>',
       _layerInfo: null,
       isRecognizedValues: null,
+      type: "",
+      addressFields: null,
 
       postCreate: function() {
         this.inherited(arguments);
         this.nls = lang.mixin(this.nls, window.jimuNls.common);
         this._initFieldsTable();
-        this._setFieldsTable(this._layerInfo.fieldInfos);
+
+        //Accepts data from a layers fieldInfos, the locators field definitions
+        if (this.type === 'fieldInfos') {
+          this.popupTitle = this.nls.configureFields;
+          this._setFieldsTable(this._layerInfo.fieldInfos);
+        } else {
+          this._setAddressFieldsTable(this.addressFields);
+        }
       },
 
-      popupEditPage: function() {
+      popupEditPage: function () {
         var fieldsPopup = new Popup({
-          titleLabel: this.nls.configureFields,
+          titleLabel: this.popupTitle,
           width: 640,
           maxHeight: 600,
           autoHeight: true,
@@ -50,15 +62,18 @@ define(['dojo/_base/declare',
             onClick: lang.hitch(this, function() {
               this._resetFieldInfos();
               fieldsPopup.close();
+              this.emit('edit-fields-popup-ok');
             })
           }, {
             label: this.nls.cancel,
             classNames: ['jimu-btn-vacation'],
             onClick: lang.hitch(this, function() {
               fieldsPopup.close();
+              this.emit('edit-fields-popup-cancel');
             })
           }],
-          onClose: lang.hitch(this, function() {
+          onClose: lang.hitch(this, function () {
+            this.emit('edit-fields-popup-close');
           })
         });
       },
@@ -68,7 +83,8 @@ define(['dojo/_base/declare',
           name: 'visible',
           title: this.nls.display,
           type: 'checkbox',
-          'class': 'display'
+          'class': 'display',
+          hidden: typeof (this.disableDisplayOption) === 'undefined' ? false : this.disableDisplayOption
         }, {
           name: 'fieldName',
           title: this.nls.editpageName,
@@ -76,8 +92,11 @@ define(['dojo/_base/declare',
         }, {
           name: 'label',
           title: this.nls.editpageAlias,
-          type: 'text',
-          editable: true
+          type: 'extension',
+          hidden: false,
+          create: lang.hitch(this, this._createTextBox),
+          setValue: lang.hitch(this, this._setTextValue),
+          getValue: lang.hitch(this, this._getTextValue)
         }, {
           name: 'actions',
           title: this.nls.actions,
@@ -93,7 +112,7 @@ define(['dojo/_base/declare',
         }, {
           name: 'isRecognizedValues',
           title: '',
-          type: 'extension', //doing this so I can store an array in the rowData
+          type: 'extension',
           hidden: true,
           create: lang.hitch(this, this._create),
           setValue: lang.hitch(this, this._setValue),
@@ -102,6 +121,7 @@ define(['dojo/_base/declare',
         this._fieldsTable = new SimpleTable({
           fields: fields,
           selectable: false,
+          autoHeight: true,
           style: {
             'height': '300px',
             'maxHeight': '300px'
@@ -114,9 +134,28 @@ define(['dojo/_base/declare',
           lang.hitch(this, this._onEditFieldsClick)));
       },
 
+      _createTextBox: function (td) {
+        //will default to field.name if blank
+        var labelBox = new TextBox({
+          style: {
+            'height': '85%',
+            'width': '100%'
+          }
+        });
+        td.labelBox = labelBox;
+        domConstruct.place(labelBox.domNode, td);
+      },
+
+      _setTextValue: function (td, value) {
+        td.labelBox.set('value', value);
+      },
+
+      _getTextValue: function (td) {
+        return td.labelBox.get('value');
+      },
+
       _create: function (td) {
-        //TODO could do something like this for the text box also rather than use the one from 
-        // SimpleTable if the double-click to edit thing is whacky
+
       },
 
       _setValue: function (td, fieldData) {
@@ -142,11 +181,29 @@ define(['dojo/_base/declare',
         }, this);
       },
 
+      _setAddressFieldsTable: function (fields) {
+        array.forEach(fields, function (field) {
+          var l = navigator.language.toLowerCase();
+          if (field.hasOwnProperty('fieldName') && field.hasOwnProperty('isRecognizedValues')) {
+            this._fieldsTable.addRow(field);
+          } else {
+            var locNames = field.localizedNames && field.hasOwnProperty(l);
+            var recNames = field.recognizedNames && field.recognizedNames.hasOwnProperty(l);
+            var recVals = field.isRecognizedValues;
+            this._fieldsTable.addRow({
+              fieldName: locNames ? field.localizedNames[l] : field.name,
+              label: locNames ? field.localizedNames[l] : field.alias,
+              visible: field.hasOwnProperty('visible') ? field.visible : false,
+              type: "STRING",
+              isRecognizedValues: recNames ? field.recognizedNames[l] : recVals ? field.isRecognizedValues : [field.name]
+            });
+          }
+        }, this);
+      },
+
       _onDisplayFieldChanged: function(tr) {
         var rowData = this._fieldsTable.getRowData(tr);
-        if (!rowData.visible) {
-          this._fieldsTable.editRow(tr, rowData);
-        }
+        this._fieldsTable.editRow(tr, rowData);
       },
 
       _onIsRecognizedListChanged: function (tr) {
@@ -161,13 +218,17 @@ define(['dojo/_base/declare',
         array.forEach(fieldsTableData, function(fieldData) {
           newFieldInfos.push({
             "fieldName": fieldData.fieldName,
-            "label": fieldData.label,
+            "label": fieldData.label !== "" ? fieldData.label : fieldData.fieldName,
             "visible": fieldData.visible,
             "type": fieldData.type,
             "isRecognizedValues": fieldData.isRecognizedValues
           });
         });
-        this._layerInfo.fieldInfos = newFieldInfos;
+        if (this.type === 'fieldInfos') {
+          this._layerInfo.fieldInfos = newFieldInfos;
+        } else {
+          this.fieldInfos = newFieldInfos;
+        }
       },
 
       _onEditFieldsClick: function (tr) {
