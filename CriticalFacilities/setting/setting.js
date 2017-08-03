@@ -76,10 +76,8 @@ define([
       //TODO add logic for needing at least one of the checkboxes checked...ok should disable
       //TODO figure out what's up with the css for all SimpleTable instances with the rows. I handled in some way for IS but it was not correct
 
-      //TODO design was not well recieved...too much white space...not really necessry to see
-      // multiple layers
-      //Plan for now is to move away from the tabs...give high level instruction at the top
-      // have a single drop down for selecting the layer 
+      //TODO disable ok if any validators are invalid
+
 
       //Questions
       //TODO should we support an option for configure user to mark certain fields as required or optional?
@@ -142,16 +140,28 @@ define([
       },
 
       _initSearchRadius: function () {
+        //set number
         if (typeof (this.config.searchRadiusNumber) !== 'undefined' && this.config.searchRadiusNumber !== NaN) {
           this.searchRadiusNumber.setValue(this.config.searchRadiusNumber);
         } else {
           this.searchRadiusNumber.setValue(2);
         }
+
+        //set units
+        var units = window.jimuNls.units;
+        var unitOptions = [];
+        array.forEach(['miles', 'kilometers', 'feet', 'meters', 'yards'], function (k) {
+          //need to persist but also set as feet for default if new config
+          unitOptions.push({ label: units[k], value: units[k], selected: k === 'feet' ? true : false});
+        });
+        this.searchRadiusUnit.addOption(unitOptions);
       },
 
       _initSymbolPicker: function () {
         //TODO set the stored value or show a default
         this.symbolPicker.showByType('marker');
+
+
       },
 
       _initUI: function () {
@@ -177,36 +187,6 @@ define([
         this._tabsContainer.startup();
       },
 
-      //_initLayersTable: function () {
-      //  this._layersTable = new SimpleTable({
-      //    fields: [{
-      //      name: 'rdoLayer',
-      //      title: this.nls.rdoLayer,
-      //      type: 'radio',
-      //      width: '250px',
-      //      'class': 'select'
-      //    }, {
-      //      name: 'txtLayerLabel',
-      //      title: this.nls.txtLayerLabel,
-      //      type: 'text'
-      //    }, {
-      //      name: 'actionFields',
-      //      title: this.nls.actionsLabel,
-      //      type: 'actions',
-      //      actions: ['edit'],
-      //      width: '250px'
-      //    }],
-      //    selectable: true
-      //  });
-      //  this._layersTable.placeAt(this.tableLayerInfos);
-      //  this._layersTable.startup();
-
-      //  this.own(on(this._layersTable, 'actions-edit',
-      //    lang.hitch(this, this._onEditFieldsClick)));
-
-      //  this._addLayerRows();
-      //},
-
       _createLayerChooserSelect: function (bindEvent) {
         if (this.layerChooserSelect) {
           this.layerChooserSelect.destroy();
@@ -228,6 +208,7 @@ define([
         if (bindEvent) {
           this.own(on(this.layerChooserSelect, 'selection-change', lang.hitch(this, function (l) {
             console.log(l);
+            this.layer = l;
           })));
         }
       },
@@ -626,6 +607,18 @@ define([
       },
 
       getConfig: function () {
+        //Layer Settings
+        this.config.layerSettings = {
+          layerID: this.layer.id,
+          symbol: this.symbolPicker.getSymbol(),
+          maxRecords: this.maxRecords.getValue(),
+          searchRadius: {
+            distance: this.searchRadiusNumber.getValue(),
+            unit: this.searchRadiusUnit.getValue()
+          }
+        };
+
+        //Location Settings
         if (this._currentSourceSetting) {
           this._closeSourceSetting();
         }
@@ -667,6 +660,8 @@ define([
         }
         this.config.xyFields = this.xyFields || this.config.defaultXYFields;
         this.config.xyEnabled = this.xyEnabled;
+
+        //search radius
         return this.config;
       },
 

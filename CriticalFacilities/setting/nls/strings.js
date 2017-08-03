@@ -66,7 +66,8 @@
     maxRecords: "Max records:",
     maxRecordsHint: "Max number of records to geocode",
     searchRadius: "Search radius:",
-    searchRadiusHint: "Distance to search for duplicate features from layer"
+    searchRadiusHint: "Distance to search for duplicate features from layer",
+    requiresInteger: "Please enter a numeric value."
   }),
   "ar": 0,
   "cs": 0,

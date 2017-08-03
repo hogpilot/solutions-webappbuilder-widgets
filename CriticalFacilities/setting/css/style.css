@@ -48,6 +48,14 @@
 .jimu-widget-setting-critical-facilities .dijitTextBox {
   width: 40%;
 }
+
+.jimu-widget-setting-critical-facilities .radiusSelect .dijitSelectLabel {
+  text-align: left;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  max-width: 120px;
+}
+
 /*.jimu-widget-setting-critical-facilities .control-padding {
   padding-left: 5%;
   padding-right: 5%;
