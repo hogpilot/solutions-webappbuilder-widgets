@@ -1,3 +1,10 @@
+/*Start Main Section*/
+.jimu-widget-setting-critical-facilities {
+  margin: 0;
+  padding: 0;
+  font-size: 15px;
+}
+
 .jimu-widget-setting-critical-facilities .main-section {
   width: 100%;
   height: 100%;
@@ -5,23 +12,17 @@
   font-size: 14px;
 }
 
-.jimu-widget-setting-critical-facilities .group-label{
-  display: inline-block;
-  margin-bottom: 10px;
-  font-weight: bold;
-}
-
 .jimu-widget-setting-critical-facilities .main-instruction {
   margin-top: 10px;
   margin-bottom: 10px;
 }
 
-.jimu-widget-setting-critical-facilities .instruction{
+.jimu-widget-setting-critical-facilities .instruction {
   margin-left: 10px;
   margin-top: 10px;
 }
 
-.jimu-widget-setting-critical-facilities .padTop20{
+.jimu-widget-setting-critical-facilities .padTop20 {
   padding-top: 20px;
 }
 
@@ -34,6 +35,50 @@
 .jimu-widget-setting-critical-facilities .hint-text-large {
   font-size: 14px;
   color: #596679;
+}
+
+.jimu-widget-setting-critical-facilities .display-none {
+  display: none;
+}
+
+.jimu-widget-setting-critical-facilities .display-block {
+  display: block;
+}
+
+.jimu-widget-setting-critical-facilities > tbody > tr > .second {
+  width: auto;
+}
+
+.jimu-widget-setting-critical-facilities .dijitArrowButtonContainer {
+  width: 17px;
+}
+
+.jimu-widget-setting-critical-facilities .dijitTextBoxFocused {
+  border-color: #406b9b !important;
+  box-shadow: 0 0 0;
+}
+
+.jimu-widget-setting-critical-facilities .jimu-checkbox .label {
+  cursor: pointer;
+}
+
+.jimu-widget-setting-critical-facilities .pad-sides {
+  padding-left: 20px;
+  padding-right: 20px;
+}
+
+/*End Main Section*/
+/*------------------------------------------------------------------------------------------------------------*/
+
+/*Start Layer Section*/
+.jimu-widget-setting-critical-facilities .layer-table {
+  table-layout: fixed;
+  border-collapse: collapse;
+  margin: 10px 10px 10px 10px;
+}
+
+.jimu-widget-setting-critical-facilities .layer-table > tbody > tr > td {
+  padding: 5px 10px;
 }
 
 .jimu-widget-setting-critical-facilities .search-radius {
@@ -69,16 +114,72 @@
   padding-bottom: 1px;
   border: 0px solid #D7D7D7;
 }
+/*End Layer Section*/
+/*------------------------------------------------------------------------------------------------------------*/
+
+/*Start used anymore Section???*/
+/*.jimu-widget-setting-critical-facilities .group-label{
+  display: inline-block;
+  margin-bottom: 10px;
+  font-weight: bold;
+}
+
+.jimu-widget-SAT-setting .setting-Label {
+  padding-top: 15px;
+  font-weight: bold;
+}
+
+.jimu-widget-setting-critical-facilities .editable {
+  width: 100px;
+}
+
+.jimu-widget-setting-critical-facilities .update {
+  width: 200px;
+}
+
+.jimu-widget-setting-critical-facilities .setting-table > thead > tr > th,
+.jimu-widget-setting-critical-facilities .setting-table > tbody > tr > td {
+  height: 40px;
+  line-height: 40px;
+  vertical-align: middle;
+}
+
+.jimu-widget-setting-critical-facilities .input-table > tbody > tr > .first {
+  width: auto;
+  min-width: 160px;
+  text-align: left;
+}
+
+.jimu-widget-setting-critical-facilities .input-table > tbody > tr > .first {
+  text-align: right;
+}
+
+.jimu-widget-setting-critical-facilities .input-table > tbody > tr > .second > span {
+  display: inline-block;
+  height: 40px;
+  line-height: 40px;
+}
+
+.jimu-widget-setting-critical-facilities .toolbar-options-tr {
+  position: relative;
+}
+
+.jimu-widget-setting-critical-facilities .toolbar-options-tr.disable {
+  opacity: 0.4;
+}
+
+.jimu-widget-setting-critical-facilities .toolbar-options-coverage {
+  position: absolute;
+  width: 390px;
+  height: 40px;
+  z-index: 1;
+}*/
+
+/*End used anymore Section???*/
+/*------------------------------------------------------------------------------------------------------------*/
+
 
 /*Start Geocode Section*/
-.jimu-widget-setting-critical-facilities .display-none {
-  display: none;
-}
-
-.jimu-widget-setting-critical-facilities .display-block {
-  display: block;
-}
-
 .jimu-widget-setting-critical-facilities .add-button {
   margin: 8px 0;
   display: inline-block;
@@ -207,6 +308,7 @@
   width: 580px !important;
   min-height: 150px !important;
 }
+
 .override-geocode-service-chooser-content .service-browser-container{
   display: none;
 }
@@ -239,83 +341,55 @@
 .jimu-widget-critical-facilities .jimu-widget-setting-critical-facilities .hide-local-search-table {
   display: none;
 }
-/*End Geocode Section*/
 
-.jimu-widget-SAT-setting .setting-Label {
-  padding-top: 15px;
-  font-weight: bold;
-}
-
-.jimu-widget-setting-critical-facilities{
-  margin:0;
-  padding:0;
-  font-size:15px;
-}
-
-.jimu-widget-setting-critical-facilities .editable{
-  width: 100px;
-}
-
-.jimu-widget-setting-critical-facilities .edit-fields{
-  width: 100px;
-}
-
-.jimu-widget-setting-critical-facilities .update{
-  width: 200px;
-}
-
-.jimu-widget-setting-critical-facilities .setting-table > thead > tr > th,
-.jimu-widget-setting-critical-facilities .setting-table > tbody > tr > td{
-  height:40px;
-  line-height:40px;
-  vertical-align:middle;
-}
-
-.jimu-widget-setting-critical-facilities .input-table > tbody > tr > .first{
-  width:auto;
-  min-width: 160px;
-  text-align: left;
-}
-
-.jimu-widget-setting-critical-facilities .input-table > tbody > tr > .first{
-  text-align: right;
-}
-
-.jimu-widget-setting-critical-facilities > tbody > tr > .second{
-  width: auto;
-}
-
-
-.jimu-widget-setting-critical-facilities .input-table > tbody > tr > .second > span{
-  display: inline-block;
-  height: 40px;
-  line-height: 40px;
-}
-
-.jimu-widget-setting-critical-facilities .dijitArrowButtonContainer{
-  width: 17px;
-}
-
-.jimu-widget-setting-critical-facilities .toolbar-options-tr {
+.jimu-widget-setting-critical-facilities .xy-table-no-locator {
   position: relative;
+  padding-left: 34px;
 }
 
-.jimu-widget-setting-critical-facilities .toolbar-options-tr.disable {
-  opacity: 0.4;
+.jimu-widget-setting-critical-facilities .xy-table {
+  position: relative;
+  width: 100%;
 }
 
-.jimu-widget-setting-critical-facilities .toolbar-options-coverage{
-  position: absolute;
-  width: 390px;
-  height: 40px;
-  z-index: 1;
+.jimu-rtl .jimu-widget-setting-critical-facilities .xy-table-no-locator {
+  position: relative;
+  padding-right: 34px;
 }
 
-.jimu-widget-setting-critical-facilities .dijitTextBoxFocused{
-  border-color: #406b9b !important;
-  box-shadow: 0 0 0;
+.jimu-widget-setting-critical-facilities .xy-table > tbody > tr > td > .tip {
+  font-size: 12px;
+  color: #999;
+  width: 100%;
+  display: inline-block;
 }
 
+.jimu-widget-setting-critical-facilities .xy-table > tbody > tr {
+  margin: 10px;
+  cursor: default;
+}
+
+.jimu-widget-setting-critical-facilities .xy-table > tbody > tr:hover > td .edit-fields {
+  background-image: url(images/edit_default.png);
+}
+
+.jimu-widget-setting-critical-facilities .xy-table > tbody > tr:hover > td .edit-fields:hover {
+  background-image: url(images/edit_hover.png);
+}
+
+.jimu-widget-setting-critical-facilities .xy-table > tbody > tr:hover > td .edit-fields-disabled {
+  display: block;
+  width: 25px;
+  height: 25px;
+  background-image: url(images/edit_disabled.png);
+  cursor: default;
+}
+
+
+/*End Geocode Section*/
+/*------------------------------------------------------------------------------------------------------------*/
+
+/*Start Fields Section*/
 .jimu-widget-setting-critical-facilities .is-recognized-add-button {
   margin: 8px 0;
   display: block;
@@ -330,12 +404,16 @@
   background: url(images/add_hover.png) no-repeat left;
 }
 
-.jimu-widget-setting-critical-facilities .is-recognized-source-list{
+.jimu-widget-setting-critical-facilities .is-recognized-source-list {
   height: 300px;
 }
 
-.jimu-widget-setting-critical-facilities .is-recognized-source-list{
+.jimu-widget-setting-critical-facilities .is-recognized-source-list {
   height: 300px;
+}
+
+.jimu-widget-setting-critical-facilities .edit-fields {
+  width: 100px;
 }
 
 .jimu-widget-setting-critical-facilities .edit-fields {
@@ -379,80 +457,11 @@
   cursor: default;
 }
 
-.jimu-widget-setting-critical-facilities .jimu-checkbox .label{
-  cursor: pointer;
-}
-
-.jimu-widget-setting-critical-facilities .fields-table > tbody > tr > td > .tip{
+.jimu-widget-setting-critical-facilities .fields-table > tbody > tr > td > .tip {
   font-size: 12px;
   color: #999;
   width: 100%;
   display: inline-block;
-}
-
-.jimu-widget-setting-critical-facilities .pad-sides {
-  padding-left: 20px;
-  padding-right: 20px;
-}
-
-.jimu-widget-setting-critical-facilities .xy-table{
-  position: relative;
-  width: 100%;
-}
-
-/*.jimu-rtl .jimu-widget-setting-critical-facilities .xy-table{
-  position: relative;
-  padding-right: 304px;
-}*/
-
-.jimu-widget-setting-critical-facilities .xy-table-no-locator{
-  position: relative;
-  padding-left: 34px;
-}
-
-.jimu-rtl .jimu-widget-setting-critical-facilities .xy-table-no-locator{
-  position: relative;
-  padding-right: 34px;
-}
-
-.jimu-widget-setting-critical-facilities .xy-table > tbody > tr > td > .tip{
-  font-size: 12px;
-  color: #999;
-  width: 100%;
-  display: inline-block;
-}
-
-.jimu-widget-setting-critical-facilities .xy-table > tbody > tr {
-  margin: 10px;
-  cursor: default;
-}
-
-.jimu-widget-setting-critical-facilities .xy-table > tbody > tr:hover > td .edit-fields {
-  background-image: url(images/edit_default.png);
-}
-
-.jimu-widget-setting-critical-facilities .xy-table > tbody > tr:hover > td .edit-fields:hover {
-  background-image: url(images/edit_hover.png);
-}
-
-.jimu-widget-setting-critical-facilities .xy-table > tbody > tr:hover > td .edit-fields-disabled {
-  display: block;
-  width: 25px;
-  height: 25px;
-  background-image: url(images/edit_disabled.png);
-  cursor: default;
-}
-
-
-/*new table*/
-.jimu-widget-setting-critical-facilities .layer-table {
-  table-layout: fixed;
-  border-collapse: collapse;
-  margin: 10px 10px 10px 10px;
-}
-
-.jimu-widget-setting-critical-facilities .layer-table > tbody > tr > td {
-  padding: 5px 10px;
 }
 
 .jimu-widget-setting-critical-facilities .settings-field-set {
@@ -470,14 +479,10 @@
   margin-left: 20px;
 }
 
+/*End Fields Section*/
+/*------------------------------------------------------------------------------------------------------------*/
 
-/*test*/
-
-
-/*.jimu-widget-setting-critical-facilities .dijitSelect {
-
-}*/
-
+/*Start Dojo override section*/
 .jimu-widget-setting-critical-facilities .dijitSelect .dijitArrowButton {
   background-color: #ffffff;
 }
@@ -490,7 +495,6 @@
   border: 0px solid #ffffff;
 }
 
-
 .jimu-widget-setting-critical-facilities .dijitSelect .dijitArrowButtonInner, .jimu-widget-setting-critical-facilities .dijitComboBox .dijitArrowButtonInner .jimu-widget-setting-critical-facilities .dijitButtonContents {
   border-style: none;
 }
@@ -499,9 +503,9 @@
   border-style: none;
 }
 
-  .jimu-widget-setting-critical-facilities .dijitSelectFocused .dijitButtonContents {
-    border-style: none;
-  }
+.jimu-widget-setting-critical-facilities .dijitSelectFocused .dijitButtonContents {
+  border-style: none;
+}
 
 .jimu-widget-setting-critical-facilities .dijitSelectFocused .dijitArrowButton {
  background-image: none;
@@ -526,7 +530,10 @@
   border-color: #aaaaaa;
 }
 
-/*css for layer chooser*/
+/*End Dojo override section*/
+/*------------------------------------------------------------------------------------------------------------*/
+
+/*Start sample css for layer chooser*/
 /*.jimu-widget-setting-critical-facilities {
   position: relative;
   height: 30px;
@@ -583,4 +590,5 @@
     border-right: 0 !important;
   }*/
 
-/*test*/
+/*End sample css for layer chooser*/
+/*------------------------------------------------------------------------------------------------------------*/

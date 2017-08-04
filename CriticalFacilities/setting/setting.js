@@ -37,10 +37,11 @@ define([
   'dijit/form/Select',
   'dijit/form/ValidationTextBox',
   'jimu/dijit/CheckBox',
-  'jimu/dijit/LayerChooserFromMap',
   'jimu/dijit/LayerChooserFromMapWithDropbox',
+  './EditablePointFeatureLayerChooserFromMap',
   'dojo/dom-construct',
-  'dojo/dom-style'
+  'dojo/dom-style',
+  'esri/symbols/jsonUtils'
 ],
   function (
     declare,
@@ -65,26 +66,29 @@ define([
     Select,
     ValidationTextBox,
     CheckBox,
-    LayerChooserFromMap,
     LayerChooserFromMapSelect,
+    EditablePointFeatureLayerChooserFromMap,
     domConstruct,
-    domStyle) {
+    domStyle,
+    jsonUtils) {
     return declare([BaseWidgetSetting, _WidgetsInTemplateMixin], {
       baseClass: 'jimu-widget-setting-critical-facilities',
 
+      //TODO persist values and reload correctly
       //TODO disable OK when no layer is selected
       //TODO add logic for needing at least one of the checkboxes checked...ok should disable
       //TODO figure out what's up with the css for all SimpleTable instances with the rows. I handled in some way for IS but it was not correct
-
+      //TODO update validation logic for the validation controls for max and search dist
       //TODO disable ok if any validators are invalid
-
+      //TODO do like some of the other controls that use this layer chooser and have it expanded on startup when no value has been specified by the user
+      //TODO get fields from the layer selected in the layer chooser
+      //TODO need to get the fields lists for single or multi back within the LocatorSourceSetting since they need to be stored for each locator
 
       //Questions
       //TODO should we support an option for configure user to mark certain fields as required or optional?
       
       _operLayerInfos: null,
       _layersTable: null,
-      _editablePointLayerInfos: null,
       _arrayOfFields: null,
       _layerInfos: [],
 
@@ -101,8 +105,6 @@ define([
           .then(lang.hitch(this, function (operLayerInfos) {
             this._operLayerInfos = operLayerInfos;
 
-            //TODO handle this in custom filter for LayerChooserFrmMap
-            this._editablePointLayerInfos = this._getEditablePointLayerInfos();
             this._initUI();
             _utils.setMap(this.map);
             _utils.setLayerInfosObj(this._operLayerInfos);
@@ -134,34 +136,35 @@ define([
       },
 
       _initMaxRecords: function () {
-        if (typeof(this.config.maxRecords) !== 'undefined' && this.config.maxRecords !== NaN) {
-          this.maxRecords.value = this.config.maxRecords;
-        }
+        var ls = this.config.layerSettings;
+        this.maxRecords.setValue((ls && ls.maxRecords && ls.maxRecords !== NaN) ? ls.maxRecords : undefined);
       },
 
       _initSearchRadius: function () {
-        //set number
-        if (typeof (this.config.searchRadiusNumber) !== 'undefined' && this.config.searchRadiusNumber !== NaN) {
-          this.searchRadiusNumber.setValue(this.config.searchRadiusNumber);
-        } else {
-          this.searchRadiusNumber.setValue(2);
-        }
+        var ls = this.config.layerSettings;
+
+        //set distance
+        this.searchDistance.setValue((ls && ls.distance && ls.distance !== NaN) ? ls.distance : 2);
 
         //set units
-        var units = window.jimuNls.units;
+        var units = window.jimuNls.units;      
+        var validUnits = ['miles', 'kilometers', 'feet', 'meters', 'yards'];
+        var defaultUnit = (ls && ls.unit && validUnits.indexOf(ls.unit) > -1) ? ls.unit : 'feet';
         var unitOptions = [];
-        array.forEach(['miles', 'kilometers', 'feet', 'meters', 'yards'], function (k) {
-          //need to persist but also set as feet for default if new config
-          unitOptions.push({ label: units[k], value: units[k], selected: k === 'feet' ? true : false});
+        array.forEach(validUnits, function (k) {
+          unitOptions.push({ label: units[k], value: k, selected: k === defaultUnit ? true : false});
         });
-        this.searchRadiusUnit.addOption(unitOptions);
+        this.searchUnit.addOption(unitOptions);
       },
 
       _initSymbolPicker: function () {
-        //TODO set the stored value or show a default
-        this.symbolPicker.showByType('marker');
-
-
+        
+        if (this.config.layerSettings && this.config.layerSettings.symbol) {
+          //TODO any way to check this is a valid symbol?
+          this.symbolPicker.showBySymbol(jsonUtils.fromJson(this.config.layerSettings.symbol));
+        } else {
+          this.symbolPicker.showByType('marker');
+        }
       },
 
       _initUI: function () {
@@ -193,9 +196,11 @@ define([
         }
         this.layerChooserSelect = null;
 
-        var layerChooserFromMap = new LayerChooserFromMap({
+        var layerChooserFromMap = new EditablePointFeatureLayerChooserFromMap({
           multiple: false,
-          filter: LayerChooserFromMap.createFeaturelayerFilter([], false, false),
+          showLayerFromFeatureSet: false,
+          showTable: false,
+          onlyShowVisible: false,
           createMapResponse: this.map.webMapResponse
         });
         layerChooserFromMap.startup();
@@ -208,7 +213,8 @@ define([
         if (bindEvent) {
           this.own(on(this.layerChooserSelect, 'selection-change', lang.hitch(this, function (l) {
             console.log(l);
-            this.layer = l;
+            //TODO make sure this is the expected way to get the layer when you have morethan one in the map
+            this.layer = l[0];
           })));
         }
       },
@@ -338,26 +344,26 @@ define([
         }
       },
 
-      _addLayerRows: function () {
-        if (this._editablePointLayerInfos) {
-          array.forEach(this._editablePointLayerInfos, lang.hitch(this, function (layerInfo) {
-            var addRowResult = this._layersTable.addRow({
-              txtLayerLabel: layerInfo.featureLayer.title,
-              url: layerInfo.url
-            });
-            if (addRowResult && addRowResult.success) {
-              this._setRowConfig(addRowResult.tr, layerInfo);
-            } else {
-              console.error("add row failed ", addRowResult);
-            }
-          }));
-        } else {
-          this._disableOk();
-          new Message({
-            message: this.nls.needsEditablePointLayers
-          });
-        }
-      },
+      //_addLayerRows: function () {
+      //  if (this._editablePointLayerInfos) {
+      //    array.forEach(this._editablePointLayerInfos, lang.hitch(this, function (layerInfo) {
+      //      var addRowResult = this._layersTable.addRow({
+      //        txtLayerLabel: layerInfo.featureLayer.title,
+      //        url: layerInfo.url
+      //      });
+      //      if (addRowResult && addRowResult.success) {
+      //        this._setRowConfig(addRowResult.tr, layerInfo);
+      //      } else {
+      //        console.error("add row failed ", addRowResult);
+      //      }
+      //    }));
+      //  } else {
+      //    this._disableOk();
+      //    new Message({
+      //      message: this.nls.needsEditablePointLayers
+      //    });
+      //  }
+      //},
 
       _onEditFieldsClick: function (tr) {
         var rowData = this._layersTable.getRowData(tr);
@@ -396,6 +402,10 @@ define([
           }
         }));
 
+        //setTimeout(lang.hitch(this, function () {
+        this.layerChooserSelect.showLayerChooser();
+        //}), 50);
+
         //var trs = this._layersTable.getRows();
         //var tr;
         //if (this.config.layerInfos && this.config.layerInfos.hasOwnProperty(0)) {
@@ -415,11 +425,7 @@ define([
         //  radio.checked = true;
         //}
 
-        if (!this.config.defaultXYFields) {
-          this._setDefaultXYFields();
-        }
-
-        //May move these to setConfig
+        //Layer Settings
         this._initSymbolPicker();
         this._initMaxRecords();
         this._initSearchRadius();
@@ -440,6 +446,11 @@ define([
         this._toggleContainerNode((this.singleEnabled || this.multiEnabled) ? true : false);
 
 
+        //X/Y settings
+        if (!this.config.defaultXYFields) {
+          this._setDefaultXYFields();
+        }
+
         if (typeof (this.config.xyEnabled) !== 'undefined') {
           this.xyEnabled = this.config.xyEnabled;
           this.enableXYField.setValue(this.config.xyEnabled);
@@ -448,24 +459,24 @@ define([
         this._setXYFields(this.defaultXYFields, this.config);
       },
 
-      _getEditablePointLayerInfos: function () {
-        var editableLayerInfos = [];
-        for (var i = this.map.graphicsLayerIds.length - 1; i >= 0; i--) {
-          var layerObject = this.map.getLayer(this.map.graphicsLayerIds[i]);
-          if (layerObject.type === "Feature Layer" &&
-              layerObject.url &&
-              layerObject.isEditable &&
-              layerObject.isEditable() &&
-              layerObject.geometryType === "esriGeometryPoint") {
-            var layerInfo = this._getLayerInfoFromConfiguration(layerObject);
-            if (!layerInfo) {
-              layerInfo = this._getDefaultLayerInfo(layerObject);
-            }
-            editableLayerInfos.push(layerInfo);
-          }
-        }
-        return editableLayerInfos;
-      },
+      //_getEditablePointLayerInfos: function () {
+      //  var editableLayerInfos = [];
+      //  for (var i = this.map.graphicsLayerIds.length - 1; i >= 0; i--) {
+      //    var layerObject = this.map.getLayer(this.map.graphicsLayerIds[i]);
+      //    if (layerObject.type === "Feature Layer" &&
+      //        layerObject.url &&
+      //        layerObject.isEditable &&
+      //        layerObject.isEditable() &&
+      //        layerObject.geometryType === "esriGeometryPoint") {
+      //      var layerInfo = this._getLayerInfoFromConfiguration(layerObject);
+      //      if (!layerInfo) {
+      //        layerInfo = this._getDefaultLayerInfo(layerObject);
+      //      }
+      //      editableLayerInfos.push(layerInfo);
+      //    }
+      //  }
+      //  return editableLayerInfos;
+      //},
 
       _getLayerInfoFromConfiguration: function (layerObject) {
         var layerInfo = null;
@@ -610,12 +621,10 @@ define([
         //Layer Settings
         this.config.layerSettings = {
           layerID: this.layer.id,
-          symbol: this.symbolPicker.getSymbol(),
+          symbol: this.symbolPicker.getSymbol().toJson(),
           maxRecords: this.maxRecords.getValue(),
-          searchRadius: {
-            distance: this.searchRadiusNumber.getValue(),
-            unit: this.searchRadiusUnit.getValue()
-          }
+          distance: this.searchDistance.getValue(),
+          unit: this.searchUnit.getValue()
         };
 
         //Location Settings
