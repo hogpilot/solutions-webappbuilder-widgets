@@ -145,6 +145,14 @@ define([
 
       cc.placeAt(this.outputtablecontainer, "after", this.outputtablesubtitle);
       cc.startup();
+      
+      //make sure the new children are aware of the current widget state
+      var info = {
+        state: this.state,
+        themeName: this.appConfig.theme.name,
+        isActive: true
+      };
+      dojoTopic.publish('CRDWIDGETSTATEDIDCHANGE', info);
     },
 
     /**

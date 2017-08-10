@@ -722,7 +722,8 @@ define([
         this.widgetInfo.themeName === 'DashboardTheme') {
         isGood = true;
       }
-      if (this.widgetInfo.widgetState === 'opened' &&
+      if ((this.widgetInfo.widgetState === 'active' ||
+        this.widgetInfo.widgetState === 'opened') &&
         this.widgetInfo.themeName !== 'DashboardTheme') {
         isGood = true;
       }
