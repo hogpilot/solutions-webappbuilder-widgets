@@ -52,6 +52,7 @@ define([
   "jimu/dijit/TabContainer",
   "dojo/dom",
   "dojo/has",
+  'jimu/utils',
   "dojo/sniff"
 ], function (
   declare,
@@ -90,7 +91,8 @@ define([
   Query,
   JimuTabContainer,
   dom,
-  has
+  has,
+  utils
 ) {
   return declare([BaseWidget], {
     baseClass: 'jimu-widget-NetworkTrace',
@@ -157,6 +159,7 @@ define([
         this.panelManager = PanelManager.getInstance();
         this._enhanceTabThemeStyle();
         this._enhanceDartThemeStyle();
+        this._setTheme();
         widgetPanel = query(".jimu-widget-NetworkTrace")[0];
         if (widgetPanel) {
           style.set(widgetPanel, {
@@ -185,7 +188,21 @@ define([
       }, this.tabContainerNetworkTrace);
       this._tabContainer.startup();
     },
-
+    /*jshint unused:true */
+    _setTheme: function () {
+     
+      var styleLink;
+      if (this.appConfig.theme.name === "DartTheme") {
+        utils.loadStyleLink('dartOverrideCSS', this.folderUrl + "/css/dartTheme.css", null);
+      }
+      else {
+        styleLink = document.getElementById("dartOverrideCSS");
+        if (styleLink) {
+          styleLink.disabled = true;
+        }
+      }
+     
+    },
     destroy: function () {
       this._clearResults();
       this._removeAllGraphicLayers();
@@ -683,6 +700,23 @@ define([
         });
       });
     },
+    _onSelectAllCSV: function () {
+      array.forEach(this.checkBoxCSV, function (checkBox) {
+        //checkBox.setValue(true);
+        checkBox.check();
+      });
+
+   
+    },
+    _onSelectAll: function () {
+      array.forEach(this.saveCheckBoxs, function (checkBox) {
+        //checkBox.setValue(true);
+        checkBox.check();
+      });
+      this._displayOutageAreaDetail();
+      
+    },
+
     /**
     *This Function is used to save layer which type is result.
     **/
@@ -831,6 +865,7 @@ define([
     *This function will execute when User click on 'Export to CSV icon' .
     **/
     _displayExportToCSVPanel: function () {
+      this.checkBoxCSV = [];
       var labelText, saveButton, checkboxDiv, btnExportToLayerDiv,
         exportToLayerCheckBox;
       domConstruct.empty(this.exportToCSVBottomDiv);
@@ -845,6 +880,7 @@ define([
             "name": output.paramName,
             "class": "esriCTChkExportToLayer"
           }, domConstruct.create("div", {}, checkboxDiv));
+          this.checkBoxCSV.push(exportToLayerCheckBox);
           exportToLayerCheckBox.title = output.paramName;
           domAttr.set(exportToLayerCheckBox.domNode, "ObJID",
             output.paramName);
@@ -1045,6 +1081,8 @@ define([
     *This function is used to display 'Save to Layer' panel.
     **/
     _displaySaveLayerPanel: function () {
+      this.saveCheckBoxs = [];
+
       var otherLayercheckBox, checkboxDiv, overviewLayerFields,
         overviewLayerInfos;
       domConstruct.empty(this.outageCheckBoxDiv);
@@ -1063,6 +1101,7 @@ define([
           "class": "clearInstance saveToLayerData",
           "style": "float: left;"
         }, this.outageAreaDiv);
+        this.saveCheckBoxs.push(this.CheckBoxOutageArea);
         this.CheckBoxOutageArea.title = this.nls.outageAreaLabel;
         domConstruct.create("label", {
           "innerHTML": this.nls.outageAreaLabel,
@@ -1114,7 +1153,7 @@ define([
               "class": "saveToLayerData",
               "style": "float: left;"
             }, domConstruct.create("div", {}, checkboxDiv));
-
+            this.saveCheckBoxs.push(otherLayercheckBox);
             domConstruct.create("label", {
               "class": "esriCTChkLabel",
               "innerHTML": output.panelText
@@ -1178,7 +1217,7 @@ define([
       }
 
       return array.filter(fieldInfo, function (field) {
-        return field.isEditable;
+        return field.visible;
       });
     },
 
