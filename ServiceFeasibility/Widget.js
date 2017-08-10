@@ -1844,12 +1844,14 @@ define([
     * @params{object}routes: object containing the information of closest route
     * @memberOf widgets/ServiceFeasibility/Widget
     **/
-    getLengthOfGeometry: function (geometry) {
+    getLengthOfGeometry: function (geometry, lengthUnit) {
       var length, simplifiedGeometry;
       length = 0;
       if (geometry.spatialReference) {
-        lengthUnit = scaleUtils.getUnitValueForSR(geometry.spatialReference);
-       
+        if (lengthUnit == null)
+        {
+          lengthUnit = scaleUtils.getUnitValueForSR(geometry.spatialReference);
+        }
         simplifiedGeometry = geometryEngine.simplify(geometry);
         if (simplifiedGeometry) {
           //Check if feature's SpatialReference is webMercator or non-webMercator
@@ -1873,11 +1875,15 @@ define([
         routeLayerInfos = [],
         routeFieldInfo = [],
         variable, resultVariable, result, routeGeometry;
-      
-      this._routeLength = this.getLengthOfGeometry(routes.geometry);
+      var lengthUnit = null;
+      if (this.config && this.config.routeLengthEsriUnits && this.config.routeLengthEsriUnits != -1) {
+        lengthUnit = this.config.routeLengthEsriUnits
+      }
+      this._routeLength = this.getLengthOfGeometry(routes.geometry, lengthUnit);
       if (this._routeLength === null) {
         this._routeLength = routes.attributes.Shape_Length;
       }
+      this._routeLength = this._calculateRouteUnit(this._routeLength);
       variable = this._routeLength;
       if (this.config && this.config.LabelForBox) {
         this.lblForBox.innerHTML = this.config.LabelForBox;
