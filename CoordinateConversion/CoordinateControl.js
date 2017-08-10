@@ -310,8 +310,7 @@ define([
       if (isCanceled) {
         return;
       }
-      var fv =
-        this._frmtdlg.content.frmtSelect.options[this._frmtdlg.content.frmtSelect.selectedIndex].value;
+      var fv = this._frmtdlg.content.ct;
       if (this.type !== fv) {
         this.type = fv;
         this.updateDisplay();
@@ -774,7 +773,8 @@ define([
      **/
     formatButtonWasClicked: function () {
       this._frmtdlg.content.set('ct', this.type);
-
+      this._frmtdlg.content.ct = this.type;
+      console.log(this._frmtdlg.content.ct)
       dijitPopup.open({
         popup: this._frmtdlg,
         around: this.formatButton
