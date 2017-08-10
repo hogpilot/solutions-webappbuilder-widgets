@@ -774,7 +774,6 @@ define([
     formatButtonWasClicked: function () {
       this._frmtdlg.content.set('ct', this.type);
       this._frmtdlg.content.ct = this.type;
-      console.log(this._frmtdlg.content.ct)
       dijitPopup.open({
         popup: this._frmtdlg,
         around: this.formatButton
