@@ -1848,10 +1848,11 @@ define([
       var length, simplifiedGeometry;
       length = 0;
       if (geometry.spatialReference) {
-        if (lengthUnit == null)
-        {
-          lengthUnit = scaleUtils.getUnitValueForSR(geometry.spatialReference);
-        }
+        //Used to get unit of feature, but not needed as if omited, geometry unit is returned
+        //if (lengthUnit == null)
+        //{
+        //  lengthUnit = scaleUtils.getUnitValueForSR(geometry.spatialReference);
+        // }
         simplifiedGeometry = geometryEngine.simplify(geometry);
         if (simplifiedGeometry) {
           //Check if feature's SpatialReference is webMercator or non-webMercator
