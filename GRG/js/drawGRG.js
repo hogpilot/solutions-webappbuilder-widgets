@@ -127,7 +127,7 @@ define([
         
         if(gridStyle == "default") { 
           var BL = startPoint;
-          var TL = geometryUtils.getDestinationPoint(BL, 0 + angle, cellHeight)
+          var TL = geometryUtils.getDestinationPoint(BL, 0 + angle, cellHeight);
           var TR = geometryUtils.getDestinationPoint(TL, 90 + angle, cellWidth);
           var BR = geometryUtils.getDestinationPoint(TR, 180 + angle, cellHeight);
           polygon.addRing([[BL.x,BL.y],[TL.x,TL.y],[TR.x,TR.y],[BR.x,BR.y]]);
