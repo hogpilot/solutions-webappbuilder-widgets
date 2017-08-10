@@ -16,148 +16,165 @@
 
 /*global define*/
 define([
-    'dojo/_base/declare',
-    'dojo/_base/lang',
-    'dojo/dom-style',
-    'dojo/on',
-    'dojo/topic',
-    'dojo/dom-attr',
-    'dijit/_WidgetBase',
-    'dijit/_TemplatedMixin',
-    'dijit/_WidgetsInTemplateMixin',
-    'dojo/text!./EditOutputCoordinate.html',
-    'dijit/form/Select',
-    'jimu/dijit/CheckBox'
+  'dojo/_base/declare',
+  'dojo/_base/lang',
+  'dojo/dom-style',
+  'dojo/on',
+  'dojo/dom-attr',
+  'dijit/_WidgetBase',
+  'dijit/_TemplatedMixin',
+  'dijit/_WidgetsInTemplateMixin',
+  'dojo/text!./EditOutputCoordinate.html',
+  'dijit/form/Select',
+  'jimu/dijit/CheckBox'
 ], function (
-    dojoDeclare,
-    dojoLang,
-    dojoDomStyle,
-    dojoOn,
-    dojoTopic,
-    dojoDomAttr,
-    dijitWidgetBase,
-    dijitTemplatedMixin,
-    dijitWidgetsInTemplate,
-    edittemplate
+  dojoDeclare,
+  dojoLang,
+  dojoDomStyle,
+  dojoOn,
+  dojoDomAttr,
+  dijitWidgetBase,
+  dijitTemplatedMixin,
+  dijitWidgetsInTemplate,
+  edittemplate
 ) {
-    'use strict';
-    return dojoDeclare([dijitWidgetBase, dijitTemplatedMixin, dijitWidgetsInTemplate], {
-        templateString: edittemplate,
+  'use strict';
+  return dojoDeclare([dijitWidgetBase, dijitTemplatedMixin, dijitWidgetsInTemplate], {
+    templateString: edittemplate,
+    isCanceled: false,
+    formats: {},
 
-        formats: {
+    ct: 'DD',
 
+    _setCtAttr: function (v) {
+      this.frmtSelect.value = v;
+    },
+
+    /**
+     *
+     **/
+    postCreate: function () {
+      this.formats = {
+        DD: {
+          defaultFormat: 'YN XE',
+          customFormat: null,
+          useCustom: false
         },
-
-        ct: 'DD',
-        
-        _setCtAttr: function (v) {
-            this.frmtSelect.set('value', v);
+        DDM: {
+          defaultFormat: 'A° B\'N X° Y\'E',
+          customFormat: null,
+          useCustom: false
         },
-
-        /**
-         *
-         **/
-        postCreate: function () {
-          this.formats = {
-            DD: {
-                defaultFormat: 'YN XE',
-                customFormat: null,
-                useCustom: false
-            },
-            DDM: {
-                defaultFormat: 'A° B\'N X° Y\'E',
-                customFormat: null,
-                useCustom: false
-            },
-            DMS: {
-                defaultFormat: 'A° B\' C\"N X° Y\' Z\"E',
-                customFormat: null,
-                useCustom: false
-            },
-            GARS: {
-                defaultFormat: 'XYQK',
-                customFormat: null,
-                useCustom: false
-            },
-            GEOREF: {
-                defaultFormat: 'ABCDXY',
-                customFormat: null,
-                useCustom: false
-            },
-            MGRS: {
-                defaultFormat: 'ZSXY',
-                customFormat: null,
-                useCustom: false
-            },
-            USNG: {
-                defaultFormat: 'ZSXY',
-                customFormat: null,
-                useCustom: false
-            },
-            UTM: {
-                defaultFormat: 'ZB X Y',
-                customFormat: null,
-                useCustom: false
-            },
-            'UTM (H)': {
-                defaultFormat: 'ZH X Y',
-                customFormat: null,
-                useCustom: false
-            }
-          };
-
-          dojoDomAttr.set(this.frmtVal, 'value', this.formats[this.ct].defaultFormat);
-
-          this.own(
-            this.frmtSelect.on('change', dojoLang.hitch(
-            this,
-            this.frmtSelectValueDidChange)
-          ));
-
-          this.own(dojoOn(
-            this.frmtVal,
-            'change',
-            dojoLang.hitch(this, this.formatValDidChange)
-          ));
-          
-          this.displayPrefixContainer(); 
+        DMS: {
+          defaultFormat: 'A° B\' C\"N X° Y\' Z\"E',
+          customFormat: null,
+          useCustom: false
         },
-
-        formatValDidChange: function () {
-            var newvalue = dojoDomAttr.get(this.frmtVal, 'value');
-            var crdType = this.frmtSelect.get('value');
-            this.formats[crdType].customFormat = newvalue;
-            this.formats[crdType].useCustom = true;
-            this.currentformat = newvalue;            
+        GARS: {
+          defaultFormat: 'XYQK',
+          customFormat: null,
+          useCustom: false
         },
-
-        /**
-         *
-         **/
-        frmtSelectValueDidChange: function () {
-            var curval = this.frmtSelect.get('value');
-            var selval = this.formats[curval].useCustom ? this.formats[curval].customFormat
-              : this.formats[curval].defaultFormat;
-            this.ct = curval;
-            dojoDomAttr.set(this.frmtVal, 'value', selval);
-            this.displayPrefixContainer();            
+        GEOREF: {
+          defaultFormat: 'ABCDXY',
+          customFormat: null,
+          useCustom: false
         },
-        
-        /**
-         *
-         **/
-        displayPrefixContainer: function () {
-          switch(this.frmtSelect.get('value')){
-            case 'DD':
-            case 'DDM':
-            case 'DMS':
-              dojoDomStyle.set(this.prefixContainer, {display: ""});
-              break;
-            default:
-              dojoDomStyle.set(this.prefixContainer, {display: "none"});
-              break;
-          }
+        MGRS: {
+          defaultFormat: 'ZSXY',
+          customFormat: null,
+          useCustom: false
+        },
+        USNG: {
+          defaultFormat: 'ZSXY',
+          customFormat: null,
+          useCustom: false
+        },
+        UTM: {
+          defaultFormat: 'ZB X Y',
+          customFormat: null,
+          useCustom: false
+        },
+        'UTM (H)': {
+          defaultFormat: 'ZH X Y',
+          customFormat: null,
+          useCustom: false
         }
+      };
 
-    });
+      dojoDomAttr.set(this.frmtVal, 'value', this.formats[this.ct].defaultFormat);
+
+      this.own(
+        dojoOn(this.frmtSelect, 'change',
+          dojoLang.hitch(this, this.frmtSelectValueDidChange)
+      ));
+
+      this.own(dojoOn(
+        this.frmtVal,
+        'change',
+        dojoLang.hitch(this, this.formatValDidChange)
+      ));
+
+      this.own(
+        dojoOn(this.cancelButton,
+          'click',
+          dojoLang.hitch(this, function () {
+            this.isCanceled = true;
+          })
+      ));
+
+      this.own(
+        dojoOn(this.applyButton,
+          'click',
+          dojoLang.hitch(this, function () {
+            this.isCanceled = false;
+          })
+      ));
+
+      this.displayPrefixContainer();
+    },
+
+    /**
+     *
+     *
+    startup: function () {
+        //this.inherited(arguments);
+    },*/
+    formatValDidChange: function () {
+      var newvalue = dojoDomAttr.get(this.frmtVal, 'value');
+      var crdType = this.frmtSelect.options[this.frmtSelect.selectedIndex].value;
+      this.formats[crdType].customFormat = newvalue;
+      this.formats[crdType].useCustom = true;
+      this.currentformat = newvalue;
+    },
+
+    /**
+     *
+     **/
+    frmtSelectValueDidChange: function () {
+      var curval = this.frmtSelect.options[this.frmtSelect.selectedIndex].value;
+      var selval = this.formats[curval].useCustom ? this.formats[curval].customFormat
+        : this.formats[curval].defaultFormat;
+      this.ct = curval;
+      dojoDomAttr.set(this.frmtVal, 'value', selval);
+      this.displayPrefixContainer();
+    },
+
+    /**
+     *
+     **/
+    displayPrefixContainer: function () {
+      switch (this.frmtSelect.options[this.frmtSelect.selectedIndex].value) {
+        case 'DD':
+        case 'DDM':
+        case 'DMS':
+          dojoDomStyle.set(this.prefixContainer, { display: '' });
+          break;
+        default:
+          dojoDomStyle.set(this.prefixContainer, { display: 'none' });
+          break;
+      }
+    }
+
+  });
 });

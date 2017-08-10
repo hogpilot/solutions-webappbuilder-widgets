@@ -1,19 +1,77 @@
 .jimu-widget-cw {
+    overflow: hidden;
+}
 
+.jimu-widget-cw .jimu-input {
+    border: 1px solid #999999;
+    font-size: 12px;
+    height: 30px;
+    background-color: transparent;
+    background: white;
+    color: #d9dde0;
+    padding: 5px;
+    margin: 0;
+    border-radius: 2px;
+}
+
+.jimu-widget-cw .jimu-widget-subtitle {
+    font-size: 14px;
+    letter-spacing: 0.39px;
+    line-height: 19px
+}
+
+.jimu-widget-cw .addNewNotationContainer {
+    display: inline-flex;
+    /*float: right;*/
+    padding-top: 3px;
+    padding-left: 20px;
+}
+
+.jimu-widget-cw .addNewNotationContainer .addNewNotation {
+    background: url('../images/add_black.png');
+    background-repeat: no-repeat;
+    background-color: transparent;
+    width: 12px;
+    height: 12px;
+}
+
+.jimu-widget-cw .addNewNotationContainer .addNewNotation:hover {
+    background: url('../images/add_black_hover.png');
+    background-repeat: no-repeat;
+    background-color: transparent;
+    cursor: pointer;
+}
+
+.jimu-widget-cw .addNewNotationContainer .addNewNotationLabel {
+    color: #7f7f7f;
+    font-size: 12px;
+    padding-left: 15px;
+}
+
+.jimu-widget-cw .addNewNotationContainer .addNewNotationLabel:hover {
+    color: #000000;
 }
 
 .jimu-widget-cw textarea {
-    font-family: 'Arial';
+    font-family: 'Avenir Medium';
     font-size: 12px;
     resize: none;
-    overflow: hidden;
-    width: 230px;
-    height: 30px;
+    width: 240px;
+    height: 35px;
     background-color: transparent;
-    border: 1px solid #d9d9d9;
+    background: #FFFFFF;
+    border: 1px solid #999999;
     color: #000000;
-    padding: 5px;
+    padding: 10px 0px 12px 14px;
     margin: 0;
+    letter-spacing: 0px;
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
 }
 
 .jimu-widget-cw textarea:active {
@@ -21,68 +79,117 @@
 }
 
 .jimu-widget-cw .inputcontainer {
-    /*border: 1px solid #CCC;*/
     margin: 3px;
     width: 100%;
-    vertical-align: middle;
     padding: 6px;
 }
 
-.jimu-widget-cw coordNameContainer {
+.jimu-widget-cw .coordNameContainer {
     margin-bottom: 6px;
 }
 
 .jimu-widget-cw .outputcontainer {
-    /*border: 1px solid #CCC;*/
     margin: 3px;
-    width: 100%;
+    width: 310px;
     padding: 6px;
 }
 
 .jimu-widget-cw .coordinateContainer {
-    border:1px solid #CCC;
-    margin: 7px;
     padding-top: 5px;
-    padding-left: 5px;
     width: 95%;
 }
 
+.jimu-widget-cw .outputCoordinateContainer {
+    margin: 0 3px;
+    width: 100%;
+    padding: 0 6px;
+}
+
 .jimu-widget-cw .coordarea {
-   height: 0px;
-   overflow: hidden;
+    height: 0px;
+    overflow: hidden;
 }
 
 .jimu-widget-cw .cpbtn {
     display: inline-block;
-    background: url('../images/copy.png');
+    background: url('../images/copy_black.png');
     background-repeat: no-repeat;
     background-color: transparent;
-    width: 16px;
+    width: 14px;
     height: 16px;
 }
 
-.jimu-widget-cw .cpbtn:hover {
-    background: url(../images/copy_dark.png);
+.jimu-widget-cw .settingBtn {
+    display: inline-block;
+    background: url('../images/settings_black.png');
+    background-repeat: no-repeat;
+    background-color: transparent;
+    width: 16px;
+    height: 15px;
 }
 
-.jimu-widget-cw .expand {
-  display: inline-block;
-  background: url('../images/fold_up.png');
-  background-repeat: no-repeat;
-  background-color: transparent;
-  width: 16px;
-  height: 16px;
+.jimu-widget-cw .settingBtn:hover {
+    background: url('../images/settings_black_hover_black.png');
+}
+
+
+.jimu-widget-cw .cpbtn:hover {
+    background: url('../images/copy_black_hover.png');
+}
+
+.jimu-widget-cw .zoomBtn {
+    display: inline-block;
+    background: url('../images/zoom_to_black.png');
+    background-repeat: no-repeat;
+    background-color: transparent;
+    width: 15.4px;
+    height: 15.2px;
+}
+
+.jimu-widget-cw .zoomBtn:hover {
+    background: url('../images/zoom_to_black_hover.png');
+}
+
+.jimu-widget-cw .expandBtn {
+    display: inline-block;
+    background: url('../images/arrow-right_black.png');
+    background-repeat: no-repeat;
+    background-color: transparent;
+    width: 5px;
+    height: 10px;
+    vertical-align: text-top;
+}
+
+.jimu-widget-cw .expandBtn:hover {
+    background: url('../images/arrow-right_black_hover.png');
+}
+
+.jimu-widget-cw .collapseBtn {
+    display: inline-block;
+    background: url('../images/arrow-down.png');
+    background-repeat: no-repeat;
+    background-color: transparent;
+    width: 10px;
+    height: 5px;
+    vertical-align: text-top;
+}
+
+.jimu-widget-cw .collapseBtn:hover {
+    background: url('../images/arrow-down_black_hover.png');
+    background-repeat: no-repeat;
+    background-color: transparent;
 }
 
 .jimu-widget-cw .crdfrmtlabel {
     display: inline-block;
     height: 16px;
-    font-size: 14px;
-    color: #86909c;
+    font-size: 12px;
+    color: #000000;
     /*margin-top:14px;*/
-    margin-right: 4px;
+    /*margin-right: 4px;*/
     width: 100px;
-    text-align: right;
+    /*text-align: right;*/
+    padding-left: 5px;
 }
 
 .jimu-widget-cw .coordfrmt {
@@ -92,18 +199,17 @@
 .jimu-widget-cw .coordformat {
     display: inline-flex;
     align-items: center;
-    margin-bottom: 4px;
+    /*margin-bottom: 4px;*/
 }
 
 .jimu-widget-cw .crds {
     display: inline-block;
-    width: 150px;
-    margin-right: 4px;
+    width: 130px;
+    margin-right: 10px;
 }
 
 .jimu-widget-cw .coordarea.expanded {
-    /*height: 150px;*/
-    margin-top: 10px;
+    margin-top: 0px;
 }
 
 .jimu-widget-cw .coordarea.collapsed {
@@ -112,32 +218,21 @@
 
 .jimu-widget-cw .coordactions {
     display:inline-block;
+    padding-left: 10px;
+
 }
 
 .jimu-widget-cw .add-with-icon {
     display: inline-block;
-    height: 32px;
-    line-height:32px;
-    color: #838383;
+    height: 40px;
+    line-height:40px;
+    color: #000000;
+    padding-right: 5px;
 }
 
   .jimu-widget-cw .add-with-icon.coordLabel {
       width: 75px;
   }
-
-.jimu-widget-cw .add-with-icon > span {
-    float: none;
-    margin-top: 5px;
-    line-height: 32px;
-}
-
-.jimu-widget-cw .add-with-icon .zoomButton {
-    text-decoration: underline;
-}
-
-.jimu-widget-cw .add-with-icon .zoomButton:hover {
-    color: blue;
-}
 
 .jimu-widget-cw .add-output {
     margin-bottom: 7px;
@@ -165,14 +260,41 @@
     text-decoration: underline;
 }
 
+.jimu-widget-cw .line-separator {
+    height: 2px;
+    border-bottom: 1px solid #666666;
+    width: 320px;
+    margin-top: 3px;
+}
+
 /**
  * Coordinate Format Dialog
  **/
 
+.formatInput {
+    width: 200px;
+    height: 40px;
+    opacity: 0.99;
+    background: #FFFFFF;
+    border: 1px solid #9999999;
+    color: #000000;
+    padding-left: 4px;
+}
+
+.selectFormat {
+    width: 160px;
+    height: 40px;
+    opacity: 0.99;
+    background: #FFFFFF;
+    border: 1px solid #999999;
+    color: #000000;
+    padding-left: 4px;
+}
 
 .btnContainer {
     text-align: right;
     margin-top: 6px;
+    padding-right: 10px;
 }
 
 .settingsContainer {
@@ -183,47 +305,10 @@
     margin-top: 6px;
 }
 
-/****** Dart Theme Overrides ******/
-
-.claro .dartThemeClaroDijitTooltipContainerOverride .dijitTooltipContainer {
-    background-color: #4c4c4c;
-    background-image: -webkit-linear-gradient(bottom, rgb(76, 76, 76) 0px, #4c4c4c 10px);
-    border: 1px solid #ffffff;
-    color: #ffffff;
-}
-
-.claro .dartThemeClaroDijitTooltipContainerOverride .jimu-widget-subtitle {
-    color: #ffffff;
-}
-
-.claro .dartThemeClaroDijitTooltipContainerOverride .dijitTooltipConnector {    
-    background-image: url(images/tooltip.png);    
-}
-
-.DartTheme .jimu-icon {
-    background-image: url(images/sprite.png);
-}
-
-.DartTheme  .jimu-widget-cw .cpbtn {
-    background: url(../images/copy.png);
-}
-
-.DartTheme  .jimu-widget-cw .cpbtn:hover {
-    background: url(../images/copy_dark.png);
-}
-
-.DartTheme  .add-with-icon .draw {
-  background: url(../images/draw_point_dart.png);
-  display: inline-block;
-  background-repeat: no-repeat;
-  background-color: transparent;
-  background-repeat: no-repeat;
-  background-position: center center;
-  width: 30px;
-  height: 30px;
-  margin-left: 5px;
-}
-
-.DartTheme .jimu-widget-cw .add-with-icon .zoomButton:hover {
-    color: #000000 !important;
+.formatText {
+    font-size: 12px;
+    letter-spacing: 0.39px;
+    line-height: 19px;
+    color: #000000;
+    padding-left: 3px;
 }

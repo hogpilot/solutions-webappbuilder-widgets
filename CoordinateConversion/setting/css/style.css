@@ -1,4 +1,4 @@
-/**-------------------Styles for configuration panel --------------------**/
+/*-------------------Styles for configuration panel --------------------*/
 
 .jimu-widget-coordinateconversion-setting .esriCTMainContainer
 {
@@ -7,25 +7,17 @@
 }
 
 .jimu-widget-coordinateconversion-setting .table-notations-infos{
-	width: 100%;
-	height: 307px;
-  margin-top: 15px;
+    width: 100%;
+    height: 307px;
+    margin-top: 15px;
 }
 
 .jimu-widget-coordinateconversion-setting .esriCTlabel
 {
-    width: 25%;
-    padding: 5px 10px 5px 0;
-    word-break: break-word;
-    margin-top: 5px;
-    margin-bottom: 5px;
-    float: left;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    min-width: 250px;
-    font-size: 14px;
-    color: #596679;
+    padding: 10px 0px 5px 0px;
+    font-size: 16px;
+    color: #353535;
+    letter-spacing: 0.44px;
 }
 
 .jimu-widget-coordinateconversion-setting .esriCTColorPickerNode
@@ -134,17 +126,12 @@
 
 .jimu-widget-coordinateconversion-setting .esriCTLayerField
 {
-    width: 73%;
-    float: left;
+    display: inline-flex;
 }
 
 .jimu-widget-coordinateconversion-setting .esriCTHint
 {
-    margin: 5px 0 10px 0;
-    float: left;
     font-size: 12px;
-    color: #a0acbf;
-    font-style: oblique;
 }
 
 .jimu-widget-coordinateconversion-setting .esriCTSetRouteURL
@@ -261,19 +248,19 @@
 /*--------------override tree CSS starts here--------------*/
 .claro .dijitTreeRowFocused
 {
-    background-repeat: repeat;
+    /*background-repeat: repeat;*/
 }
 /*---------- expando (open/closed) icon--------------- */
 .claro .dijitTreeExpando
 {
-    background-position: -93px -10px;
-    display: none; /* for dijitTreeExpandoOpened */
+    /*background-position: -93px -10px;*/
+    /*display: none;*/ /* for dijitTreeExpandoOpened */
 }
 
 .claro .dijitTreeExpando: :first-child
 {
-    display: block;
-    background-position: -35px 0;
+/*    display: block;
+    background-position: -35px 0;*/
 }
 
 /**-----------------End of Styles for network service chooser--------------------**/
@@ -290,25 +277,20 @@
 .jimu-widget-coordinateconversion-setting .esriCTSymbolPreviewText
 {
     font-size: 14px;
-    color: #596679;
-    padding-right: 5px;
-    max-width: 130px;
-    text-overflow: ellipsis;
-    overflow: hidden;
-    white-space: nowrap;
+    color: #353535;
+    letter-spacing: 0.39px;
 }
 
 .jimu-widget-coordinateconversion-setting .esriCTPreviewField
 {
-    width: 25%;
-    float: left;
 }
 
 .jimu-widget-coordinateconversion-setting .esriCTPreviewHintField
 {
-    width: 70%;
-    line-height: 30px;
-    margin-left: 10px;
+    padding-top: 10px;
+    font-size: 12px;
+    color: #232323;
+    letter-spacing: 0.33px;
 }
 
 .jimu-widget-coordinateconversion-setting .esriCTSymbolPreviewHintField
@@ -326,33 +308,10 @@
     float: left;
 }
 
-.claro .dijitTextBox, .claro .dijitSelect
-{
-    color: #7989a0;
-    background-color: #fafafc;
-    border: 1px solid #d2dae2;
-}
-
-.dj_webkit .claro .dijitTextBox .dijitInputInner
-{
-    color: #7989a0;
-}
-
-.claro .dijitSelectDisabled, .claro .dijitTextBoxDisabled, .claro .dijitTextBoxDisabled .dijitInputContainer
-{
-    background-color: #e3ecf2;
-}
-
 .jimu-widget-coordinateconversion-setting .esriCTDirectionTabNode .dijitTextBox
 {
     width: 88% !important;
     float: left;
-}
-.claro .dijitSelect .dijitArrowButton
-{
-    background-color: #fafafc;
-    background-image: none;
-    border-color: #fafafc;
 }
 
 .jimu-widget-coordinateconversion-setting .dijitSelect .dijitButtonContents
@@ -506,23 +465,14 @@
     margin-right: 0px;
 }
 
-.jimu-input {
+.edit-default-notation-input {
+    border: 1px solid #999999;
+    color: #000000;
+    font-size: 12px;
     height: 30px;
-    background: white;
-    border: 1px solid #d2dae2;
-    color: #d9dde0;
+    background-color: transparent;
     padding: 5px;
     margin: 0;
     border-radius: 2px;
-    font-size: 16px;
+    width: 240px;
 }
-
-/*Start CSS Override for browser applied styles*/
-
-/*Hide clear button from textboxes which is shown only in IE*/
-input[type=text]::-ms-clear
-{
-    display: none;
-}
-
-/*end CSS Override for browser applied styles*/

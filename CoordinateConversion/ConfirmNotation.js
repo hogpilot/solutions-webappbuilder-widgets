@@ -16,43 +16,36 @@
 
 /*global define*/
 define([
-    'dojo/_base/declare',
-    'dojo/_base/lang',
-    'dojo/on',
-    'dojo/topic',
-    'dojo/dom-attr',
-    'dijit/_WidgetBase',
-    'dijit/_TemplatedMixin',
-    'dijit/_WidgetsInTemplateMixin',
-    'dojo/text!./ConfirmNotation.html'
+  'dojo/_base/declare',
+  'dijit/_WidgetBase',
+  'dijit/_TemplatedMixin',
+  'dijit/_WidgetsInTemplateMixin',
+  'dojo/text!./ConfirmNotation.html'
 ], function (
-    dojoDeclare,
-    dojoLang,
-    dojoOn,
-    dojoTopic,
-    dojoDomAttr,
-    dijitWidgetBase,
-    dijitTemplatedMixin,
-    dijitWidgetsInTemplate,
-    ConfirmNotation
+  dojoDeclare,
+  dijitWidgetBase,
+  dijitTemplatedMixin,
+  dijitWidgetsInTemplate,
+  ConfirmNotation
 ) {
-    'use strict';
-    return dojoDeclare([dijitWidgetBase, dijitTemplatedMixin, dijitWidgetsInTemplate], {
-      templateString: ConfirmNotation,
-      numberOfInputs: 0,
-      selectOptions: {},
-        
-        constructor: function (options1) {
-            this.numberOfInputs = options1.length; 
-            this.selectOptions = options1;
-            
-        },
-        
-        postCreate: function () {
-          this.label1.innerHTML = "There are " + this.numberOfInputs + " notations that match your input please confirm which you would like to use:";
-          for (var i = 0; i < this.selectOptions.length; i++) {
-              this.comboOptions.addOption({ value: this.selectOptions[i].name , label: this.selectOptions[i].notationType});
-          }
-       },
-    });
+  'use strict';
+  return dojoDeclare([dijitWidgetBase, dijitTemplatedMixin, dijitWidgetsInTemplate], {
+    templateString: ConfirmNotation,
+    numberOfInputs: 0,
+    selectOptions: {},
+    constructor: function (options1) {
+      this.numberOfInputs = options1.length;
+      this.selectOptions = options1;
+    },
+
+    postCreate: function () {
+      this.label1.innerHTML = this.numberOfInputs + this.nls.multipleNotationLabel;
+      for (var i = 0; i < this.selectOptions.length; i++) {
+        this.comboOptions.addOption({
+          value: this.selectOptions[i].name,
+          label: this.selectOptions[i].notationType
+        });
+      }
+    }
+  });
 });

@@ -16,37 +16,28 @@
 
 /*global define*/
 define([
-    'dojo/_base/declare',
-    'dojo/_base/lang',
-    'dojo/on',
-    'dojo/topic',
-    'dojo/dom-attr',
-    'dijit/_WidgetBase',
-    'dijit/_TemplatedMixin',
-    'dijit/_WidgetsInTemplateMixin',
-    'dojo/text!./EditDefaultNotation.html'
+  'dojo/_base/declare',
+  'dijit/_WidgetBase',
+  'dijit/_TemplatedMixin',
+  'dijit/_WidgetsInTemplateMixin',
+  'dojo/text!./EditDefaultNotation.html'
 ], function (
-    dojoDeclare,
-    dojoLang,
-    dojoOn,
-    dojoTopic,
-    dojoDomAttr,
-    dijitWidgetBase,
-    dijitTemplatedMixin,
-    dijitWidgetsInTemplate,
-    ConfirmNotation
+  dojoDeclare,
+  dijitWidgetBase,
+  dijitTemplatedMixin,
+  dijitWidgetsInTemplate,
+  ConfirmNotation
 ) {
-    'use strict';
-    return dojoDeclare([dijitWidgetBase, dijitTemplatedMixin, dijitWidgetsInTemplate], {
-      templateString: ConfirmNotation,
-      notationFormat: null,
-        
-        constructor: function (defaultFormat) {
-          this.notationFormat = defaultFormat;   
-        },
-        
-        postCreate: function () {          
-          this.notationString.value = this.notationFormat; 
-        },
-    });
+  'use strict';
+  return dojoDeclare([dijitWidgetBase, dijitTemplatedMixin, dijitWidgetsInTemplate], {
+    templateString: ConfirmNotation,
+    notationFormat: null,
+    constructor: function (defaultFormat) {
+      this.notationFormat = defaultFormat;
+    },
+
+    postCreate: function () {
+      this.notationString.value = this.notationFormat;
+    }
+  });
 });

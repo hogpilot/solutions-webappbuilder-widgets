@@ -31,7 +31,6 @@ define([
   "jimu/dijit/SimpleTable",
   "jimu/symbolUtils",
   "./EditDefaultNotation",
-  "dojo/dom-class",
   "dojo/domReady!"
 ], function (
   declare,
@@ -50,63 +49,67 @@ define([
   Popup,
   Table,
   symbolUtils,
-  EditDefaultNotation,
-  domClass
+  EditDefaultNotation
 ) {
   return declare([BaseWidgetSetting, _WidgetsInTemplateMixin], {
     baseClass: 'jimu-widget-coordinateconversion-setting',
     _symbolParams: {}, //to store symbol info
-    
+
     startup: function () {
       this.inherited(arguments);
       var fields = [{
           name: 'show',
-          title: 'Show',
+          title: this.nls.showHeaderLabel,
           width: 'auto',
           type: 'checkbox',
           'class': 'show'
         }, {
           name: 'index',
-          title: 'index',
+          title: this.nls.indexHeaderLabel,
           type: 'text',
           hidden: true
         }, {
           name: 'notation',
-          title: 'Notation',
+          title: this.nls.notationHeaderLabel,
           width: '30%',
           type: 'text'
         }, {
           name: 'defaultFormat',
-          title: 'Default Format',
+          title: this.nls.defaultFormatHeaderLabel,
           width: '30%',
           type: 'text'
         }, {
           name: 'actions',
-          title: 'Edit Format',
+          title: this.nls.editFormatHeaderLabel,
           type: 'actions',
           width: '30%',
           actions: ['edit'],
           'class': 'symbol'
         }];
 
-        var args = {
-          fields: fields,
-          selectable: true,
-          autoHeight: false
-        };
+      var args = {
+        fields: fields,
+        selectable: true,
+        autoHeight: false
+      };
       this.displayNotationsTable = new Table(args);
       this.displayNotationsTable.placeAt(this.notationsTable);
       html.setStyle(this.displayNotationsTable.domNode, {
           'height': '100%'
         });
-      
-      
+
       this.own(on(
         this.displayNotationsTable,
         'actions-edit',
         lang.hitch(this, this.editDefaultFormatClick)
       ));
-      
+
+      //Set text alignment to center for scale input
+      var scaleTextInput = query("input[type='text']", this.scale.domNode)[1];
+      html.setStyle(scaleTextInput, {
+        'text-align': 'center'
+      });
+
       this.setConfig(this.config);
     },
 
@@ -118,33 +121,32 @@ define([
 
     postCreate: function () {
       this._symbolParams = {}; //to store symbol info
-      this._createSymbolPicker(this.pointSymbolNode, "graphicLocationSymbol",
-         "esriGeometryPoint", this.nls.locationSymbol);
-      
-      },
+      this._createSymbolPicker(this.pointSymbolNode,
+          "graphicLocationSymbol",
+          "esriGeometryPoint",
+          this.nls.locationSymbol);
+    },
 
-    
     /**
     * This function gets and create config data in config file.
     * @return {object} Object of config
     * @memberOf widgets/NearMe/setting/setting
     **/
-    getConfig: function () { 
+    getConfig: function () {
       //set config with current configured options
       var data = this.displayNotationsTable.getData();
       var defaultNotations = [];
-      
-      array.forEach(data, lang.hitch(this, function(tData, idx) {
+
+      array.forEach(data, lang.hitch(this, function(tData) {
         tData = tData; // do nothing
         var json = {};
-        if(tData.show)
-        {
+        if (tData.show) {
           json.notation = tData.notation;
           json.defaultFormat = tData.defaultFormat;
           defaultNotations.push(json);
         }
       }));
-      
+
       this.config = {
         "symbols": this._symbolParams,
         "coordinateconversion": {
@@ -161,20 +163,20 @@ define([
     * @memberOf widgets/NearMe/setting/setting
     **/
     setConfig: function (config) {
-    this.config = config;
-    
-    var notations = [
-         {notation: 'DD', format: 'YN XE'},
-         {notation: 'DDM', format: 'A° B\'N X° Y\'E'},
-         {notation: 'DMS', format: 'A° B\' C\"N X° Y\' Z\"E'},
-         {notation: 'GARS', format: 'XYQK'},
-         {notation: 'GEOREF', format: 'ABCDXY'},
-         {notation: 'MGRS', format: 'ZSXY'},
-         {notation: 'USNG', format: 'ZSXY'},
-         {notation: 'UTM', format: 'ZB X Y'},
-         {notation: 'UTM (H)', format: 'ZH X Y'}
-       ];
-       this._setNotationTable(notations,this.config.initialCoords);
+      this.config = config;
+
+      var notations = [
+        {notation: 'DD', format: 'YN XE'},
+        {notation: 'DDM', format: 'A° B\'N X° Y\'E'},
+        {notation: 'DMS', format: 'A° B\' C\"N X° Y\' Z\"E'},
+        {notation: 'GARS', format: 'XYQK'},
+        {notation: 'GEOREF', format: 'ABCDXY'},
+        {notation: 'MGRS', format: 'ZSXY'},
+        {notation: 'USNG', format: 'ZSXY'},
+        {notation: 'UTM', format: 'ZB X Y'},
+        {notation: 'UTM (H)', format: 'ZH X Y'}
+      ];
+      this._setNotationTable(notations,this.config.initialCoords);
       this.scale.set('value', this.config.coordinateconversion.zoomScale);
     },
 
@@ -282,7 +284,7 @@ define([
         this._symbolParams[symbolType] = symbolJson.toJson();
       }
     },
-    
+
     /*
     **
     */
@@ -292,22 +294,20 @@ define([
         var rowData = {
           notation: Notations[i].notation,
           defaultFormat: Notations[i].format,
-          index: "" + i,
+          index: "" + i
         };
-        
-        array.forEach(initialCoords, function(tData, idx) {
-          if(tData.notation == Notations[i].notation) 
-          {
+
+        for (var j = 0; j < initialCoords.length; j++) {
+          if (initialCoords[j].notation === Notations[i].notation) {
             rowData.show = true;
-            rowData.defaultFormat = tData.defaultFormat;
+            rowData.defaultFormat = initialCoords[j].defaultFormat;
           }
-        });
-        
-        var result = this.displayNotationsTable.addRow(rowData);
-      };
+        }
+        this.displayNotationsTable.addRow(rowData);
+      }
 
     },
-    
+
     /*
     **
     */
@@ -320,7 +320,7 @@ define([
           var popup = new Message({
             message: this.nls.warning,
             buttons: [{
-              label: this.nls.ok,
+              label: this.nls.common.ok,
               onClick: lang.hitch(this, function() {
                 popup.close();
               })
@@ -332,7 +332,7 @@ define([
         }
       }
     },
-    
+
     /*
     **
     */
@@ -346,7 +346,7 @@ define([
         autoHeight: true,
         content: new EditDefaultNotation(rowData.defaultFormat),
         buttons: [{
-          label: this.nls.ok,
+          label: this.nls.common.ok,
           onClick: lang.hitch(this, function() {
             rowData.defaultFormat = defaultFormatPopup.content.notationString.value;
             this.displayNotationsTable.editRow(tr, rowData);
@@ -354,7 +354,7 @@ define([
             defaultFormatPopup = null;
           })
         }, {
-          label: this.nls.cancel,
+          label: this.nls.common.cancel,
           onClick: lang.hitch(this, function() {
             defaultFormatPopup.close();
             defaultFormatPopup = null;
@@ -363,7 +363,7 @@ define([
         onClose: function() {
           defaultFormatPopup = null;
         }
-      });      
+      });
     }
   });
 });
