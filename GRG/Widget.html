@@ -51,8 +51,15 @@
                       <div title="${nls.removeGRGLabel}" class="jimu-icon jimu-icon-delete" data-dojo-attach-point="deleteGRGAreaBtn"></div>
                     </div>                   
                   </div>
+                  
+                  <!-- Set number of cells checkbox -->
+                  <div class="GRGDrafterFullWidthAndPadding">
+                    <input class="interactive-checkbox" type="checkbox" data-dojo-attach-point="setNumberRowsColumns" />
+                    <label data-dojo-attach-point="interactiveLabel">${nls.numberRowsColumnsLabel}</label>                
+                  </div>
+                  
                   <!-- Nummber of Cells Horizontal and Vertical -->
-                  <div class="GRGDrafterHalfWidthContainer">
+                  <div class="GRGDrafterHalfWidthContainer controlGroupHidden" data-dojo-attach-point="numberOfCellsContainer">
                     <div class="GRGDrafterHalfWidthLeft GRGDrafterSettingRow">
                       <div class="GRGDrafterInputLabel GRGDrafterEllipsis"  title="${nls.numberOfCellsHorizontal}">${nls.numberOfCellsHorizontal}</div>
                       <input class="jimu-input textInput" style="width: 100%" data-dojo-type="dijit/form/NumberTextBox" data-dojo-props='constraints:{min:1,places:0},
@@ -71,7 +78,7 @@
                     <!-- GRG Cell Width -->
                     <div class="GRGDrafterHalfWidthLeft GRGDrafterSettingRow">
                         <div class="GRGDrafterInputLabel GRGDrafterEllipsis" title="${nls.cellWidth}">${nls.cellWidth}</div>
-                        <input class="jimu-input dijitNumberTextBox" style="width: 100%" data-dojo-type="dijit/form/NumberTextBox" data-dojo-props='constraints:{min:0},
+                        <input class="jimu-input dijitNumberTextBox" style="width: 100%" data-dojo-type="dijit/form/NumberTextBox" data-dojo-props='constraints:{min:0,places:2},
                           invalidMessage:"${nls.invalidNumberMessage}",
                           required: true,
                           rangeMessage:"${nls.invalidRangeMessage}"' data-dojo-attach-point="cellWidth" value="1000" ></input>
@@ -79,7 +86,7 @@
                     <!-- GRG Cell Height -->
                     <div class="GRGDrafterHalfWidthRight GRGDrafterSettingRow">
                       <div class="GRGDrafterInputLabel GRGDrafterEllipsis" title="${nls.cellHeight}">${nls.cellHeight}</div>
-                        <input class="jimu-input dijitNumberTextBox" style="width: 100%" data-dojo-type="dijit/form/NumberTextBox" data-dojo-props='constraints:{min:0},
+                        <input class="jimu-input dijitNumberTextBox" style="width: 100%" data-dojo-type="dijit/form/NumberTextBox" data-dojo-props='constraints:{min:0,places:2},
                         invalidMessage:"${nls.invalidNumberMessage}",          
                         required: true,
                         rangeMessage:"${nls.invalidRangeMessage}"' data-dojo-attach-point="cellHeight" value="1000"></input>

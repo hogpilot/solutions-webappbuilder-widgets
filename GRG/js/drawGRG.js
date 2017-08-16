@@ -42,7 +42,7 @@ define([
   
   var grg = {};
   
-  grg.createGRG = function(HorizontalCells,VerticalCells,centerPoint,cellWidth,cellHeight,angle,labelStartPosition,labelStyle,gridStyle,gridOrigin,map,geometryService) {
+  grg.createGRG = function(HorizontalCells,VerticalCells,centerPoint,cellWidth,cellHeight,angle,labelStartPosition,labelStyle,gridStyle,gridOrigin,geodesic,map,geometryService) {
     
     //set up variables
     var letterIndex,secondLetterIndex,letter,secondLetter,number;
@@ -53,6 +53,7 @@ define([
     var radius = (cellWidth/2)/Math.cos(30* Math.PI/180);
     var startPoint;
     var nextStartPoint;
+    var hexHorizontalCells = HorizontalCells;
     
     switch (labelStartPosition) {
       case 'upperLeft':
@@ -77,34 +78,36 @@ define([
         break;              
     }
     
-    if(centerPoint.spatialReference.wkid === 102100){
-      centerPoint = webMercatorUtils.webMercatorToGeographic(centerPoint);
-    }
     
-    //work out required off set for first point
+    // work out required off set for first point
+    // always draw grid from lower left corner
     var offsetX = (HorizontalCells*cellWidth)/2;
     if(gridStyle == "hexagon") {
       if(VerticalCells%2 == 1){
         var offsetY = ((((VerticalCells-1)/2) * (radius*3)) + radius)/2;
       } else {
-        var offsetY = (((VerticalCells/2) * (radius*3)) - (radius/2))/2 ;
-        //var offsetY = (((VerticalCells/2) * (radius*2)) + ((VerticalCells/2) * radius))/2;
+        var offsetY = (((VerticalCells/2) * (radius*3)) - (radius/2))/2;
       }
     }else{
       var offsetY = (VerticalCells*cellHeight)/2;
-    }     
+    }      
     
-    var hexHorizontalCells = HorizontalCells;    
+    
        
     for (var i = 1; i <= VerticalCells; i++)
     {       
       for (var j = 1; j <= HorizontalCells; j++)
       {
-        var polygon = new Polygon();
-        
-        //always draw grid from lower left corner
-        if(i == 1 && j == 1){
-          switch (gridOrigin) {
+        if(geodesic) {
+          var polygon = new Polygon();
+          //always draw grid from lower left corner
+          if(i == 1 && j == 1){
+            // the center point needs to be in geographics
+            if(centerPoint.spatialReference.wkid === 102100){
+              centerPoint = webMercatorUtils.webMercatorToGeographic(centerPoint);
+            }
+            
+            switch (gridOrigin) {
               case 'center':
                 startPoint = geometryUtils.getDestinationPoint(centerPoint, 180 + angle, offsetY);
                 startPoint = geometryUtils.getDestinationPoint(startPoint, 270 + angle, offsetX);
@@ -124,55 +127,113 @@ define([
                 break;              
             }                
           }
-        
-        if(gridStyle == "default") { 
-          var BL = startPoint;
-          var TL = geometryUtils.getDestinationPoint(BL, 0 + angle, cellHeight);
-          var TR = geometryUtils.getDestinationPoint(TL, 90 + angle, cellWidth);
-          var BR = geometryUtils.getDestinationPoint(TR, 180 + angle, cellHeight);
-          polygon.addRing([[BL.x,BL.y],[TL.x,TL.y],[TR.x,TR.y],[BR.x,BR.y]]);
-          startPoint = BR;          
-        } else {
-          var P1 = startPoint;
-          var P2 = geometryUtils.getDestinationPoint(P1, 0 + angle, radius)
-          var P3 = geometryUtils.getDestinationPoint(P2, 60 + angle, radius);
-          var P4 = geometryUtils.getDestinationPoint(P3, 120 + angle, radius);
-          var P5 = geometryUtils.getDestinationPoint(P4, 180 + angle, radius);
-          var P6 = geometryUtils.getDestinationPoint(P5, 240 + angle, radius);
-          polygon.addRing([[P1.x,P1.y],[P2.x,P2.y],[P3.x,P3.y],[P4.x,P4.y],[P5.x,P5.y],[P6.x,P6.y]]);
-          startPoint  = geometryUtils.getDestinationPoint(startPoint, 90 + angle, cellWidth);
-        }        
-        
-        if(j == 1){
-          if(gridStyle == "hexagon") {
-            if(hexHorizontalCells == HorizontalCells){
-              nextStartPoint = geometryUtils.getDestinationPoint(P2, 300 + angle, radius);
-            } else {
-              nextStartPoint = P3;
-            }
-            
+           
+          if(gridStyle == "default") { 
+            var BL = startPoint;
+            var TL = geometryUtils.getDestinationPoint(BL, 0 + angle, cellHeight)
+            var TR = geometryUtils.getDestinationPoint(TL, 90 + angle, cellWidth);
+            var BR = geometryUtils.getDestinationPoint(TR, 180 + angle, cellHeight);
+            polygon.addRing([[BL.x,BL.y],[TL.x,TL.y],[TR.x,TR.y],[BR.x,BR.y]]);
+            startPoint = BR;          
           } else {
-            nextStartPoint = TL;
+            var P1 = startPoint;
+            var P2 = geometryUtils.getDestinationPoint(P1, 0 + angle, radius)
+            var P3 = geometryUtils.getDestinationPoint(P2, 60 + angle, radius);
+            var P4 = geometryUtils.getDestinationPoint(P3, 120 + angle, radius);
+            var P5 = geometryUtils.getDestinationPoint(P4, 180 + angle, radius);
+            var P6 = geometryUtils.getDestinationPoint(P5, 240 + angle, radius);
+            polygon.addRing([[P1.x,P1.y],[P2.x,P2.y],[P3.x,P3.y],[P4.x,P4.y],[P5.x,P5.y],[P6.x,P6.y]]);
+            startPoint  = geometryUtils.getDestinationPoint(startPoint, 90 + angle, cellWidth);
           }
-        }        
-        
-        /*
-        For some reason if the angle is over below -45 or over 45 then the label will not show
-        running the polygon through a simplify operation fixes this
-        */
-        polygon = geometryEngine.simplify(polygon);
-        
-        //project the geometry to the same spatial reference as the map
-        if(map.spatialReference.wkid !== 4326){
-          geometryUtils.getProjectedGeometry(polygon,map.spatialReference,geometryService).then(
-            function (projectedGeometry) {
-              polygon = projectedGeometry;
+          
+          /*
+          For some reason if the angle is over below -45 or over 45 then the label will not show
+          running the polygon through a simplify operation fixes this
+          */
+          polygon = geometryEngine.simplify(polygon);
+          
+          //project the geometry to the same spatial reference as the map
+          if(map.spatialReference.wkid !== 4326){
+            geometryUtils.getProjectedGeometry(polygon,map.spatialReference,geometryService).then(
+              function (projectedGeometry) {
+                polygon = projectedGeometry;
+              }
+            );
+          }          
+          var graphic = new Graphic(polygon);
+          
+          if(j == 1){
+            if(gridStyle == "hexagon") {
+              if(hexHorizontalCells == HorizontalCells){
+                nextStartPoint = geometryUtils.getDestinationPoint(P2, 300 + angle, radius);
+              } else {
+                nextStartPoint = P3;
+              }
+              
+            } else {
+              nextStartPoint = TL;
             }
-          );
+          }
+        
+        } else {
+          var polygon = new Polygon(new SpatialReference({wkid:102100}));
+          
+          switch (gridOrigin) {
+            case 'center':
+              startX = centerPoint.x - offsetX; 
+              startY = centerPoint.y - offsetY;
+              break;
+            case 'upperLeft':
+              startX = centerPoint.x; 
+              startY = centerPoint.y - (offsetY * 2);
+              break;
+            case 'upperRight':
+              startX = centerPoint.x - (offsetX * 2); 
+              startY = centerPoint.y - (offsetY * 2);
+              break;
+            case 'lowerRight':
+              startX = centerPoint.x - (offsetX*2); 
+              startY = centerPoint.y;
+              break;
+            case 'lowerLeft':
+              startX = centerPoint.x; 
+              startY = centerPoint.y;
+              break;              
+          }
+          
+          
+          
+          if(gridStyle == "default") {
+            polygon.addRing([ 
+                 [startX + ((j-1) * cellWidth) , startY + ((i-1) * cellHeight)],
+                 [startX + ((j-1) * cellWidth) , startY + (i * cellHeight)],
+                 [startX + (j * cellWidth) , startY + (i * cellHeight)],
+                 [startX + (j * cellWidth) , startY + ((i-1) * cellHeight)],
+                 [startX + ((j-1) * cellWidth) , startY + ((i-1) * cellHeight)]
+            ]);
+          } else { 
+            hexHorizontalCells == HorizontalCells?startX = startX + ((j-1) * (cellWidth)) + (cellWidth/2):startX = startX + ((j-1) * (cellWidth)); 
+            startY = (startY + radius) + ((i-1) * (radius*1.5));               
+            var hexagonCenter = new Point([startX,startY],new SpatialReference({ wkid:102100 }));
+            var hexagon = new EsriCircle(hexagonCenter, {radius: radius,numberOfPoints: 6}); 
+            var hexagonRotated =  geometryEngine.rotate(hexagon,90,hexagonCenter); 
+            polygon.addRing(hexagonRotated.rings[0]);            
+          }      
+                    
+          //rotate the graphics as required
+          var polygonRotated =  geometryEngine.rotate(polygon, (angle * -1),  centerPoint);
+          //project the geometry to the same spatial reference as the map
+          if(map.spatialReference.wkid !== 102100){
+            geometryUtils.getProjectedGeometry(polygonRotated,map.spatialReference,geometryService).then(
+              function (projectedGeometry) {
+                polygonRotated = projectedGeometry;
+              }
+            );
+          }
+          var graphic = new Graphic(polygonRotated);
         }
         
-        var graphic = new Graphic(polygon);
-                
+                 
         switch (labelStartPosition) {
           case 'upperLeft':
           case 'lowerLeft':

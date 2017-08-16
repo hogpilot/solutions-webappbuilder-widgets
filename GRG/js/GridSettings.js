@@ -27,7 +27,7 @@
       selectedGridSettings: {}, //Holds selected planSettings
       gridSettingsOptions:  {
           "cellShape": ["default", "hexagon"],
-          "cellUnits": ["meters", "kilometers", "miles", "nauticalMiles", "yards", "feet"],
+          "cellUnits": ["meters", "kilometers", "miles", "nautical-miles", "yards", "feet"],
           "labelStartPosition": ["lowerLeft", "lowerRight", "upperLeft", "upperRight"],      
           "labelType": ["alphaNumeric", "alphaAlpha", "numeric"],
           "gridOrigin": ["center", "lowerLeft", "lowerRight", "upperLeft", "upperRight"]

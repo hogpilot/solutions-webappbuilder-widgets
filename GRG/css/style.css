@@ -17,6 +17,13 @@
     width: 100%;
 }
 
+.jimu-widget-GRGDrafter .GRGDrafterFullWidthAndPadding
+{
+    width: 100%;
+    padding-top: 8px;
+    padding-bottom: 8px;
+}
+
 .jimu-widget-GRGDrafter .GRGDrafterHalfWidthLeft
 {
     width: 50%;
@@ -152,6 +159,11 @@
 .jimu-widget-GRGDrafter .GRGDrafterSettingRow
 {
     padding-bottom: 6px;
+}
+
+.jimu-widget-GRGDrafter .GRGDrafterSettingRowDouble
+{
+    padding-bottom: 12px;
 }
 
 .jimu-widget-GRGDrafter .GRGDrafterDropdownLabel

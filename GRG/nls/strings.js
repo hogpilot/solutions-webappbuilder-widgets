@@ -11,6 +11,7 @@ define({
     "missingGRGLayerName": 'You must enter a name for the GRG',
     "polygonDrawLabel": 'Use Draw Tool to create GRG Area',
     "addPointToolTip": 'Add GRG Center Point',
+    "numberRowsColumnsLabel": 'Use set number of rows and columns',
     "cellWidth": 'Cell Width',
     "cellHeight": 'Cell Height',
     "invalidNumberMessage": 'The value entered is not valid',
@@ -35,6 +36,7 @@ define({
     "missingLayerNameMessage": 'You must enter a GRG Layer Name before you can publish',
     "gridSettings": {
       "planSettingsTitle": "Grid Settings", // Shown as Title for Grid Settings page
+      
       "cellShape": "Cell Shape", // Shown as label to set Cell Shape Type
       "cellUnits": "Cell Units", // Shown as label to set Cell Units      
       "labelStartPosition": "Label Start Position",  // Shown as label to set label start position      
@@ -50,7 +52,7 @@ define({
       "feet": 'Feet', // Shown as label for feet in cell units dropdown
       "meters": 'Meters', // Shown as label for meters in cell units dropdown
       "yards": 'Yards', // Shown as label for yards in cell units dropdown
-      "nauticalMiles": 'Nautical Miles', // Shown as label for nauticalMiles in cell units dropdown
+      "nautical-miles": 'Nautical Miles', // Shown as label for nauticalMiles in cell units dropdown
       
       "lowerLeft": 'Lower-Left', // Shown as label for lower left in label start position and grid origin dropdowns
       "lowerRight": 'Lower-Right', // Shown as label for lower right in label start position and grid origin dropdowns

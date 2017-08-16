@@ -35,6 +35,7 @@ define([
   'esri/layers/FeatureLayer',
   'esri/layers/GraphicsLayer',
   'esri/layers/LabelClass',
+  'esri/SpatialReference',
   'esri/symbols/Font',
   'esri/symbols/SimpleMarkerSymbol',
   'esri/symbols/SimpleFillSymbol',
@@ -49,6 +50,7 @@ define([
   './js/PolygonFeedback',
   './js/DrawFeedBack',
   './js/EditOutputCoordinate',
+  './js/geometryUtils',
   'dijit/form/NumberTextBox'
 ],
   function (
@@ -85,6 +87,7 @@ define([
     FeatureLayer,
     GraphicsLayer,
     LabelClass,
+    SpatialReference,
     Font,
     SimpleMarkerSymbol,
     SimpleFillSymbol,
@@ -97,7 +100,8 @@ define([
     drawGRG,
     drawFeedBackArea,
     drawFeedBackPoint,
-    editOutputCoordinate
+    editOutputCoordinate,
+    geometryUtils
   ) {
     return declare([BaseWidget, dijitWidgetBase, dijitWidgetsInTemplate], {
       baseClass: 'jimu-widget-GRGDrafter',
@@ -112,6 +116,7 @@ define([
       angle: 0,
       GRG: null,
       centerPoint: [],
+      geodesicGrid: true,
       
       postMixInProperties: function () {
         //mixin default nls with widget nls
@@ -372,6 +377,10 @@ define([
         //Handle click event of delete GRG Area button        
         this.own(on(this.deleteGRGAreaBtn, 'click', lang.hitch(this, 
           this.deleteGRGAreaButtonClicked)));
+          
+        //Handle click event of delete GRG Area button        
+        this.own(on(this.setNumberRowsColumns, 'click', lang.hitch(this, 
+          this._setNumberRowsColumnsCheckBoxChanged)));
         
         //Handle click event of create GRG Area button        
         this.own(on(this.createGRGButton, 'click', lang.hitch(this, 
@@ -588,16 +597,44 @@ define([
         this.map.enableMapNavigation();
         this.dtArea.deactivate();
         
-        this.cellWidth.setValue(Math.ceil((GeometryEngine.geodesicLength(new Polyline({
+        //project the geometry to WMAS
+        if(evt.geometry.spatialReference.wkid !== 102100){
+          geometryUtils.getProjectedGeometry(evt.geometry,new SpatialReference({wkid:102100}),esriConfig.defaults.geometryService).then(
+            function (projectedGeometry) {
+              evt.geometry = projectedGeometry;
+            }
+          );
+        }
+        
+        //calculate the geodesic width and height of the required grid cells
+        var calculatedCellWidth = ((GeometryEngine.geodesicLength(new Polyline({
             paths: [[[evt.geometry.getPoint(0,0).x, evt.geometry.getPoint(0,0).y], [evt.geometry.getPoint(0,1).x, evt.geometry.getPoint(0,1).y]]],
             spatialReference: this.map.spatialReference
-          }), this._cellUnits))/this.cellHorizontal.value));
-        this._cellShape == "default"?this.cellHeight.setValue(Math.ceil((GeometryEngine.geodesicLength(new Polyline({
+          }), this._cellUnits))/this.cellHorizontal.value);
+          
+        var calculatedCellHeight = ((GeometryEngine.geodesicLength(new Polyline({
             paths: [[[evt.geometry.getPoint(0,0).x, evt.geometry.getPoint(0,0).y], [evt.geometry.getPoint(0,3).x, evt.geometry.getPoint(0,3).y]]],
             spatialReference: this.map.spatialReference
-          }), this._cellUnits))/this.cellVertical.value)):this.cellHeight.setValue(0);
+          }), this._cellUnits))/this.cellVertical.value);
+          
+        //convert the width and height into meters
+        var cellWidthMeters = this.coordTool.inputCoordinate.util.convertToMeters(calculatedCellWidth, this._cellUnits);
+        var cellHeightMeters = this.coordTool.inputCoordinate.util.convertToMeters(calculatedCellHeight, this._cellUnits);
+
+        /**
+        * if the width or height of a grid cell is over 20000m we need to use a planar grid
+        * so recalculate the width and height using a planar measurement
+        **/
+        if((cellWidthMeters < 20000) && ((cellHeightMeters < 20000 && this._cellShape != "hexagon") || this._cellShape == "hexagon")) {
+          this.geodesicGrid = true;
+          this.cellWidth.setValue(calculatedCellWidth);
+          this._cellShape == "default"?this.cellHeight.setValue(calculatedCellHeight):this.cellHeight.setValue(0);
+        } else {
+          this.geodesicGrid = false;
+          this.cellWidth.setValue(((GeometryEngine.distance(evt.geometry.getPoint(0,0), evt.geometry.getPoint(0,1), this._cellUnits))/this.cellHorizontal.value)); 
+          this._cellShape == "default"?this.cellHeight.setValue(((GeometryEngine.distance(evt.geometry.getPoint(0,0), evt.geometry.getPoint(0,3), this._cellUnits))/this.cellVertical.value)):this.cellHeight.setValue(0);
+        }
         
-                  
         domClass.toggle(this.addGRGArea, "controlGroupHidden");
         domClass.toggle(this.deleteGRGArea, "controlGroupHidden");
       },
@@ -678,6 +715,7 @@ define([
         dijitPopup.close(this.coordinateFormat);        
       }, 
       
+      
       deleteGRGAreaButtonClicked: function () {
         this._graphicsLayerGRGExtent.clear();
         
@@ -691,32 +729,58 @@ define([
         html.addClass(this.deleteGRGArea, 'controlGroupHidden');          
       },
       
+      _setNumberRowsColumnsCheckBoxChanged: function () {
+        if(this.setNumberRowsColumns.checked) {
+          html.removeClass(this.numberOfCellsContainer, 'controlGroupHidden');
+          this.cellWidth.set('disabled', true);
+          this.cellHeight.set('disabled', true);
+        } else {
+          html.addClass(this.numberOfCellsContainer, 'controlGroupHidden');
+          this.cellWidth.set('disabled', false);
+          this.cellHeight.set('disabled', false);
+          this.cellHorizontal.set('value', 10);
+          this.cellVertical.set('value', 10);
+        }
+      },
+      
       _createAreaGRG: function () {                 
         //check form inputs for validity
         if (this._graphicsLayerGRGExtent.graphics[0] && this.cellWidth.isValid() && this.cellHeight.isValid()) {
           var geom = this._graphicsLayerGRGExtent.graphics[0].geometry;
 
-          //work out width and height of AOI
-          var GRGAreaWidth = GeometryEngine.geodesicLength(new Polyline({
-            paths: [[[geom.getPoint(0,0).x, geom.getPoint(0,0).y], [geom.getPoint(0,1).x, geom.getPoint(0,1).y]]],
-            spatialReference: this.map.spatialReference
-          }), 'meters');
+          //project the geometry to WMAS
+          if(geom.spatialReference.wkid !== 102100){
+            geometryUtils.getProjectedGeometry(geom,new SpatialReference({wkid:102100}),esriConfig.defaults.geometryService).then(
+              function (projectedGeometry) {
+                geom = projectedGeometry;
+              }
+            );
+          }
           
-          var GRGAreaHeight = GeometryEngine.geodesicLength(new Polyline({
-            paths: [[[geom.getPoint(0,0).x, geom.getPoint(0,0).y], [geom.getPoint(0,3).x, geom.getPoint(0,3).y]]],
-            spatialReference: this.map.spatialReference
-          }), 'meters');
-          
+          var GRGAreaWidth, GRGAreaHeight;
+          //work out width and height of AOI, method depends on if the grid is to be geodesic
+          if(this.geodesicGrid) {
+            GRGAreaWidth = GeometryEngine.geodesicLength(new Polyline({
+              paths: [[[geom.getPoint(0,0).x, geom.getPoint(0,0).y], [geom.getPoint(0,1).x, geom.getPoint(0,1).y]]],
+              spatialReference: this.map.spatialReference
+            }), 'meters');          
+            GRGAreaHeight = GeometryEngine.geodesicLength(new Polyline({
+              paths: [[[geom.getPoint(0,0).x, geom.getPoint(0,0).y], [geom.getPoint(0,3).x, geom.getPoint(0,3).y]]],
+              spatialReference: this.map.spatialReference
+            }), 'meters');            
+          } else {
+            GRGAreaWidth = GeometryEngine.distance(geom.getPoint(0,0), geom.getPoint(0,1), 'meters'); 
+            GRGAreaHeight = GeometryEngine.distance(geom.getPoint(0,0), geom.getPoint(0,3), 'meters');
+          }
           
           var cellWidth = this.coordTool.inputCoordinate.util.convertToMeters(this.cellWidth.value, this._cellUnits);
           var cellHeight = this.coordTool.inputCoordinate.util.convertToMeters(this.cellHeight.value,this._cellUnits);
           
-          
           //work out how many cells are needed horizontally & Vertically to cover the whole canvas area
-          var numCellsHorizontal = Math.ceil(GRGAreaWidth/cellWidth);
+          var numCellsHorizontal = Math.round(GRGAreaWidth/cellWidth);
           
           var numCellsVertical;
-          this._cellShape == "default"?numCellsVertical = Math.ceil(GRGAreaHeight/cellHeight):numCellsVertical = Math.ceil(GRGAreaHeight/(cellWidth)/Math.cos(30* Math.PI/180)) + 1;
+          this._cellShape == "default"?numCellsVertical = Math.round(GRGAreaHeight/cellHeight):numCellsVertical = Math.round(GRGAreaHeight/(cellWidth)/Math.cos(30* Math.PI/180)) + 1;
           
           if(drawGRG.checkGridSize(numCellsHorizontal,numCellsVertical))
           {
@@ -731,9 +795,10 @@ define([
               this._labelType,
               this._cellShape,
               'center',
-              this.map,
+              this.geodesicGrid,
+              this.map,              
               esriConfig.defaults.geometryService); 
-            //apply the e.dits to the feature layer
+            //apply the edits to the feature layer
             this.GRGArea.applyEdits(features, null, null);
             this.deleteGRGAreaButtonClicked();              
             html.removeClass(this.saveGRGButton, 'controlGroupHidden');
@@ -752,7 +817,14 @@ define([
           var centerPoint = WebMercatorUtils.geographicToWebMercator(this.coordTool.inputCoordinate.coordinateEsriGeometry);
           
           var cellWidth = this.coordTool.inputCoordinate.util.convertToMeters(this.pointCellWidth.value,this._cellUnits);
-          var cellHeight = this.coordTool.inputCoordinate.util.convertToMeters(this.pointCellHeight.value,this._cellUnits);
+          var cellHeight = this.coordTool.inputCoordinate.util.convertToMeters(this.pointCellHeight.value,this._cellUnits);          
+
+          // if the width or height of a grid cell is over 20000m we need to use a planar grid
+          if((cellWidth < 20000) && ((cellHeight < 20000 && this._cellShape != "hexagon") || this._cellShape == "hexagon")) {
+            this.geodesicGrid = true;
+          } else {
+            this.geodesicGrid = false;
+          }
           
           if(drawGRG.checkGridSize(this.pointCellHorizontal.value,this.pointCellVertical.value))
           {
@@ -767,6 +839,7 @@ define([
               this._labelType,
               this._cellShape,
               this._gridOrigin,
+              this.geodesicGrid,
               this.map,
               esriConfig.defaults.geometryService); 
             //apply the edits to the feature layer
@@ -860,9 +933,7 @@ define([
                 });
               });
             }))
-          }));
-          
-      }
-     
+          }));          
+      }     
     });
   });
