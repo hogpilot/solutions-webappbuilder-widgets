@@ -1,63 +1,4 @@
 <div>
-  <div class="source-fields-section">
-    <table class="fields-table" cellspacing="0">
-      <tbody>
-        <!--<tr>
-          <td colspan="1" style="padding-top:10px;">
-            <div class="source-label" data-dojo-attach-point="enableSingleField"></div>
-          </td>
-          <td colspan="1" style="padding-top:10px; padding-left:20px;">
-            <div data-dojo-attach-point="editSingleFields" class="edit-fields"></div>
-          </td>
-
-          <td colspan="1" style="padding-top:10px;">
-            <div class="source-edit-fields" data-dojo-attach-point="enableMultiField"></div>
-          </td>
-          <td colspan="1" style="padding-top:10px; padding-left:20px;">
-            <div data-dojo-attach-point="editMultiFields" class="edit-fields"></div>
-          </td>
-        </tr>
-        <tr>
-          <td class="pad-sides" colspan="2">
-            <span class="tip">${nls.singleFieldHint}</span>
-          </td>
-
-          <td class="pad-sides" colspan="2">
-            <span class="tip">${nls.multiFieldHint}</span>
-          </td>
-        </tr>-->
-
-        <tr>
-          <!--<td colspan="1" style="padding-top:10px;">
-            <div class="source-edit-fields" data-dojo-attach-point="enableMultiField"></div>
-          </td>
-          <td colspan="1" style="padding-top:10px; padding-left:20px;">
-            <div data-dojo-attach-point="editMultiFields" class="edit-fields"></div>
-          </td>-->
-        </tr>
-        <tr>
-          <!--<td class="pad-sides" colspan="2">
-            <span class="tip">${nls.multiFieldHint}</span>
-          </td>-->
-        </tr>
-
-        <!--<tr>
-          <td colspan="1" style="padding-top:10px;">
-            <div class="source-label" data-dojo-attach-point="enableXYField"></div>
-          </td>
-          <td colspan="1" style="padding-top:10px; padding-left:20px;">
-            <div data-dojo-attach-point="editXYFields" class="edit-fields"></div>
-          </td>
-        </tr>
-        <tr>
-          <td class="pad-sides" colspan="2">
-            <span class="tip">${nls.xyFieldHint}</span>
-          </td>
-        </tr>-->
-      </tbody>
-    </table>
-  </div>
-
   <div class="source-url-section">
     <table class="source-table" cellspacing="0">
       <tbody>
@@ -81,6 +22,7 @@
       </tbody>
     </table>
   </div>
+
   <div class="source-details-section" data-dojo-attach-point="detailsSection">
     <table class="source-table" cellspacing="0">
       <tbody>
@@ -102,10 +44,60 @@
             <span class="tip">${nls.countryCodeHint}</span>
           </td>
         </tr>
+
+        <tr class="hide-country-code-row country-code-row" data-dojo-attach-point="minCandidateScoreRow">
+          <td class="first">${nls.minCandidateScore}</td>
+          <td class="second">
+            <input type="text" data-dojo-type="dijit/form/TextBox" data-dojo-attach-point="minCandidateScore"
+                   data-dojo-attach-event="Blur:_onMinCandidateScoreBlur"
+                   placeHolder="${nls.countryCodeEg} 90" data-dojo-props='style:{width:"97%"}' />
+            <span class="tip">${nls.minCandidateScoreHint}</span>
+          </td>
+        </tr>
       </tbody>
     </table>  
   </div>
 
+  <div class="source-fields-section">
+    <table class="fields-table" cellspacing="0">
+      <colgroup>
+        <col width="55%"></col>
+        <col width="45%"></col>
+      </colgroup>
+      <tbody>
+        <tr>
+
+          <td colspan="1">
+            <div>
+              <div class="field-option-label" data-dojo-attach-point="enableSingleField">
+                ${nls.enableSingleField}
+              </div>
+              <div data-dojo-attach-point="editSingleFields" class="edit-fields"></div>
+            </div>
+          </td>
+
+          <td colspan="1">
+            <div>
+              <div class="source-edit-fields field-option-label" data-dojo-attach-point="enableMultiField">
+                ${nls.enableMultiField}
+              </div>
+              <div data-dojo-attach-point="editMultiFields" class="edit-fields"></div>
+            </div>
+          </td>
+
+        </tr>
+        <tr>
+          <td colspan="1">
+            <span class="tip">${nls.singleFieldHint}</span>
+          </td>
+
+          <td colspan="1">
+            <span class="tip">${nls.multiFieldHint}</span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
 
   <!--<div data-dojo-attach-point="shelter" data-dojo-type="jimu/dijit/LoadingShelter" data-dojo-props="hidden:true"></div>-->
   

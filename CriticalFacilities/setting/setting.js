@@ -16,63 +16,71 @@
 
 define([
   'dojo/_base/declare',
-  'dijit/_WidgetsInTemplateMixin',
-  'jimu/BaseWidgetSetting',
-  'jimu/dijit/SimpleTable',
-  'jimu/dijit/TabContainer3',
-  'jimu/LayerInfos/LayerInfos',
-  'jimu/utils',
-  'jimu/dijit/Message',
-  'jimu/dijit/SymbolPicker',
   'dojo/_base/lang',
   'dojo/_base/html',
   'dojo/on',
   'dojo/when',
   'dojo/query',
   'dojo/_base/array',
-  '../locatorUtils',
-  './EditFields',
-  './LocatorSourceSetting',
+  'dojo/dom-construct',
+  'dojo/dom-style',
+  'dojo/Deferred',
+  'dijit/_WidgetsInTemplateMixin',
   'dijit/form/NumberSpinner',
   'dijit/form/Select',
   'dijit/form/ValidationTextBox',
+  'dijit/form/RadioButton',
+  'jimu/BaseWidgetSetting',
+  'jimu/dijit/SimpleTable',
+  'jimu/dijit/TabContainer3',
+  'jimu/LayerInfos/LayerInfos',
+  'jimu/utils',
+  'jimu/portalUtils',
+  'jimu/dijit/Message',
+  'jimu/dijit/SymbolPicker',
   'jimu/dijit/CheckBox',
   'jimu/dijit/LayerChooserFromMapWithDropbox',
+  'esri/symbols/jsonUtils',
+  '../locatorUtils',
   './EditablePointFeatureLayerChooserFromMap',
-  'dojo/dom-construct',
-  'dojo/dom-style',
-  'esri/symbols/jsonUtils'
+  './EditFields',
+  './LocatorSourceSetting',
 ],
   function (
     declare,
-    _WidgetsInTemplateMixin,
-    BaseWidgetSetting,
-    SimpleTable,
-    TabContainer3,
-    LayerInfos,
-    utils,
-    Message,
-    SymbolPicker,
     lang,
     html,
     on,
     when,
     query,
     array,
-    _utils,
-    EditFields,
-    LocatorSourceSetting,
+    domConstruct,
+    domStyle,
+    Deferred,
+    _WidgetsInTemplateMixin,
     NumberSpinner,
     Select,
     ValidationTextBox,
+    RadioButton,
+    BaseWidgetSetting,
+    SimpleTable,
+    TabContainer3,
+    LayerInfos,
+    utils,
+    portalUtils,
+    Message,
+    SymbolPicker,
     CheckBox,
     LayerChooserFromMapSelect,
+    jsonUtils,
+    _utils,
     EditablePointFeatureLayerChooserFromMap,
-    domConstruct,
-    domStyle,
-    jsonUtils) {
+    EditFields,
+    LocatorSourceSetting) {
     return declare([BaseWidgetSetting, _WidgetsInTemplateMixin], {
       baseClass: 'jimu-widget-setting-critical-facilities',
+
+      //TODO need to get the fields lists for single or multi back within the LocatorSourceSetting since they need to be stored for each locator
 
       //TODO persist values and reload correctly
       //TODO disable OK when no layer is selected
@@ -82,7 +90,7 @@ define([
       //TODO disable ok if any validators are invalid
       //TODO do like some of the other controls that use this layer chooser and have it expanded on startup when no value has been specified by the user
       //TODO get fields from the layer selected in the layer chooser
-      //TODO need to get the fields lists for single or multi back within the LocatorSourceSetting since they need to be stored for each locator
+      //TODO need to persist group/server storage stuff
 
       //Questions
       //TODO should we support an option for configure user to mark certain fields as required or optional?
@@ -169,7 +177,6 @@ define([
 
       _initUI: function () {
         this._initTabs();
-        //this._initLayersTable();
         this._createLayerChooserSelect(true);
         this._initLocationOptions();
       },
@@ -213,7 +220,7 @@ define([
         if (bindEvent) {
           this.own(on(this.layerChooserSelect, 'selection-change', lang.hitch(this, function (l) {
             console.log(l);
-            //TODO make sure this is the expected way to get the layer when you have morethan one in the map
+            //TODO make sure this is the expected way to get the layer when you have more than one in the map
             this.layer = l[0];
           })));
         }
@@ -251,43 +258,73 @@ define([
         this.own(on(this.sourceList, 'row-select', lang.hitch(this, this._onSourceItemSelected)));
         this.own(on(this.sourceList, 'row-delete', lang.hitch(this, this._onSourceItemRemoved)));
 
-        this.enableXYField = this._initCheckBox(this.enableXYField, this.nls.enableXYField, this.editXYFields);
+        //XY is managed here...multi and single and managed per locator
+        //this.enableXYField = this._initCheckBox(this.enableXYField, this.nls.enableXYField, this.editXYFields);
+
+        this.xyEnabled = true;
         this.own(on(this.editXYFields, 'click', lang.hitch(this, this._editFields)));
 
-        this.enableSingleField = this._initCheckBox2(this.enableSingleField, this.nls.enableSingleField, this.editSingleFields);
-        this.enableMultiField = this._initCheckBox2(this.enableMultiField, this.nls.enableMultiField, this.editMultiFields);
+        this.own(on(this.editLayerFields, 'click', lang.hitch(this, this._onEditFieldsClick)));
 
-        this.own(on(this.editSingleFields, 'click', lang.hitch(this, this._editFields, 'single')));
-        this.own(on(this.editMultiFields, 'click', lang.hitch(this, this._editFields, 'multi')));
+        //Store share results options
+        this.enableStoreResults = this._initStoreResultsCheckBox(this.enableStoreResults, this.nls.enableStoreResults, this.storeResultsOptions);
 
-        
+        this._initShareSelect();
+        this._initStoreUrl(this.storeUrl);
+
+        this.rdoOrg = this._initStoreRdo(this.rdoOrg, [this.shareSelect, this.orgTip], "org");
+        this.rdoServer = this._initStoreRdo(this.rdoServer, [this.storeUrl, this.setServer, this.serverTip], "server");
       },
 
-      _initCheckBox2: function (domNode, nlsValue, editNode) {
-        domNode = new CheckBox({
-          checked: false,
-          label: nlsValue
-        }, domNode);
-        this._toggleNode(editNode, false);
-        this.own(on(domNode, 'change', lang.hitch(this, function () {
-          var enabled = domNode.getValue();
-          switch (domNode.label) {
-            case this.nls.enableSingleField:
-              this.singleEnabled = enabled;
-              break;
-            case this.nls.enableMultiField:
-              this.multiEnabled = enabled;
-              break;
+      _initStoreUrl: function (node) {
+        node.selectControl = new ValidationTextBox({
+          required: true,
+          trim: true,
+          disabled: true,
+          style: "width: 100%;"
+        });
+        node.selectControl.placeAt(node).startup();
+      },
+
+      _initShareSelect: function () {
+        this._getGroupValues().then(lang.hitch(this, function (vals) {
+          this.hasGroups = vals.length > 0 ? true : false;
+          this.addSelect(this.shareSelect, vals);
+        }));
+      },
+
+      _getGroupValues: function () {
+        var def = new Deferred();
+        var portal = portalUtils.getPortal(this.appConfig.portalUrl);
+        portal.getUser().then(lang.hitch(this, function (user) {
+          var values = [];
+          for (var k in user.groups) {
+            var g = user.groups[k];
+            values.push({
+              label: g.title,
+              value: g.id
+            });
           }
-          this._toggleNode(editNode, enabled);
-          this._toggleContainerNode((this.singleEnabled || this.multiEnabled) ? true : false);
-        })));
-        return domNode;
+          def.resolve(values);
+        }), lang.hitch(this, function (err) {
+          console.log(err);
+          def.resolve([]);
+        }));
+        return def;
       },
 
-      _toggleContainerNode: function (enable) {
-        html.removeClass(this.locatorOptions, enable ? 'display-none' : 'display-block');
-        html.addClass(this.locatorOptions, enable ? 'display-block' : 'display-none');
+      addSelect: function (node, values) {
+        node.selectControl = new Select({
+          options: values,
+          style: "width: 100%;"
+        });
+        node.selectControl.placeAt(node).startup();
+      },
+
+      //TODO move to locator logic as this is dependant upon each locator...this may actually just be removed
+      _toggleContainerNode: function (node, show) {
+        html.removeClass(node, show ? 'display-none' : 'display-block');
+        html.addClass(node, show ? 'display-block' : 'display-none');
       },
 
       _getLayerDefinitionForFilterDijit: function (layer) {
@@ -307,21 +344,44 @@ define([
         return layerDefinition;
       },
 
+      _initStoreRdo: function (domNode, nodes, type) {
+        domNode = new RadioButton({
+          value: type
+        }, domNode);
+        array.forEach(nodes, lang.hitch(this, function (node) {
+          this._toggleContainerNode(node, false);
+        }));       
+        this.own(on(domNode, 'change', lang.hitch(this, function () {
+          var enabled = domNode.checked;
+          this.useOrg = domNode.getValue() === "org" ? enabled : this.useOrg;
+          this.useServer = domNode.getValue() === "server" ? enabled : this.useServer;
+          array.forEach(nodes, lang.hitch(this, function (node) {
+            this._toggleContainerNode(node, enabled);
+          }));
+        })));
+        return domNode;
+      },
+
       _initStoreResultsCheckBox: function (domNode, nlsValue, editNode) {
         domNode = new CheckBox({
           checked: false,
           label: nlsValue
         }, domNode);
-        this._toggleNode(editNode, false);
+        this._toggleContainerNode(editNode, false);
         this.own(on(domNode, 'change', lang.hitch(this, function () {
-          var enabled = domNode.getValue();
-          this.xyEnabled = enabled;
-          this._toggleNode(editNode, enabled);
+          this.storeResults = domNode.getValue();
+          this._toggleContainerNode(editNode, this.storeResults);
         })));
         return domNode;
       },
 
-      //addded for xy fields may simplify
+      _toggleDisplay: function (domNode, enable) {
+        if (domNode) {
+          html.removeClass(domNode, enable ? 'display-none' : 'display-block');
+          html.addClass(domNode, enable ? 'display-block' : 'display-none');
+        }
+      },
+
       _initCheckBox: function (domNode, nlsValue, editNode) {
         domNode = new CheckBox({
           checked: false,
@@ -336,7 +396,6 @@ define([
         return domNode;
       },
 
-      //addded for xy fields may simplify
       _toggleNode: function (domNode, enable) {
         if (domNode) {
           html.removeClass(domNode, enable ? 'edit-fields-disabled' : 'edit-fields');
@@ -344,41 +403,29 @@ define([
         }
       },
 
-      //_addLayerRows: function () {
-      //  if (this._editablePointLayerInfos) {
-      //    array.forEach(this._editablePointLayerInfos, lang.hitch(this, function (layerInfo) {
-      //      var addRowResult = this._layersTable.addRow({
-      //        txtLayerLabel: layerInfo.featureLayer.title,
-      //        url: layerInfo.url
-      //      });
-      //      if (addRowResult && addRowResult.success) {
-      //        this._setRowConfig(addRowResult.tr, layerInfo);
-      //      } else {
-      //        console.error("add row failed ", addRowResult);
-      //      }
-      //    }));
-      //  } else {
-      //    this._disableOk();
-      //    new Message({
-      //      message: this.nls.needsEditablePointLayers
-      //    });
-      //  }
-      //},
-
       _onEditFieldsClick: function (tr) {
-        var rowData = this._layersTable.getRowData(tr);
-        if (rowData && rowData.rdoLayer) {
-          var editFields = new EditFields({
-            nls: this.nls,
-            _layerInfo: this._getRowConfig(tr),
-            type: 'fieldInfos'
-          });
-          editFields.popupEditPage();
-        } else {
-          new Message({
-            message: this.nls.noSelectField
-          });
-        }
+        //get the stored details or default details
+        // will need to check the current layer id agaist the stored layer id
+
+        alert('need to update this...');
+
+        //if (this.layerInfo) {
+
+        //}
+
+        //var rowData = this._layersTable.getRowData(tr);
+        //if (rowData && rowData.rdoLayer) {
+        //  var editFields = new EditFields({
+        //    nls: this.nls,
+        //    _layerInfo: this._getRowConfig(tr),
+        //    type: 'fieldInfos'
+        //  });
+        //  editFields.popupEditPage();
+        //} else {
+        //  new Message({
+        //    message: this.nls.noSelectField
+        //  });
+        //}
       },
 
       setConfig: function (config) {
@@ -406,45 +453,18 @@ define([
         this.layerChooserSelect.showLayerChooser();
         //}), 50);
 
-        //var trs = this._layersTable.getRows();
-        //var tr;
-        //if (this.config.layerInfos && this.config.layerInfos.hasOwnProperty(0)) {
-        //  var configLayerInfo = this.config.layerInfos[0];       
-        //  for (var i = 0; i < trs.length; i++) {
-        //    tr = trs[i];
-        //    var rc = this._getRowConfig(tr);
-        //    if (rc.featureLayer.id === configLayerInfo.featureLayer.id) {
-        //      break;
-        //    }
-        //  }
-        //} else {
-        //  tr = trs[0];
-        //}
-        //if (tr) {
-        //  var radio = query('input', tr.firstChild)[0];
-        //  radio.checked = true;
-        //}
-
         //Layer Settings
         this._initSymbolPicker();
         this._initMaxRecords();
         this._initSearchRadius();
 
-        //TODO consolidate after I remind myself if thsi is already handled elsewhere
-        if (typeof (this.config.singleEnabled) !== 'undefined' && this.config.singleEnabled !== NaN) {
-          this.singleEnabled = this.config.singleEnabled;
-        } else {
-          this.singleEnabled = false;
-        }
+        //Location settings//
 
-        if (typeof (this.config.multiEnabled) !== 'undefined' && this.config.multiEnabled !== NaN) {
-          this.multiEnabled = this.config.multiEnabled;
-        } else {
-          this.multiEnabled = false;
-        }
-
-        this._toggleContainerNode((this.singleEnabled || this.multiEnabled) ? true : false);
-
+        //Single/Multi field options
+        //TODO this will go away if these are not optional
+        //this.singleEnabled = this.config.singleEnabled || false;
+        //this.multiEnabled = this.config.multiEnabled || false;
+        //this._toggleContainerNode((this.singleEnabled || this.multiEnabled) ? true : false);
 
         //X/Y settings
         if (!this.config.defaultXYFields) {
@@ -453,30 +473,23 @@ define([
 
         if (typeof (this.config.xyEnabled) !== 'undefined') {
           this.xyEnabled = this.config.xyEnabled;
-          this.enableXYField.setValue(this.config.xyEnabled);
+          //this.enableXYField.setValue(this.config.xyEnabled);
         }
 
         this._setXYFields(this.defaultXYFields, this.config);
-      },
 
-      //_getEditablePointLayerInfos: function () {
-      //  var editableLayerInfos = [];
-      //  for (var i = this.map.graphicsLayerIds.length - 1; i >= 0; i--) {
-      //    var layerObject = this.map.getLayer(this.map.graphicsLayerIds[i]);
-      //    if (layerObject.type === "Feature Layer" &&
-      //        layerObject.url &&
-      //        layerObject.isEditable &&
-      //        layerObject.isEditable() &&
-      //        layerObject.geometryType === "esriGeometryPoint") {
-      //      var layerInfo = this._getLayerInfoFromConfiguration(layerObject);
-      //      if (!layerInfo) {
-      //        layerInfo = this._getDefaultLayerInfo(layerObject);
-      //      }
-      //      editableLayerInfos.push(layerInfo);
-      //    }
-      //  }
-      //  return editableLayerInfos;
-      //},
+        //Store results settings
+        this.storeResults = this.config.storeResults || false;
+        this.enableStoreResults.setValue(this.storeResults); 
+        this._toggleContainerNode(this.storeResultsOptions, this.storeResults);
+
+        //if set in config use that otherwise set default to use org
+        this.useOrg = (this.config.useOrg || this.config.useServer) ? this.config.useOrg : true;
+        this.rdoOrg.set("checked", this.useOrg);
+
+        this.useServer = (this.config.useOrg || this.config.useServer) ? this.config.useServer : false;
+        this.rdoServer.set("checked", this.useServer);
+      },
 
       _getLayerInfoFromConfiguration: function (layerObject) {
         var layerInfo = null;
@@ -670,6 +683,10 @@ define([
         this.config.xyFields = this.xyFields || this.config.defaultXYFields;
         this.config.xyEnabled = this.xyEnabled;
 
+        this.config.useOrg = this.useOrg;
+        this.config.useServer = this.useServer;
+        this.config.storeResults = this.storeResults;
+
         //search radius
         return this.config;
       },
@@ -860,6 +877,14 @@ define([
           name: source.name
         });
         this._currentSourceSetting.destroy();
+      },
+
+      _storeOptionsChanged: function () {
+        console.log(this);
+      },
+
+      _onSetServerClick: function () {
+
       },
 
       _disableOk: function () {

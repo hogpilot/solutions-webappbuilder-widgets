@@ -86,11 +86,14 @@ define(
         this.exampleHint = this.nls.locatorExample +
           ": http://&lt;myServerName&gt;/arcgis/rest/services/World/GeocodeServer";
 
+        this.singleEnabled = true;
+        this.multiEnabled = true;
+
         //this.enableSingleField = this._initCheckBox(this.enableSingleField, this.nls.enableSingleField, this.editSingleFields);
         //this.enableMultiField = this._initCheckBox(this.enableMultiField, this.nls.enableMultiField, this.editMultiFields);
        
-        //this.own(on(this.editSingleFields, 'click', lang.hitch(this, this._editFields, 'single')));
-        //this.own(on(this.editMultiFields, 'click', lang.hitch(this, this._editFields, 'multi')));
+        this.own(on(this.editSingleFields, 'click', lang.hitch(this, this._editFields, 'single')));
+        this.own(on(this.editMultiFields, 'click', lang.hitch(this, this._editFields, 'multi')));
 
         this._setMessageNodeContent(this.exampleHint);
 
@@ -98,26 +101,26 @@ define(
         this.setConfig(this.config);
       },
 
-      _initCheckBox: function (domNode, nlsValue, editNode) {
-        domNode = new CheckBox({
-          checked: false,
-          label: nlsValue
-        }, domNode);
-        this._toggleNode(editNode, false);
-        this.own(on(domNode, 'change', lang.hitch(this, function () {
-          var enabled = domNode.getValue();
-          switch (domNode.label) {
-            case this.nls.enableSingleField:
-              this.singleEnabled = enabled;
-              break;
-            case this.nls.enableMultiField:
-              this.multiEnabled = enabled;
-              break;
-          }
-          this._toggleNode(editNode, enabled);
-        })));
-        return domNode;
-      },
+      //_initCheckBox: function (domNode, nlsValue, editNode) {
+      //  domNode = new CheckBox({
+      //    checked: false,
+      //    label: nlsValue
+      //  }, domNode);
+      //  this._toggleNode(editNode, false);
+      //  this.own(on(domNode, 'change', lang.hitch(this, function () {
+      //    var enabled = domNode.getValue();
+      //    switch (domNode.label) {
+      //      case this.nls.enableSingleField:
+      //        this.singleEnabled = enabled;
+      //        break;
+      //      case this.nls.enableMultiField:
+      //        this.multiEnabled = enabled;
+      //        break;
+      //    }
+      //    this._toggleNode(editNode, enabled);
+      //  })));
+      //  return domNode;
+      //},
 
       setRelatedTr: function(tr) {
         this.tr = tr;
@@ -148,11 +151,11 @@ define(
 
         if (typeof (this.config.singleEnabled) !== 'undefined') {
           this.singleEnabled = this.config.singleEnabled;
-          this.enableSingleField.setValue(this.config.singleEnabled);
+          //this.enableSingleField.setValue(this.config.singleEnabled);
         }
         if (typeof (this.config.multiEnabled) !== 'undefined') {
           this.multiEnabled = this.config.multiEnabled;
-          this.enableMultiField.setValue(this.config.multiEnabled);
+          //this.enableMultiField.setValue(this.config.multiEnabled);
         }
 
         //this.shelter.show();
@@ -162,7 +165,7 @@ define(
               this._locatorDefinition = response;
               this._locatorDefinition.url = url;
               this._setSourceItems();
-              //this._setAddressFields(url, this.config);
+              this._setAddressFields(url, this.config);//un-comm
               this._setMessageNodeContent(this.exampleHint);
             } else if (url && (response && response.type === 'error')) {
               this._setSourceItems();
@@ -206,6 +209,7 @@ define(
           addressFields: this.addressFields,
           singleAddressFields: this.singleAddressFields,
           countryCode: jimuUtils.stripHTML(this.countryCode.get('value')),
+          minCandidateScore: jimuUtils.stripHTML(this.minCandidateScore.get('value')),
           type: "locator"
         };
       },
@@ -263,16 +267,22 @@ define(
         this.countryCode.set('value', jimuUtils.stripHTML(this.countryCode.get('value')));
       },
 
+      _onMinCandidateScoreBlur: function () {
+        this.minCandidateScore.set('value', jimuUtils.stripHTML(this.minCandidateScore.get('value')));
+      },
+
       _disableSourceItems: function() {
         this.locatorName.set('disabled', true);
         this.countryCode.set('disabled', true);
-        this.enableSingleField.set('disabled', true);
-        this.enableMultiField.set('disabled', true);
+        this.minCandidateScore.set('disabled', true);
+        //this.enableSingleField.set('disabled', true);
+        //this.enableMultiField.set('disabled', true);
       },
 
       _enableSourceItems: function() {
         this.locatorName.set('disabled', false);
         this.countryCode.set('disabled', false);
+        this.minCandidateScore.set('disabled', false);
         //this.enableSingleField.set('disabled', false);
         //this.enableMultiField.set('disabled', false);
       },
@@ -283,6 +293,7 @@ define(
           // this.validService = true;
           this.locatorUrl.set('value', config.url);
           this._processCountryCodeRow(config.url);
+          this._processMinCandidateScoreRow(config.url);  //??   
           this._setAddressFields(config.url, this.config);
         }
         if (config.name) {
@@ -293,6 +304,9 @@ define(
         }
         if (config.countryCode) {
           this.countryCode.set('value', jimuUtils.stripHTML(config.countryCode));
+        }
+        if (config.minCandidateScore) {
+          this.minCandidateScore.set('value', jimuUtils.stripHTML(config.minCandidateScore));
         }
         this._enableSourceItems();
         
@@ -483,6 +497,7 @@ define(
             this.singleLineField = response.singleLineAddressField;
 
             this._processCountryCodeRow(url);
+            this._processMinCandidateScoreRow(url);
 
             this._locatorDefinition = response;
             this._locatorDefinition.url = url;
@@ -536,6 +551,15 @@ define(
           html.removeClass(this.countryCodeRow, 'hide-country-code-row');
         } else {
           html.addClass(this.countryCodeRow, 'hide-country-code-row');
+        }
+      },
+
+      _processMinCandidateScoreRow: function(url) {
+        if (this._isEsriLocator(url)) {
+          this.minCandidateScore.set('value', "");
+          html.removeClass(this.minCandidateScoreRow, 'hide-country-code-row');
+        } else {
+          html.addClass(this.minCandidateScoreRow, 'hide-country-code-row');
         }
       },
 

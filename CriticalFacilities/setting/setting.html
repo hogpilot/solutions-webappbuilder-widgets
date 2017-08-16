@@ -16,7 +16,9 @@
           <tr class="row-padding">
             <td>${nls.layerOption}</td>
             <td data-dojo-attach-point="layerTd" class="control-padding"></td>
-            <td data-dojo-attach-point="layerFieldsEdit"></td>
+            <td>
+              <div data-dojo-attach-point="editLayerFields" class="edit-fields"></div>
+            </td>
           </tr>
           <tr class="row-padding">
             <td>${nls.tempSymbol}</td>
@@ -50,49 +52,8 @@
           <p>${nls.instructionGeocode}</p>
         </div>
         <div style="margin: 10px 10px 10px 10px;">
-          <!--test-->
-          <table class="xy-table" cellspacing="0">
-            <tbody>
-              <tr>
-                <td colspan="1" style="padding-top:10px;">
-                  <div class="source-label" data-dojo-attach-point="enableXYField"></div>
-                </td>
-                <td colspan="1" style="padding-top:10px; padding-left:20px;">
-                  <div data-dojo-attach-point="editXYFields" class="edit-fields"></div>
-                </td>
 
-                <td colspan="1" style="padding-top:10px;">
-                  <div class="source-label" data-dojo-attach-point="enableSingleField"></div>
-                </td>
-                <td colspan="1" style="padding-top:10px; padding-left:20px;">
-                  <div data-dojo-attach-point="editSingleFields" class="edit-fields"></div>
-                </td>
-
-                <td colspan="1" style="padding-top:10px;">
-                  <div class="source-edit-fields" data-dojo-attach-point="enableMultiField"></div>
-                </td>
-                <td colspan="1" style="padding-top:10px; padding-left:20px;">
-                  <div data-dojo-attach-point="editMultiFields" class="edit-fields"></div>
-                </td>
-
-              </tr>
-              <tr>
-                <td class="pad-sides" colspan="2">
-                  <span class="tip">${nls.xyFieldHint}</span>
-                </td>
-
-                <td class="pad-sides" colspan="2">
-                  <span class="tip">${nls.singleFieldHint}</span>
-                </td>
-
-                <td class="pad-sides" colspan="2">
-                  <span class="tip">${nls.multiFieldHint}</span>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-
-          <div data-dojo-attach-point="locatorOptions" class="display-none">
+          <div data-dojo-attach-point="locatorOptions" style="display:block;">
             <div class="add-button" role="button">
               <div class="button" data-dojo-attach-event="click:_onAddClick">
                 <span class="button-text">${nls.add}</span>
@@ -101,10 +62,41 @@
             <div class="sources">
               <div class="source-list jimu-float-leading">
                 <div class="source-list-table" data-dojo-attach-point="sourceList"></div>
+                <table class="xy-table" cellspacing="0">
+                  <tbody>
+                    <tr>
+                      <td colspan="1" style="padding-top:30px;">
+                        <div>
+                          <div class="field-option-label" data-dojo-attach-point="enableXYField">
+                            ${nls.enableXYField}
+                          </div>
+                          <div data-dojo-attach-point="editXYFields" class="edit-fields"></div>
+                        </div>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td colspan="1">
+                        <span class="tip">${nls.xyFieldHint}</span>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
               <div class="source-setting jimu-float-trailing" data-dojo-attach-point="sourceSettingNode"></div>
-
-
+              <!--<table class="xy-table" cellspacing="0">
+                <tbody>
+                  <tr>
+                    <td colspan="1" style="padding-top:30px;">
+                      <div>
+                        <div class="field-option-label" data-dojo-attach-point="enableXYField">
+                          ${nls.enableXYField}
+                        </div>
+                        <div data-dojo-attach-point="editXYFields" class="edit-fields"></div>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>-->
             </div>
 
             <fieldset class="settings-field-set">
@@ -116,47 +108,56 @@
               </div>
 
               <div style="margin: 10px 10px 10px 10px;">
-                <table class="xy-table" cellspacing="0">
-                  <tbody>
-                    <tr>
-                      <td colspan="1" style="padding-top:10px;">
-                        <div class="source-label" data-dojo-attach-point="enableStoreResults"></div>
-                      </td>
-                      <td colspan="1" style="padding-top:10px; padding-left:20px;">
-                        <div data-dojo-attach-point="enableStoreResultsHuh" class="edit-fields"></div>
-                      </td>
-                    </tr>
-
-                    <tr>
-                      <td colspan="1" style="padding-top:10px;">
-                        <div class="source-label" data-dojo-attach-point="enableStoreResults"></div>
-                      </td>
-                      <td>
-                        <!--radio button for org-->
-                      </td>
-                      <td>
-                        <!--combo for share groups-->
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <!--nothing-->
-                      </td>
-                      <td>
-                        <!--server-->
-                      </td>
-                      <td>
-                        <!--textbox for url-->
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-
+                <div class="source-label" data-dojo-attach-point="enableStoreResults" style="float: left; width: 270px; min-height: 50px;"></div>
+                <div data-dojo-attach-point="storeResultsOptions" class="display-none" style="overflow: hidden; min-height: 50px;">
+                  <table cellspacing="0" class="store-table">
+                    <tbody>
+                      <tr style="line-height: 30px">
+                        <td style="width: 200px">
+                          <!--radio button for org-->
+                          <input name="shareOptionsGroup" class="jimu-radio-btn" data-dojo-attach-point="rdoOrg" title="${nls.inOrganization}" />
+                          <label class="label">${nls.inOrganization}</label>
+                        </td>
+                        <td style="padding-right: 10px;">
+                          <!--combo for share groups-->
+                          <div data-dojo-attach-point="shareSelect"></div>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td></td>
+                        <td>
+                          <span class="tip display-none" data-dojo-attach-point="orgTip">${nls.xyFieldHint}</span>
+                        </td>
+                      </tr>
+                      <tr style="line-height: 30px">
+                        <td>
+                          <!--server-->
+                          <div>
+                            <input name="shareOptionsGroup" data-dojo-attach-point="rdoServer" title="${nls.inServer}" />
+                            <label class="label">${nls.inServer}</label>
+                          </div>
+                        </td>
+                        <td style="width: 370px; padding-right: 10px;">
+                          <!--textbox for url-->
+                          <div data-dojo-attach-point="storeUrl"></div>
+                        </td>
+                        <td>
+                          <span title="${nls.set}" data-dojo-attach-point="setServer" class="jimu-btn" style="line-height: 30px" data-dojo-attach-event="click:_onSetServerClick">${nls.set}</span>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td></td>
+                        <td>
+                          <span class="tip display-none" data-dojo-attach-point="serverTip">${nls.xyFieldHint}</span>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
             </fieldset>
           </div>
-
         </div>
-
     </div>
   </div>
 </div>
