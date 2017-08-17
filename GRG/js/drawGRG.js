@@ -153,12 +153,8 @@ define([
           polygon = geometryEngine.simplify(polygon);
           
           //project the geometry to the same spatial reference as the map
-          if(map.spatialReference.wkid !== 4326){
-            geometryUtils.getProjectedGeometry(polygon,map.spatialReference,geometryService).then(
-              function (projectedGeometry) {
-                polygon = projectedGeometry;
-              }
-            );
+          if(map.spatialReference.wkid != 4326){
+            polygon = webMercatorUtils.geographicToWebMercator(polygon);
           }          
           var graphic = new Graphic(polygon);
           
@@ -177,6 +173,10 @@ define([
         
         } else {
           var polygon = new Polygon(new SpatialReference({wkid:102100}));
+          
+          if(centerPoint.spatialReference.wkid === 4326){
+            centerPoint = webMercatorUtils.geographicToWebMercator(centerPoint);
+          }
           
           switch (gridOrigin) {
             case 'center':
@@ -222,13 +222,10 @@ define([
                     
           //rotate the graphics as required
           var polygonRotated =  geometryEngine.rotate(polygon, (angle * -1),  centerPoint);
+          
           //project the geometry to the same spatial reference as the map
-          if(map.spatialReference.wkid !== 102100){
-            geometryUtils.getProjectedGeometry(polygonRotated,map.spatialReference,geometryService).then(
-              function (projectedGeometry) {
-                polygonRotated = projectedGeometry;
-              }
-            );
+          if(map.spatialReference.wkid != 102100){
+            polygonRotated = webMercatorUtils.webMercatorToGeographic(polygonRotated);
           }
           var graphic = new Graphic(polygonRotated);
         }

@@ -592,29 +592,26 @@ define([
       },
       
       _drawGRGAreaComplete: function (evt) {          
-        var graphic = new Graphic(evt.geometry, this._extentSym);          
+        var graphic = new Graphic(evt.geometry, this._extentSym);
         this._graphicsLayerGRGExtent.add(graphic);
         this.map.enableMapNavigation();
         this.dtArea.deactivate();
         
-        //project the geometry to WMAS
-        if(evt.geometry.spatialReference.wkid !== 102100){
-          geometryUtils.getProjectedGeometry(evt.geometry,new SpatialReference({wkid:102100}),esriConfig.defaults.geometryService).then(
-            function (projectedGeometry) {
-              evt.geometry = projectedGeometry;
-            }
-          );
+        //if the input id geographics project the geometry to WMAS
+        if (evt.geometry.spatialReference.wkid == 4326) {
+          // if the geographic point can be projected the map spatial reference do so
+          evt.geometry = WebMercatorUtils.geographicToWebMercator(evt.geometry);
         }
-        
+       
         //calculate the geodesic width and height of the required grid cells
         var calculatedCellWidth = ((GeometryEngine.geodesicLength(new Polyline({
             paths: [[[evt.geometry.getPoint(0,0).x, evt.geometry.getPoint(0,0).y], [evt.geometry.getPoint(0,1).x, evt.geometry.getPoint(0,1).y]]],
-            spatialReference: this.map.spatialReference
+            spatialReference: evt.geometry.spatialReference
           }), this._cellUnits))/this.cellHorizontal.value);
           
         var calculatedCellHeight = ((GeometryEngine.geodesicLength(new Polyline({
             paths: [[[evt.geometry.getPoint(0,0).x, evt.geometry.getPoint(0,0).y], [evt.geometry.getPoint(0,3).x, evt.geometry.getPoint(0,3).y]]],
-            spatialReference: this.map.spatialReference
+            spatialReference: evt.geometry.spatialReference
           }), this._cellUnits))/this.cellVertical.value);
           
         //convert the width and height into meters
@@ -748,13 +745,10 @@ define([
         if (this._graphicsLayerGRGExtent.graphics[0] && this.cellWidth.isValid() && this.cellHeight.isValid()) {
           var geom = this._graphicsLayerGRGExtent.graphics[0].geometry;
 
-          //project the geometry to WMAS
-          if(geom.spatialReference.wkid !== 102100){
-            geometryUtils.getProjectedGeometry(geom,new SpatialReference({wkid:102100}),esriConfig.defaults.geometryService).then(
-              function (projectedGeometry) {
-                geom = projectedGeometry;
-              }
-            );
+          //if the input is geographics project the geometry to WMAS
+          if (geom.spatialReference.wkid == 4326) {
+            // if the geographic point can be projected the map spatial reference do so
+            geom = WebMercatorUtils.geographicToWebMercator(geom);
           }
           
           var GRGAreaWidth, GRGAreaHeight;
@@ -762,11 +756,11 @@ define([
           if(this.geodesicGrid) {
             GRGAreaWidth = GeometryEngine.geodesicLength(new Polyline({
               paths: [[[geom.getPoint(0,0).x, geom.getPoint(0,0).y], [geom.getPoint(0,1).x, geom.getPoint(0,1).y]]],
-              spatialReference: this.map.spatialReference
+              spatialReference: geom.spatialReference
             }), 'meters');          
             GRGAreaHeight = GeometryEngine.geodesicLength(new Polyline({
               paths: [[[geom.getPoint(0,0).x, geom.getPoint(0,0).y], [geom.getPoint(0,3).x, geom.getPoint(0,3).y]]],
-              spatialReference: this.map.spatialReference
+              spatialReference: geom.spatialReference
             }), 'meters');            
           } else {
             GRGAreaWidth = GeometryEngine.distance(geom.getPoint(0,0), geom.getPoint(0,1), 'meters'); 
