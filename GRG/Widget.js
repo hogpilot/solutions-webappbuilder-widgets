@@ -21,6 +21,7 @@ define([
   
   'jimu/dijit/Message',
   'jimu/dijit/LoadingIndicator',
+  'jimu/utils',
   
   'esri/IdentityManager',
   'esri/arcgis/OAuthInfo',
@@ -74,6 +75,7 @@ define([
     dijitPopup,    
     Message,
     LoadingIndicator,
+    utils,
     esriId,
     esriOAuthInfo,
     esriPortal,
@@ -251,12 +253,7 @@ define([
         this.coordinateFormat = new dijitTooltipDialog({
           content: new editOutputCoordinate({nls: this.nls}),
           style: 'width: 400px'
-        });
-
-        if(this.appConfig.theme.name === 'DartTheme')
-        {
-          domClass.add(this.coordinateFormat.domNode, 'dartThemeClaroDijitTooltipContainerOverride');
-        }        
+        });                
         
         // add extended toolbar for drawing GRG Area
         this.dtArea = new drawFeedBackArea(this.map,{nls: this.nls});
@@ -274,7 +271,8 @@ define([
 
       startup: function () {
         this.inherited(arguments);
-        this.busyIndicator = busyIndicator.create({target: this.domNode.parentNode.parentNode.parentNode, backgroundOpacity: 0});            
+        this.busyIndicator = busyIndicator.create({target: this.domNode.parentNode.parentNode.parentNode, backgroundOpacity: 0});
+        this._setTheme();        
       },
 
       /**
@@ -847,6 +845,50 @@ define([
           var alertMessage = new Message({
             message: this.nls.missingParametersMessage
           });          
+        }
+      },
+
+      //source:
+      //https://stackoverflow.com/questions/9979415/dynamically-load-and-unload-stylesheets
+      _removeStyleFile: function (filename, filetype) {
+        //determine element type to create nodelist from
+        var targetelement = null;
+        if (filetype === "js") {
+          targetelement = "script";
+        } else if (filetype === "css") {
+          targetelement = "link";
+        } else {
+          targetelement = "none";
+        }
+        //determine corresponding attribute to test for
+        var targetattr = null;
+        if (filetype === "js") {
+          targetattr = "src";
+        } else if (filetype === "css") {
+          targetattr = "href";
+        } else {
+          targetattr = "none";
+        }
+        var allsuspects = document.getElementsByTagName(targetelement);
+        //search backwards within nodelist for matching elements to remove
+        for (var i = allsuspects.length; i >= 0; i--) {
+          if (allsuspects[i] &&
+            allsuspects[i].getAttribute(targetattr) !== null &&
+            allsuspects[i].getAttribute(targetattr).indexOf(filename) !== -1) {
+            //remove element by calling parentNode.removeChild()
+            allsuspects[i].parentNode.removeChild(allsuspects[i]);
+          }
+        }
+      },
+
+      _setTheme: function () {
+        //Check if DartTheme
+        if (this.appConfig.theme.name === "DartTheme") {
+          //Load appropriate CSS for dart theme
+          utils.loadStyleLink('darkOverrideCSS', this.folderUrl + "css/dartTheme.css", null);
+          domClass.add(this.coordinateFormat.domNode, 'dartThemeClaroDijitTooltipContainerOverride');
+        } else {
+          this._removeStyleFile('darkTheme.css', 'css');
         }
       },
       

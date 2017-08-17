@@ -335,29 +335,3 @@
 .jimu-widget-GRGDrafter .jimu-btn {
     margin-bottom: 6px;
 }
-
-/****** Dart Theme Overrides ******/
-
-.DartTheme .jimu-widget-GRGDrafter  .dijitSelectDisabled,
-.DartTheme .jimu-widget-GRGDrafter .dijitTextBoxDisabled,
-.DartTheme .jimu-widget-GRGDrafter .dijitTextBoxDisabled .dijitInputContainer ,
-.DartTheme .jimu-widget-GRGDrafter .dijitTextBoxDisabled {
-     background-color: #4c4c4c; 
-}
-
-
-
-.claro .dartThemeClaroDijitTooltipContainerOverride .dijitTooltipContainer {
-    background-color: #4c4c4c;
-    background-image: -webkit-linear-gradient(bottom, rgb(76, 76, 76) 0px, #4c4c4c 10px);
-    border: 1px solid #ffffff;
-    color: #ffffff;
-}
-
-.claro .dartThemeClaroDijitTooltipContainerOverride .jimu-widget-subtitle {
-    color: #ffffff;
-}
-
-.claro .dartThemeClaroDijitTooltipContainerOverride .dijitTooltipConnector {    
-    background-image: url(images/tooltip.png);    
-}
