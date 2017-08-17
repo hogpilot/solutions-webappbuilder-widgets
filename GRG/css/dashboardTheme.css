@@ -47,14 +47,14 @@
 
 .claro .dijitMenu .dartThemeClaroDijitTooltipContainerOverride .dijitMenuItem, 
 .claro .dijitMenu .dijitMenuItem td {
-  background-color: #222;
-  border: 1px solid #222;
+  background-color: transparent;
+  border: 1px solid transparent;
 }
 
 .claro .dijitMenu .dartThemeClaroDijitTooltipContainerOverride .dijitMenuItemSelected, 
-.claro .dijitMenu .dijitMenuItem td {
+.claro .dijitMenu .dijitMenuItemSelected td {
   background: none;
-  background-color: #222;
+  background-color: transparent;
   font-weight: normal;
 }
 

@@ -496,14 +496,18 @@ define([
             this._labelType = updatedSettings.labelType;
             this._gridOrigin = updatedSettings.gridOrigin;           
             if(this._cellShape == "default") {
-              this.cellHeight.set('disabled', false);
+              //this.cellHeight.set('disabled', false);
+              html.removeClass(this.cellHeightContainer, 'controlGroupHidden');
               this.cellHeight.setValue(this.cellWidth.value);
-              this.pointCellHeight.set('disabled', false);
+              //this.pointCellHeight.set('disabled', false);
+              html.removeClass(this.cellPointHeightContainer, 'controlGroupHidden');
               this.pointCellHeight.setValue(this.pointCellWidth.value);
             } else {
-              this.cellHeight.set('disabled', true);
+              //this.cellHeight.set('disabled', true);
+              html.addClass(this.cellHeightContainer, 'controlGroupHidden');
               this.cellHeight.setValue(0);
-              this.pointCellHeight.set('disabled', true);
+              //this.pointCellHeight.set('disabled', true);              
+              html.addClass(this.cellPointHeightContainer, 'controlGroupHidden');
               this.pointCellHeight.setValue(0);
             }            
           })));
@@ -565,7 +569,7 @@ define([
         this.map.disableMapNavigation();
         this.dtArea.activate('polyline');
         domClass.toggle(this.addGRGAreaBtn, 'jimu-state-active');
-        html.addClass(this.saveGRGButton, 'controlGroupHidden');
+        html.addClass(this.saveGRGButton, 'controlGroupHidden');        
       },
       
       _addGRGPointButtonClicked: function () {
