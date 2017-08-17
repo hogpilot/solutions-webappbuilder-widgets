@@ -56,28 +56,10 @@
         //set class to main container
         domClass.add(this.domNode, "GRGDrafterSettingsContainer GRGDrafterFullWidth");
         //TODO: try to remove the timeout
-        setTimeout(lang.hitch(this, this._setBackgroundColorForDartTheme), 500);
+        //setTimeout(lang.hitch(this, this._setBackgroundColorForDartTheme), 500);
       },
 
-      /**
-      * This function overrides dijit/select
-      * background color for dart theme
-      * @memberOf widgets/ParcelDrafter/PlanSettings
-      **/
-      _setBackgroundColorForDartTheme: function () {
-        var buttonContentsDiv, i, selectBoxArrowDiv;
-        // if applied theme is dart Theme
-        if (this.appConfig.theme.name === "DartTheme") {
-          //update the style of arrow buttons for dijit/select to match with combobox
-          buttonContentsDiv = query(".dijitSelect .dijitButtonContents", this.planSettingsNode);
-          selectBoxArrowDiv = query(".dijitSelect .dijitArrowButton", this.planSettingsNode);
-          // loop through all dijit/select div for applying css
-          for (i = 0; i < buttonContentsDiv.length && i < selectBoxArrowDiv.length; i++) {
-            domClass.add(buttonContentsDiv[i], "dijitButtonContentsDartTheme");
-            domClass.add(selectBoxArrowDiv[i], "dijitArrowButtonDartTheme");
-          }
-        }
-      },
+      
 
       /**
       * Add options to passed dropdown

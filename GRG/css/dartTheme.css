@@ -1,6 +1,12 @@
-.jimu-widget-GRGDrafter .dijitSelect .dijitArrowButton
+.dijitSelect .dijitArrowButton 
 {
     background-color: #fafafc;
+    border-color: #fafafc;
+}
+
+.jimu-widget-GRGDrafter .dijitSelect .dijitButtonContents
+{
+    background-color: transparent;
     border-color: #fafafc;
 }
 

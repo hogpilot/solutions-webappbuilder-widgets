@@ -1,0 +1,69 @@
+.jimu-widget-GRGDrafter .dijitSelect .dijitArrowButton
+{
+    background-color: transparent;
+    border-color: #fafafc;
+}
+
+.jimu-widget-GRGDrafter .dijitSelect .dijitButtonContents
+{
+    background-color: transparent;
+}
+
+
+
+.jimu-widget-GRGDrafter .claro .dijitSelectHover,
+.jimu-widget-GRGDrafter .claro .dijitSelectFocused{
+  border: 1px solid #00f;
+}
+
+
+.jimu-widget-GRGDrafter .dijitSelect .dijitButtonContents .hover
+{
+    background-color: red;
+}
+
+.jimu-widget-GRGDrafter  .dijitSelectDisabled,
+.jimu-widget-GRGDrafter .dijitTextBoxDisabled,
+.jimu-widget-GRGDrafter .dijitTextBoxDisabled .dijitInputContainer ,
+.jimu-widget-GRGDrafter .dijitTextBoxDisabled {
+     background-color: #484848; 
+}
+
+.claro .dartThemeClaroDijitTooltipContainerOverride .dijitTooltipContainer {
+    background-color: #4c4c4c;
+    background-image: -webkit-linear-gradient(bottom, rgb(76, 76, 76) 0px, #4c4c4c 10px);
+    border: 1px solid #ffffff;
+    color: #ffffff;
+}
+
+.claro .dartThemeClaroDijitTooltipContainerOverride .jimu-widget-subtitle {
+    color: #ffffff;
+}
+
+
+.claro .dartThemeClaroDijitTooltipContainerOverride .dijitTooltipConnector {    
+    background-image: url(images/tooltip.png);    
+}
+
+.claro .dijitMenu .dartThemeClaroDijitTooltipContainerOverride .dijitMenuItem, 
+.claro .dijitMenu .dijitMenuItem td {
+  background-color: #222;
+  border: 1px solid #222;
+}
+
+.claro .dijitMenu .dartThemeClaroDijitTooltipContainerOverride .dijitMenuItemSelected, 
+.claro .dijitMenu .dijitMenuItem td {
+  background: none;
+  background-color: #222;
+  font-weight: normal;
+}
+
+.claro .dijitMenu .dartThemeClaroDijitTooltipContainerOverride .dijitMenuItem:hover, 
+.claro .dijitMenu .dijitMenuItem:hover  td {
+  background: none;
+  background-color: #1e90ff;
+}
+
+.claro .dijitDropDownButton {
+  background-color: #0000ff;    
+}

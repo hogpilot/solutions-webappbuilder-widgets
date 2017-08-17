@@ -882,13 +882,21 @@ define([
       },
 
       _setTheme: function () {
-        //Check if DartTheme
+        //Check if Dart Theme
         if (this.appConfig.theme.name === "DartTheme") {
           //Load appropriate CSS for dart theme
           utils.loadStyleLink('darkOverrideCSS', this.folderUrl + "css/dartTheme.css", null);
           domClass.add(this.coordinateFormat.domNode, 'dartThemeClaroDijitTooltipContainerOverride');
         } else {
           this._removeStyleFile('darkTheme.css', 'css');
+        }
+        
+        //Check if dashboard Theme
+        if (this.appConfig.theme.name === "DashboardTheme") {
+          //Load appropriate CSS for dart theme
+          utils.loadStyleLink('dashboardOverrideCSS', this.folderUrl + "css/dashboardTheme.css", null);
+        } else {
+          this._removeStyleFile('dashboardTheme.css', 'css');
         }
       },
       
