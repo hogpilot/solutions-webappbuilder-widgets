@@ -5,13 +5,16 @@ define([
   'dojo/_base/window',
   'esri/map',
   'esri/geometry/Extent',
+  'esri/geometry/Point',
+  'esri/SpatialReference',
   'CC/Widget',
   'CC/CoordinateControl',
   'CC/util',
+  'CC/nls/strings',
   'dojo/promise/all',
   'dojo/_base/lang',
   'dojo/_base/Deferred'
-], function(registerSuite, assert, domConstruct, win, Map, Extent, CoordinateConversion, CoordinateControl, CCUtil, dojoAll, lang, Deferred) {
+], function(registerSuite, assert, domConstruct, win, Map, Extent, Point, SpatialReference, CoordinateConversion, CoordinateControl, CCUtil, CCStrings, dojoAll, lang, Deferred) {
   // local vars scoped to this module
   var map, ccUtil, coordinateConversion, cc;
   var dms2,dms3,ds,ds2,dp,ns,pLat,pLon,pss,ms,ss;
@@ -22,16 +25,17 @@ define([
   var latDDMArray = [];
   var lonDDMArray = [];
   var latDMSArray = [];
-  var lonDMSArray = [];  
+  var lonDMSArray = [];
+   
    
   registerSuite({
     name: 'Coordinate Conversion Widget',
      // before the suite starts
     setup: function() {
       // load claro and esri css, create a map div in the body, and create map and Coordinate Conversion objects for our tests
-      domConstruct.place('<link rel="stylesheet" type="text/css" href="//js.arcgis.com/3.19/esri/css/esri.css">', win.doc.getElementsByTagName("head")[0], 'last');
-      domConstruct.place('<link rel="stylesheet" type="text/css" href="//js.arcgis.com/3.19/dijit/themes/claro/claro.css">', win.doc.getElementsByTagName("head")[0], 'last');
-      domConstruct.place('<script src="http://js.arcgis.com/3.19/"></script>', win.doc.getElementsByTagName("head")[0], 'last');
+      domConstruct.place('<link rel="stylesheet" type="text/css" href="//js.arcgis.com/3.21/esri/css/esri.css">', win.doc.getElementsByTagName("head")[0], 'last');
+      domConstruct.place('<link rel="stylesheet" type="text/css" href="//js.arcgis.com/3.21/dijit/themes/claro/claro.css">', win.doc.getElementsByTagName("head")[0], 'last');
+      domConstruct.place('<script src="http://js.arcgis.com/3.21/"></script>', win.doc.getElementsByTagName("head")[0], 'last');
       domConstruct.place('<div id="map" style="width:300px;height:200px;" class="claro"></div>', win.body(), 'only');
       domConstruct.place('<div id="ccNode" style="width:300px;" class="claro"></div>', win.body(), 'last');
 
@@ -45,7 +49,10 @@ define([
       
       coordinateConversion = new CoordinateConversion({
             appConfig: {geomService: {url: "http://sampleserver6.arcgisonline.com/arcgis/rest/services/Utilities/Geometry/GeometryServer"},
-                        geometryService: "http://sampleserver6.arcgisonline.com/arcgis/rest/services/Utilities/Geometry/GeometryServer"},
+                        geometryService: "http://sampleserver6.arcgisonline.com/arcgis/rest/services/Utilities/Geometry/GeometryServer",
+                        theme: {name: 'noThemeName'}
+                        },                        
+            nls: CCStrings.root,
             parentWidget: this,
             map: map,
             input: true,
@@ -61,19 +68,20 @@ define([
             }         
           }, domConstruct.create("div")).placeAt("ccNode");
       
-      
       cc = new CoordinateControl({                
                 parentWidget: coordinateConversion,
                 input: true,
-                type: 'DD'
+                type: 'DD',
+                defaultFormat: "YN XE",
+                nls: CCStrings.root,
+                currentClickPoint: map.extent.getCenter()
             });
-       
-      ccUtil = new CCUtil({appConfig: {
-        geometryService: "http://sampleserver6.arcgisonline.com/arcgis/rest/services/Utilities/Geometry/GeometryServer",
-        coordinateconversion: {                  
-          geometryService: {url: "http://sampleserver6.arcgisonline.com/arcgis/rest/services/Utilities/Geometry/GeometryServer"}
-        }   
-      }});
+      
+      ccUtil = new CCUtil({
+          appConfig: coordinateConversion.appConfig,
+          nls: CCStrings.root         
+        }       
+      );
       
       notations = ccUtil.getNotations();
        
@@ -1868,5 +1876,75 @@ define([
       totalTestCount = totalTestCount + count;
     },
     
+    'Test Manual Input: Check the getDDPoint function returns valid results': function() {
+      //this.skip('Skip test for now');  
+      var passed = false;
+      var match = '';      
+      var count = 0;
+      var dfdGetDDPoint = this.async();
+      var getDDPointArray = [];      
+       
+      var points = [
+        {testNumber: '1', point: new Point([-122.65,45.53],new SpatialReference({wkid:4326})), resultX: -122.65, resultY: 45.53},
+        {testNumber: '2', point: new Point([0,0],new SpatialReference({wkid:4326})), resultX: 0.00, resultY: 0.00},
+        {testNumber: '3', point: new Point([-179.99,0],new SpatialReference({wkid:4326})), resultX: -179.99, resultY: 0.00},
+        {testNumber: '4', point: new Point([179.99,0],new SpatialReference({wkid:4326})), resultX: 179.99, resultY: 0.00},
+        {testNumber: '5', point: new Point([0,-89.99],new SpatialReference({wkid:4326})), resultX: 0, resultY: -89.99},
+        {testNumber: '6', point: new Point([0,89.99],new SpatialReference({wkid:4326})), resultX: 0, resultY: 89.99},
+        {testNumber: '7', point: new Point([15965610,-1637846],new SpatialReference({wkid:102100})), resultX: 143.421, resultY: -14.553},
+        {testNumber: '8', point: new Point([0,0],new SpatialReference({wkid:102100})), resultX: 0.00, resultY: 0.00},
+        {testNumber: '9', point: new Point([10000,10000],new SpatialReference({wkid:102100})), resultX: 0.089, resultY: 0.089},
+        {testNumber: '10', point: new Point([0,0],new SpatialReference({wkid:3031})), resultX: 0, resultY: 90},
+        {testNumber: '11', point: new Point([1000000,100000],new SpatialReference({wkid:3031})), resultX: 84.289, resultY: -80.769},
+        {testNumber: '12', point: new Point([2000000,2000000],new SpatialReference({wkid:5936})), resultX: -150, resultY: 90},        
+      ];      
+      
+
+      for (var i = 0; i < points.length; i++) {
+        getDDPointArray.push(cc.getDDPoint(points[i].point));
+      }
+      
+      dojoAll(getDDPointArray).then(dfdGetDDPoint.callback(function (itm) {
+        for (var i = 0; i < itm.length; i++) {
+          assert.equal(roundNumber(itm[i].x,2), roundNumber(points[i].resultX,2), "Test Number: " + points[i].testNumber + " Failed");
+          assert.equal(roundNumber(itm[i].y,2), roundNumber(points[i].resultY,2), "Test Number: " + points[i].testNumber + " Failed");
+          count++;          
+        }
+        console.log("The number of manual tests conducted to check the getDDPoint function was: " + count);
+        totalTestCount = totalTestCount + count;
+      }));      
+    },
+    
+    
+    'Test Manual Input: Check the getProjectedPoint function returns valid results': function() {
+      //this.skip('Skip test for now');  
+      var passed = false;
+      var match = '';      
+      var count = 0;
+      var dfdGetProjectedPoint = this.async();
+      var getProjectedPointArray = [];      
+       
+      var points = [
+        {testNumber: '1', point: new Point([143.421,14.553],new SpatialReference({wkid:4326})), sr: new SpatialReference({wkid:102100}),resultX: 15965552.689, resultY: 1637738.239},
+        {testNumber: '2', point: new Point([0,0],new SpatialReference({wkid:4326})), sr: new SpatialReference({wkid:102100}),resultX: 0, resultY: 0},
+        {testNumber: '3', point: new Point([45,-90],new SpatialReference({wkid:4326})), sr: new SpatialReference({wkid:3031}),resultX: 0.88039, resultY: 0.88039},
+        {testNumber: '4', point: new Point([84.289,-80.769],new SpatialReference({wkid:4326})), sr: new SpatialReference({wkid:3031}),resultX: 1000069.499, resultY: 100014.122},
+        {testNumber: '5', point: new Point([-150,90],new SpatialReference({wkid:4326})), sr: new SpatialReference({wkid:5936}),resultX: 2000000, resultY: 1999998.727},        
+      ];
+
+      for (var i = 0; i < points.length; i++) {
+        getProjectedPointArray.push(cc.getProjectedPoint(points[i].point,points[i].sr));
+      }
+      
+      dojoAll(getProjectedPointArray).then(dfdGetProjectedPoint.callback(function (itm) {
+        for (var i = 0; i < itm.length; i++) {
+          assert.equal(roundNumber(itm[i].x,2), roundNumber(points[i].resultX,2), "Test Number: " + points[i].testNumber + " Failed");
+          assert.equal(roundNumber(itm[i].y,2), roundNumber(points[i].resultY,2), "Test Number: " + points[i].testNumber + " Failed");
+          count++;          
+        }
+        console.log("The number of manual tests conducted to check the getProjectedPoint function was: " + count);
+        totalTestCount = totalTestCount + count;
+      }));      
+    },
   });
 });

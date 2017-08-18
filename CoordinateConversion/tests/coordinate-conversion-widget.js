@@ -87,7 +87,7 @@ define([
                 map: this.map,
                 parentWidget: this,
                 input: true,
-                type: 'DD'
+                type: 'DD',
                 folderUrl: this.folderUrl
             });
             this.inputControl.placeAt(this.inputcoordcontainer);

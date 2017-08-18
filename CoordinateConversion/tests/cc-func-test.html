@@ -4,7 +4,7 @@
 		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     	<meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no">
 		<title>Coordinate Conversion Functional Test</title>
-		<link rel="stylesheet" href="https://js.arcgis.com/3.16/esri/css/esri.css">
+		<link rel="stylesheet" href="https://js.arcgis.com/3.21/esri/css/esri.css">
 		<link rel="stylesheet" type="text/css" href="../css/style.css">
 		<link rel="stylesheet" type="text/css" href="../../../jimu.js/css/jimu.css">
 		<style>
@@ -18,18 +18,18 @@
 			var dojoConfig = {
 				packages: [{
 					    name: 'tests',
-					    location: 'http://localhost/dd/widgets/CoordinateConversion/tests'
+					    location: 'http://localhost/CoordinateConversion/widgets/CoordinateConversion/tests'
 					}, {
 						name: 'jimu',
-						location: 'http://localhost/dd/jimu.js'
+						location: 'http://localhost/CoordinateConversion/jimu.js'
 					}, {
 						name: 'cc',
-						location: 'http://localhost/dd/widgets/CoordinateConversion'
+						location: 'http://localhost/CoordinateConversion/widgets/CoordinateConversion'
 					}
 				]				
 			};
 		</script>		
-		<script src="https://js.arcgis.com/3.16/"></script>
+		<script src="https://js.arcgis.com/3.21/"></script>
 		<script type="text/javascript">
 			require([
 				'esri/map', 
@@ -66,7 +66,7 @@
 						function loadCoordConvWidget(evt) {
 							var coordConv = new CoordinateConversionWidget({
 								config: ccConfig,
-								folderUrl: "http://localhost/dd/widgets/CoordinateConversion/",
+								folderUrl: "http://localhost/CoordinateConversion/widgets/CoordinateConversion/",
 								map: map
 							}, dom.byId('ccWidget'));
 							coordConv.startup();
